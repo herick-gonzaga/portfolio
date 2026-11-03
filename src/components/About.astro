@@ -1,0 +1,38 @@
+---
+/**
+ * About: two paragraphs (7fr) beside a fact-sheet card (5fr); single column below 900px.
+ * Fact rows are a 120px label + value grid from 600px up, label above value below 600px.
+ */
+import Card from './ui/Card.astro';
+import Section from './ui/Section.astro';
+import { getContent, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const content = getContent(locale);
+const header = content.sections.about;
+---
+
+<Section id="about" locale={locale} kicker={header.kicker} title={header.title} intro={header.intro}>
+  <div class="grid items-start gap-12 md:grid-cols-[7fr_5fr] md:gap-gutter">
+    <div class="max-w-[60ch] space-y-6 text-[18px] leading-[1.6] text-text-2">
+      {content.profile.about.map((paragraph) => <p>{paragraph}</p>)}
+    </div>
+
+    <Card padding="list">
+      <dl>
+        {
+          content.profile.facts.map(({ label, value }) => (
+            <div class="grid gap-1 border-b border-line py-5 last:border-b-0 sm:grid-cols-[120px_1fr] sm:gap-4">
+              <dt class="text-[15px] text-muted">{label}</dt>
+              <dd class="text-[15px] font-medium text-text">{value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </Card>
+  </div>
+</Section>
