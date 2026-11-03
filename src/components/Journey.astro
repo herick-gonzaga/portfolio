@@ -1,0 +1,116 @@
+---
+/**
+ * Journey: timeline of work and education. From 900px the section header (kicker, H2, 15px intro)
+ * sits in a sticky 200px left column beside the timeline; below 900px everything is one column.
+ * The timeline is an <ol> with a 1px line on its left; each item has a 13px dot centered on that
+ * line and aligned with its first text line (the mono period row):
+ *   current        → cobalt fill with a 3px mist ring
+ *   past work      → white fill, 3px cobalt border
+ *   education      → white fill, 3px text border
+ * Items fade in once (320ms, 12px rise) when 30% visible. The hidden start state only applies once
+ * the script has run and motion is allowed, so without JS or under prefers-reduced-motion every
+ * item renders in its final state.
+ */
+import Section from './ui/Section.astro';
+import { getContent, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const content = getContent(locale);
+const header = content.sections.journey;
+
+const dotKind = (item: (typeof content.journey)[number]) =>
+  item.current ? 'current' : item.type === 'education' ? 'education' : 'past';
+---
+
+<Section
+  id="journey"
+  locale={locale}
+  kicker={header.kicker}
+  title={header.title}
+  intro={header.intro}
+  layout="aside"
+>
+  <ol class="journey border-l border-line" data-journey>
+    {
+      content.journey.map((item) => (
+        <li class="journey-item relative pb-10 pl-10 last:pb-0" data-dot={dotKind(item)}>
+          <span class="journey-dot" aria-hidden="true" />
+          <p class:list={['font-mono text-mono', item.current ? 'text-cobalt' : 'text-muted']}>
+            {item.period}
+            {item.place && ` · ${item.place}`}
+          </p>
+          <h3 class="mt-1 text-[20px] leading-[1.3] font-semibold tracking-[-0.01em]">
+            {item.title} · {item.org}
+          </h3>
+          <p class="mt-2 max-w-[62ch] text-body-sm text-muted">{item.description}</p>
+        </li>
+      ))
+    }
+  </ol>
+</Section>
+
+<style>
+  .journey-dot {
+    position: absolute;
+    /* Centered on the <ol>'s 1px left border, which sits just outside the item's box. */
+    left: calc(-6.5px - 0.5px);
+    /* Vertically centered on the first line: mono 13px at line-height 1.4. */
+    top: calc((var(--text-mono) * 1.4 - 13px) / 2);
+    width: 13px;
+    height: 13px;
+    border-radius: 9999px;
+    background-color: var(--color-surface);
+    border: 3px solid var(--color-cobalt);
+  }
+
+  [data-dot='current'] .journey-dot {
+    background-color: var(--color-cobalt);
+    border: 0;
+    box-shadow: 0 0 0 3px var(--color-mist);
+  }
+
+  [data-dot='education'] .journey-dot {
+    border-color: var(--color-text);
+  }
+
+  /* Only the reveal is animated: arming hides pending items instantly, so items painted before the
+     script ran never visibly fade out. */
+  @media (prefers-reduced-motion: no-preference) {
+    .journey[data-reveal] .journey-item.is-visible {
+      transition:
+        opacity 320ms var(--ease-out),
+        transform 320ms var(--ease-out);
+    }
+
+    .journey[data-reveal] .journey-item:not(.is-visible) {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+</style>
+
+<script>
+  const lists = document.querySelectorAll<HTMLOListElement>('[data-journey]');
+  const motionOk = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+
+  if (motionOk && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.3 },
+    );
+    for (const list of lists) {
+      list.dataset.reveal = '';
+      for (const item of list.querySelectorAll('.journey-item')) observer.observe(item);
+    }
+  }
+</script>
