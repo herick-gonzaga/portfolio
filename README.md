@@ -24,6 +24,7 @@ npm run dev        # http://localhost:4321
 | `npm run build`        | Type-check with `astro check`, then build to `./dist/`        |
 | `npm run preview`      | Preview the production build                                  |
 | `npm run i18n:review`  | Validate locales and regenerate `docs/TRANSLATION_REVIEW.md`  |
+| `npm run check:ui`     | Build, serve `dist/` and run the browser UI checks            |
 
 ## Project structure
 
@@ -34,7 +35,9 @@ src/
 │   ├── Navbar.astro        # Sticky navbar, active section, mobile sheet
 │   ├── LanguageSwitcher.astro
 │   ├── Hero.astro          # Hero + SystemDiagram.astro
-│   ├── ui/                 # Button, Chip, Kicker, Icon primitives
+│   ├── About.astro         # Bio paragraphs + fact sheet
+│   ├── Skills.astro        # Four skill cards
+│   ├── ui/                 # Button, Card, Chip, Icon, Kicker, Section primitives
 │   └── flags/              # Simplified US / BR / ES flags (inline SVG)
 ├── layouts/Base.astro      # <head>: SEO, hreflang alternates, JSON-LD
 ├── i18n/                   # Typed content: en.ts, pt.ts, es.ts
@@ -43,7 +46,9 @@ src/
 docs/
 ├── DESIGN_SPEC.md          # Visual system and section spec
 └── TRANSLATION_REVIEW.md   # Generated side-by-side translation table
-scripts/translation-review.ts
+scripts/
+├── translation-review.ts
+└── checks/                 # Browser UI checks (npm run check:ui)
 ```
 
 ## Internationalization
@@ -55,3 +60,13 @@ English is the default locale at `/`; Portuguese (Brazil) and Spanish live at `/
 ## Design
 
 The visual system ("Signal") is documented in [`docs/DESIGN_SPEC.md`](docs/DESIGN_SPEC.md): color tokens, type scale, layout grid, components, motion and responsive breakpoints.
+
+## Browser UI checks
+
+`npm run check:ui` builds the site, serves `dist/` on a local port and runs every `scripts/checks/*.check.mjs` file in headless Chrome against `/`, `/pt/` and `/es/`. It exits non-zero if any assertion fails. Expected copy comes straight from `src/i18n/`, so the checks never drift from the locale files.
+
+- Requires Google Chrome or Chromium. Set `CHROME_PATH` if it isn't in a standard location. There are no npm dependencies: the driver talks to Chrome over the DevTools protocol (`scripts/checks/lib/browser.mjs`).
+- `node scripts/checks/run.mjs <filter>` runs only the check files whose name contains `<filter>`, against the existing `dist/`.
+- Each check file default-exports `{ name, run({ browser, baseUrl, routes, t }) }` and records assertions with `t.ok`, `t.eq`, `t.near` and `t.note`.
+
+Every section PR adds or extends a check file in `scripts/checks/` and must pass `npm run check:ui`.

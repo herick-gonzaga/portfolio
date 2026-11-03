@@ -1,10 +1,12 @@
 ---
 /**
- * Renders the full page for one locale: Navbar and Hero, then placeholder sections that
+ * Renders the full page for one locale: Navbar, Hero, About and Skills, then placeholder sections that
  * section components replace in later steps; every text comes from getContent().
  */
+import About from './About.astro';
 import Hero from './Hero.astro';
 import Navbar from './Navbar.astro';
+import Skills from './Skills.astro';
 import Base from '../layouts/Base.astro';
 import { getContent, type Locale } from '../i18n';
 
@@ -16,8 +18,6 @@ const { locale } = Astro.props;
 const content = getContent(locale);
 
 const sections = [
-  { id: 'about', header: content.sections.about },
-  { id: 'skills', header: content.sections.skills },
   { id: 'projects', header: content.sections.projects },
   { id: 'journey', header: content.sections.journey },
   { id: 'impact', header: content.sections.impact },
@@ -29,6 +29,8 @@ const sections = [
   <Navbar locale={locale} />
   <main id="main">
     <Hero locale={locale} />
+    <About locale={locale} />
+    <Skills locale={locale} />
     {
       sections.map(({ id, header }) => (
         <section id={id} aria-labelledby={`${id}-kicker`}>

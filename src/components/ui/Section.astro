@@ -1,0 +1,47 @@
+---
+/**
+ * Page section shell: <section id> with the container, 112px vertical padding (72px below 900px),
+ * the kicker, the H2 and an optional intro, followed by the section content (default slot).
+ * `padding="bottom"` drops the top padding when the previous section shares the background.
+ * `locale` is accepted per the i18n conventions; all texts arrive already localized.
+ */
+import Kicker from './Kicker.astro';
+import type { Locale } from '../../i18n';
+
+interface Props {
+  id: string;
+  locale: Locale;
+  kicker: string;
+  title?: string;
+  intro?: string;
+  dark?: boolean;
+  padding?: 'both' | 'bottom';
+}
+
+const { id, kicker, title, intro, dark = false, padding = 'both' } = Astro.props;
+const kickerId = `${id}-kicker`;
+const titleId = `${id}-title`;
+---
+
+<section
+  id={id}
+  aria-labelledby={title ? titleId : kickerId}
+  class:list={[dark ? 'bg-ink text-white' : 'text-text', padding === 'both' ? 'py-section' : 'pb-section']}
+>
+  <div class="container">
+    <header class="max-w-[46rem]">
+      <Kicker id={kickerId} tone={dark ? 'dark' : 'light'}>{kicker}</Kicker>
+      {
+        title && (
+          <h2 id={titleId} class:list={['mt-4 text-h2 font-semibold', dark ? 'text-white' : 'text-text']}>
+            {title}
+          </h2>
+        )
+      }
+      {intro && <p class:list={['mt-4 text-body-lg', dark ? 'text-muted-dark' : 'text-muted']}>{intro}</p>}
+    </header>
+    <div class="mt-12 md:mt-16">
+      <slot />
+    </div>
+  </div>
+</section>
