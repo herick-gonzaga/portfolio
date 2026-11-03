@@ -1,0 +1,50 @@
+---
+/**
+ * Button primitive. Renders <a> when `href` is given, otherwise <button>.
+ * Variants: primary (cobalt) · ghost (line border, on light) · ghost-dark (ink-border, on ink).
+ * Sizes: md 48px · sm 40px. Optional trailing icon via the "icon" slot.
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+type Variant = 'primary' | 'ghost' | 'ghost-dark';
+type Size = 'md' | 'sm';
+
+type Props = {
+  variant?: Variant;
+  size?: Size;
+  href?: string;
+  class?: string;
+} & Omit<HTMLAttributes<'button'>, 'class'> &
+  Omit<HTMLAttributes<'a'>, 'class' | 'type' | 'href'>;
+
+const { variant = 'primary', size = 'md', href, class: className, type = 'button', ...rest } = Astro.props;
+
+const Tag = href ? 'a' : 'button';
+
+const variants: Record<Variant, string> = {
+  primary: 'bg-cobalt text-white hover:bg-cobalt-hover',
+  ghost: 'border border-line text-text hover:border-text-2',
+  'ghost-dark': 'border border-ink-border text-white hover:border-muted-dark hover:bg-ink-surface',
+};
+
+const sizes: Record<Size, string> = {
+  md: 'h-button px-6 text-[15px]',
+  sm: 'h-10 px-4 text-[14px]',
+};
+---
+
+<Tag
+  href={href}
+  type={href ? undefined : type}
+  class:list={[
+    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-button font-semibold',
+    'transition-colors duration-hover ease-out',
+    variants[variant],
+    sizes[size],
+    className,
+  ]}
+  {...rest}
+>
+  <slot />
+  {Astro.slots.has('icon') && <slot name="icon" />}
+</Tag>

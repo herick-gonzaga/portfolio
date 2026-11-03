@@ -1,0 +1,19 @@
+---
+/** Chip: mono 12px, 28px tall, 1px border. `light` for mist/surface, `dark` for ink. */
+interface Props {
+  variant?: 'light' | 'dark';
+  class?: string;
+}
+
+const { variant = 'light', class: className } = Astro.props;
+---
+
+<span
+  class:list={[
+    'inline-flex h-chip items-center whitespace-nowrap rounded-chip border px-3 font-mono text-mono-sm',
+    variant === 'dark' ? 'border-ink-border bg-ink-surface text-muted-dark' : 'border-line bg-surface text-text-2',
+    className,
+  ]}
+>
+  <slot />
+</span>
