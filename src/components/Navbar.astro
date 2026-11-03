@@ -1,0 +1,232 @@
+---
+/**
+ * Sticky 72px navbar overlaying the hero. Transparent until 40px of scroll, then ink at 86%
+ * with backdrop blur and a 1px ink-line border. Section anchors (≥900px) highlight the section
+ * in view; below 900px a menu button opens a full-screen sheet with the switcher and 6 links.
+ */
+import LanguageSwitcher from './LanguageSwitcher.astro';
+import Button from './ui/Button.astro';
+import Icon from './ui/Icon.astro';
+import { getContent, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const content = getContent(locale);
+const { nav } = content.ui;
+
+const anchors = [
+  { id: 'about', label: nav.about },
+  { id: 'skills', label: nav.skills },
+  { id: 'projects', label: nav.projects },
+  { id: 'journey', label: nav.journey },
+  { id: 'impact', label: nav.impact },
+] as const;
+
+const sheetLinks = [...anchors, { id: 'contact', label: nav.cta }];
+---
+
+<header
+  class="navbar sticky top-0 z-50 -mb-[var(--nav-height)] h-[var(--nav-height)] border-b border-transparent text-white"
+  data-navbar
+>
+  <div class="container flex h-full items-center justify-between gap-5 lg:gap-8">
+    <a href="#top" class="flex min-h-touch shrink-0 items-center gap-3 rounded-button">
+      <span
+        class="grid size-7 place-items-center rounded-[6px] bg-cobalt font-mono text-[12px] font-semibold"
+        aria-hidden="true">{content.profile.initials}</span
+      >
+      <span class="text-[15px] font-semibold">{content.profile.name}</span>
+    </a>
+
+    <div class="hidden items-center gap-5 md:flex lg:gap-8">
+      <nav aria-label={content.ui.navLabel}>
+        <ul class="flex items-center gap-4 lg:gap-7">
+          {
+            anchors.map(({ id, label }) => (
+              <li>
+                <a
+                  href={`#${id}`}
+                  data-section={id}
+                  class="whitespace-nowrap rounded-[4px] text-[14px] font-medium text-muted-dark transition-colors duration-hover ease-out hover:text-white aria-[current=location]:text-cobalt-soft"
+                >
+                  {label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+      <LanguageSwitcher locale={locale} id="lang-desktop" />
+      <Button variant="ghost-dark" size="sm" href="#contact">{nav.cta}</Button>
+    </div>
+
+    <button
+      type="button"
+      class="inline-flex size-touch items-center justify-center rounded-button text-white md:hidden"
+      aria-label={content.ui.menuOpen}
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+      data-menu-open
+    >
+      <Icon name="menu" size={24} />
+    </button>
+  </div>
+</header>
+
+<!-- Outside <header>: its backdrop-filter would otherwise trap this fixed sheet inside the bar. -->
+<div
+  id="mobile-menu"
+  class="fixed inset-0 z-[60] flex flex-col bg-ink text-white md:hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-label={content.ui.navLabel}
+  hidden
+  data-mobile-menu
+>
+  <div class="container flex h-[var(--nav-height)] shrink-0 items-center justify-between">
+    <LanguageSwitcher locale={locale} id="lang-mobile" align="start" />
+    <button
+      type="button"
+      class="inline-flex size-touch items-center justify-center rounded-button text-white"
+      aria-label={content.ui.menuClose}
+      data-menu-close
+    >
+      <Icon name="close" size={24} />
+    </button>
+  </div>
+  <nav aria-label={content.ui.navLabel} class="container flex-1 overflow-y-auto pb-10 pt-6">
+    <ul class="flex flex-col gap-2">
+      {
+        sheetLinks.map(({ id, label }) => (
+          <li>
+            <a
+              href={`#${id}`}
+              data-section={id}
+              data-sheet-link
+              class="flex min-h-touch items-center py-2 text-[28px] font-semibold leading-tight tracking-[-0.02em] text-white aria-[current=location]:text-cobalt-soft"
+            >
+              {label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</div>
+
+<style>
+  .navbar {
+    transition:
+      background-color var(--duration-hover) ease-out,
+      border-color var(--duration-hover) ease-out;
+  }
+
+  .navbar[data-scrolled] {
+    background-color: var(--nav-bg-scrolled);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom-color: var(--color-ink-line);
+  }
+</style>
+
+<script>
+  const SCROLL_THRESHOLD = 40;
+
+  // Scrolled state.
+  const header = document.querySelector<HTMLElement>('[data-navbar]')!;
+  const updateScrolled = () => header.toggleAttribute('data-scrolled', window.scrollY > SCROLL_THRESHOLD);
+  window.addEventListener('scroll', updateScrolled, { passive: true });
+  updateScrolled();
+
+  // Active section: the section covering most of the band between the navbar's bottom edge and
+  // 40% of the viewport. Fine thresholds keep each section's share current while scrolling.
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('a[data-section]'));
+  const ids = [...new Set(links.map((a) => a.dataset.section!))];
+  const sections = ids.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => el !== null);
+  const share = new Map<string, number>();
+
+  const setActive = (activeId: string | undefined) => {
+    for (const link of links) {
+      if (link.dataset.section === activeId) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    }
+  };
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        share.set(entry.target.id, entry.isIntersecting ? entry.intersectionRect.height : 0);
+      }
+      let activeId: string | undefined;
+      let best = 0;
+      for (const [id, height] of share) {
+        if (height > best) [activeId, best] = [id, height];
+      }
+      setActive(activeId);
+    },
+    {
+      rootMargin: `-${header.offsetHeight}px 0px -60% 0px`,
+      threshold: Array.from({ length: 21 }, (_, i) => i / 20),
+    },
+  );
+  // The hero has no link; observing it means no anchor is highlighted while it dominates.
+  const hero = document.getElementById('top');
+  [...(hero ? [hero] : []), ...sections].forEach((section) => observer.observe(section));
+
+  // Mobile sheet.
+  const openButton = document.querySelector<HTMLButtonElement>('[data-menu-open]')!;
+  const sheet = document.querySelector<HTMLElement>('[data-mobile-menu]')!;
+  const closeButton = sheet.querySelector<HTMLButtonElement>('[data-menu-close]')!;
+
+  const isOpen = () => !sheet.hidden;
+
+  function openSheet() {
+    sheet.hidden = false;
+    openButton.setAttribute('aria-expanded', 'true');
+    document.documentElement.style.overflow = 'hidden';
+    closeButton.focus();
+  }
+
+  function closeSheet() {
+    if (!isOpen()) return;
+    sheet.hidden = true;
+    openButton.setAttribute('aria-expanded', 'false');
+    document.documentElement.style.overflow = '';
+    openButton.focus({ preventScroll: true });
+  }
+
+  openButton.addEventListener('click', openSheet);
+  closeButton.addEventListener('click', closeSheet);
+  sheet.querySelectorAll('[data-sheet-link]').forEach((link) => link.addEventListener('click', closeSheet));
+
+  document.addEventListener('keydown', (event) => {
+    if (!isOpen()) return;
+    if (event.key === 'Escape') {
+      closeSheet();
+      return;
+    }
+    // Keep Tab focus inside the open sheet.
+    if (event.key === 'Tab') {
+      const focusable = Array.from(sheet.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')).filter(
+        (el) => el.offsetParent !== null,
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+  });
+
+  // The sheet is mobile-only; release the scroll lock if the viewport grows past 900px.
+  window.matchMedia('(min-width: 900px)').addEventListener('change', (event) => {
+    if (event.matches) closeSheet();
+  });
+</script>

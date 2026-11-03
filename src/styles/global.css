@@ -13,6 +13,8 @@
 
 @layer base {
   html {
+    /* Anchored sections land below the fixed navbar. */
+    scroll-padding-top: var(--nav-height);
     background-color: var(--color-mist);
     color: var(--color-text);
     font-family: var(--font-sans);

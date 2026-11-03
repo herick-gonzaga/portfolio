@@ -78,6 +78,7 @@
   --shadow-card-hover: 0 8px 24px rgba(15, 20, 32, 0.08);
 
   /* Navbar */
+  --nav-height: 72px;
   --nav-bg-scrolled: rgba(15, 20, 32, 0.86);
   --nav-scroll-threshold: 40px;
 
