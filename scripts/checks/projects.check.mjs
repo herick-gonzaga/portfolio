@@ -1,11 +1,11 @@
 /**
  * Projects section: copy matches the locale files (by tier), section surface and rhythm, header row,
- * row 1 (2fr/1fr from 900px), row 2 (2 columns from 600px), card typography, equal-height secondary
+ * row 1 (2fr/1fr from 1200px, stacked with the featured card first below), row 2 (2 columns from 600px), card typography, equal-height secondary
  * cards, metrics grid, chips, overflow, and external links (target="_blank", rel="noopener").
  */
 import { TOKENS, normalize } from './lib/context.mjs';
 
-const WIDTHS = [1440, 1392, 1200, 900, 600, 390];
+const WIDTHS = [1440, 1392, 1200, 1199, 900, 600, 390];
 
 const COLORS = {
   white: 'rgb(255, 255, 255)',
@@ -195,6 +195,7 @@ const spread = (values) => Math.max(...values) - Math.min(...values);
 
 function checkLayout(t, m, at, width) {
   const desktop = width >= 900;
+  const sideBySide = width >= 1200;
   t.ok(m.hscroll <= 0, `${at}: no horizontal scroll`, `${m.hscroll}px`);
   t.eq(m.overflowing, [], `${at}: nothing in Projects overflows`);
 
@@ -219,8 +220,8 @@ function checkLayout(t, m, at, width) {
   );
   t.ok(m.headerRow.linkHeight >= TOKENS.touchTarget, `${at}: repos link touch target ≥44px`, `${m.headerRow.linkHeight}px`);
 
-  // Row 1: 2fr/1fr from 900px with a 24px gap, single column below.
-  if (desktop) {
+  // Row 1: 2fr/1fr from 1200px with a 24px gap; below that one column, featured card first.
+  if (sideBySide) {
     t.eq(m.row1.columns.length, 2, `${at}: row 1 has two columns`);
     t.near(m.row1.columns[0] / m.row1.columns[1], 2, 0.01, `${at}: row 1 columns are 2fr/1fr`);
     t.eq(m.row1.gap, 24, `${at}: row 1 column gap is 24px`);
@@ -232,7 +233,7 @@ function checkLayout(t, m, at, width) {
 
   // Secondary cards: equal height and filling the column next to the featured card.
   t.eq(m.row1.columnGap, 24, `${at}: secondary cards are 24px apart`);
-  if (desktop) {
+  if (sideBySide) {
     t.ok(spread(m.secondary.map((c) => c.height)) <= 1, `${at}: secondary cards have equal height`, JSON.stringify(m.secondary.map((c) => c.height)));
     t.near(m.row1.columnHeight, m.featured.height, 1, `${at}: secondary column matches the featured card height`);
     const filled = m.secondary.reduce((sum, c) => sum + c.height, 0) + m.row1.columnGap;
