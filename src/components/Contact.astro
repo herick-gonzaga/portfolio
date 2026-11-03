@@ -1,0 +1,117 @@
+---
+/**
+ * Contact section and site footer (07), on ink, id="contact".
+ * Padding 120px top / 56px bottom (72 / 40 below 900px) under a 1px top line that fades
+ * transparent → cobalt → transparent. From 900px two bottom-aligned columns with a 48px gap:
+ * kicker, H2 (48px, 32px below 900px, max 16ch), text and CTAs on the left; the contact details
+ * list on the right (label left, mono value right; label above value below 600px). CTAs are full
+ * width below 600px. The footer row closes the section: copyright, tagline and "back to top".
+ * It does not use the Section shell: the header and the details list share one grid row here.
+ */
+import Button from './ui/Button.astro';
+import Icon from './ui/Icon.astro';
+import Kicker from './ui/Kicker.astro';
+import { getContent, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { profile, ui, sections } = getContent(locale);
+const { contact } = profile;
+const external = { target: '_blank', rel: 'noopener' } as const;
+
+const details = [
+  { key: 'email', label: ui.contact.email, value: contact.email, href: `mailto:${contact.email}` },
+  { key: 'linkedin', label: ui.contact.linkedin, value: contact.linkedinLabel, href: contact.linkedin, ...external },
+  { key: 'github', label: ui.contact.github, value: contact.githubLabel, href: contact.github, ...external },
+  { key: 'timezone', label: ui.contact.timezone, value: contact.timezone },
+];
+---
+
+<section id="contact" aria-labelledby="contact-title" class="contact relative bg-ink text-white">
+  <div
+    class="absolute inset-x-0 top-0 h-px bg-[linear-gradient(to_right,transparent,var(--color-cobalt),transparent)]"
+    aria-hidden="true"
+  >
+  </div>
+
+  <div class="container">
+    <div class="grid gap-12 md:grid-cols-2 md:items-end">
+      <div class="min-w-0">
+        <Kicker id="contact-kicker" tone="dark">{sections.contact.kicker}</Kicker>
+        <h2
+          id="contact-title"
+          class="mt-4 max-w-[16ch] text-[32px] leading-[1.1] font-semibold tracking-[-0.02em] text-white md:text-[48px]"
+        >
+          {profile.contactHeadline}
+        </h2>
+        <p class="mt-6 max-w-[50ch] text-[17px] leading-[1.6] text-muted-dark">{profile.contactText}</p>
+        <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <Button href={`mailto:${contact.email}`} class="w-full sm:w-auto">
+            {ui.emailMe}
+            <Icon slot="icon" name="arrow-right" size={18} />
+          </Button>
+          <Button href={contact.linkedin} variant="ghost-dark" class="w-full sm:w-auto" {...external}>
+            {ui.linkedin}
+          </Button>
+        </div>
+      </div>
+
+      <ul class="min-w-0 border-t border-ink-line" data-contact-details>
+        {
+          details.map(({ key, label, value, href, ...attrs }) => (
+            <li
+              data-row={key}
+              class="flex flex-col border-b border-ink-line pt-3 pb-1 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:py-1"
+            >
+              <span class="shrink-0 text-[14px] leading-[1.4] text-muted-dark">{label}</span>
+              {href ? (
+                <a
+                  href={href}
+                  class="inline-flex min-h-touch min-w-0 items-center rounded-chip font-mono text-[15px] leading-[1.4] break-words text-white transition-colors duration-hover ease-out hover:text-cobalt-soft sm:text-right"
+                  {...attrs}
+                >
+                  {value}
+                </a>
+              ) : (
+                <span class="inline-flex min-h-touch min-w-0 items-center font-mono text-[15px] leading-[1.4] text-white sm:text-right">
+                  {value}
+                </span>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <footer
+      class="mt-16 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-ink-line pt-6 text-[13px] leading-[1.5] text-muted-dark md:mt-24"
+    >
+      <p>© 2026 {profile.fullName}</p>
+      <p class="font-mono">{profile.footerTagline}</p>
+      <a
+        href="#top"
+        class="inline-flex min-h-touch items-center gap-2 rounded-chip transition-colors duration-hover ease-out hover:text-white"
+      >
+        {ui.backTop}
+        <Icon name="arrow-up" size={16} />
+      </a>
+    </footer>
+  </div>
+</section>
+
+<style>
+  .contact {
+    padding-top: 72px;
+    padding-bottom: 40px;
+  }
+
+  @media (min-width: 900px) {
+    .contact {
+      padding-top: 120px;
+      padding-bottom: 56px;
+    }
+  }
+</style>

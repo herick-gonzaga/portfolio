@@ -21,7 +21,8 @@ npm run dev        # http://localhost:4321
 | Command                | Action                                                        |
 | :--------------------- | :------------------------------------------------------------ |
 | `npm run dev`          | Start the dev server                                          |
-| `npm run build`        | Type-check with `astro check`, then build to `./dist/`        |
+| `npm run build`        | Generate image assets, type-check with `astro check`, then build to `./dist/` |
+| `npm run assets`       | Regenerate `public/og.png` and `public/favicon.ico`           |
 | `npm run preview`      | Preview the production build                                  |
 | `npm run i18n:review`  | Validate locales and regenerate `docs/TRANSLATION_REVIEW.md`  |
 | `npm run check:ui`     | Build, serve `dist/` and run the browser UI checks            |
@@ -40,17 +41,21 @@ src/
 │   ├── Projects.astro      # Featured, secondary and small project cards
 │   ├── ProjectFeatured.astro / ProjectCard.astro / ProjectCardSmall.astro
 │   ├── ProjectLinks.astro  # Project links row (external links open in a new tab)
+│   ├── Journey.astro / Achievements.astro
+│   ├── Contact.astro       # Contact details, CTAs and the site footer
 │   ├── ui/                 # Button, Card, Chip, Icon, Kicker, Section primitives
 │   └── flags/              # Simplified US / BR / ES flags (inline SVG)
-├── layouts/Base.astro      # <head>: SEO, hreflang alternates, JSON-LD
+├── layouts/Base.astro      # <head>: SEO, hreflang, Open Graph, Twitter card, JSON-LD
 ├── i18n/                   # Typed content: en.ts, pt.ts, es.ts
-├── pages/                  # /, /pt/, /es/
+├── pages/                  # /, /pt/, /es/ and robots.txt
 └── styles/                 # Design tokens and global styles
 docs/
 ├── DESIGN_SPEC.md          # Visual system and section spec
 └── TRANSLATION_REVIEW.md   # Generated side-by-side translation table
+public/                     # favicon.svg (source), favicon.ico and og.png (generated, committed)
 scripts/
 ├── translation-review.ts
+├── generate-assets.mjs     # og.png from assets/og.svg, favicon.ico from favicon.svg
 └── checks/                 # Browser UI checks (npm run check:ui)
 ```
 
@@ -63,6 +68,12 @@ English is the default locale at `/`; Portuguese (Brazil) and Spanish live at `/
 ## Design
 
 The visual system ("Signal") is documented in [`docs/DESIGN_SPEC.md`](docs/DESIGN_SPEC.md): color tokens, type scale, layout grid, components, motion and responsive breakpoints.
+
+## SEO assets
+
+`npm run build` first runs `scripts/generate-assets.mjs`, which renders `scripts/assets/og.svg` (with Instrument Sans and JetBrains Mono embedded, the name and title from `src/i18n/en.ts` and the host from `site`) to `public/og.png` at 1200×630, and `public/favicon.svg` to a 16/32/48px `public/favicon.ico`. It uses the same headless Chrome driver as the UI checks, so there is no npm dependency. Files are only rewritten when their bytes change; without Chrome the committed files are kept. The "HG" in `favicon.svg` is JetBrains Mono Bold converted to outlines, so it renders without the font.
+
+`robots.txt` is generated from `src/pages/robots.txt.ts` and points to the `@astrojs/sitemap` index.
 
 ## Browser UI checks
 

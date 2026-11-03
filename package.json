@@ -7,11 +7,12 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build",
+    "build": "node scripts/generate-assets.mjs && astro check && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "i18n:review": "node scripts/translation-review.ts",
-    "check:ui": "npm run build && node scripts/checks/run.mjs"
+    "check:ui": "npm run build && node scripts/checks/run.mjs",
+    "assets": "node scripts/generate-assets.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

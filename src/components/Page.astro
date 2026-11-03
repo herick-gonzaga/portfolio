@@ -1,27 +1,24 @@
 ---
 /**
- * Renders the full page for one locale: Navbar, Hero, About, Skills, Projects, Journey and
- * Achievements, then the Contact placeholder that a later step replaces; every text comes from
- * getContent().
+ * Renders the full page for one locale: Navbar, Hero, About, Skills, Projects, Journey,
+ * Achievements and Contact (with the footer); every text comes from getContent().
  */
 import About from './About.astro';
 import Achievements from './Achievements.astro';
+import Contact from './Contact.astro';
 import Hero from './Hero.astro';
 import Journey from './Journey.astro';
 import Navbar from './Navbar.astro';
 import Projects from './Projects.astro';
 import Skills from './Skills.astro';
 import Base from '../layouts/Base.astro';
-import { getContent, type Locale } from '../i18n';
+import type { Locale } from '../i18n';
 
 interface Props {
   locale: Locale;
 }
 
 const { locale } = Astro.props;
-const content = getContent(locale);
-
-const sections = [{ id: 'contact', header: content.sections.contact }] as const;
 ---
 
 <Base locale={locale}>
@@ -33,17 +30,6 @@ const sections = [{ id: 'contact', header: content.sections.contact }] as const;
     <Projects locale={locale} />
     <Journey locale={locale} />
     <Achievements locale={locale} />
-    {
-      sections.map(({ id, header }) => (
-        <section id={id} aria-labelledby={`${id}-kicker`}>
-          <div class="container py-section">
-            <p id={`${id}-kicker`} class="font-mono text-mono text-cobalt">
-              {header.kicker}
-            </p>
-            {header.title && <h2 class="text-h2 font-semibold">{header.title}</h2>}
-          </div>
-        </section>
-      ))
-    }
+    <Contact locale={locale} />
   </main>
 </Base>

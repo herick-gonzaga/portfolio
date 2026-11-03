@@ -20,6 +20,13 @@ export const htmlLang: Record<Locale, string> = {
   es: 'es',
 };
 
+/** Open Graph `og:locale` values (language_TERRITORY). ES is neutral Latin American Spanish. */
+export const ogLocale: Record<Locale, string> = {
+  en: 'en_US',
+  pt: 'pt_BR',
+  es: 'es_LA',
+};
+
 const content: Record<Locale, Content> = { en, pt, es };
 
 export function getContent(locale: Locale): Content {

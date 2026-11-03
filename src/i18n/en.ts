@@ -55,6 +55,12 @@ export const en: Content = {
     emailMe: 'Email me',
     linkedin: 'LinkedIn',
     backTop: 'Back to top',
+    contact: {
+      email: 'Email',
+      linkedin: 'LinkedIn',
+      github: 'GitHub',
+      timezone: 'Time zone',
+    },
     menuOpen: 'Open menu',
     menuClose: 'Close menu',
     language: 'Language',

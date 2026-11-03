@@ -7,7 +7,7 @@ change the locale files and regenerate.
 - Proper nouns, company and product names, stack names and technical terms (LLM, MCP, QA, CI/CD,
   prompt engineering, HITL, Rails, E2E, MLOps) stay in English.
 - "[N]" and every bracketed placeholder are identical in all three locales and must be replaced in all three.
-- 85 strings that are identical in all three locales (names, URLs, stack names, placeholders) are omitted.
+- 87 strings that are identical in all three locales (names, URLs, stack names, placeholders) are omitted.
 
 | Key | EN | PT | ES |
 | --- | --- | --- | --- |
@@ -47,6 +47,8 @@ change the locale files and regenerate.
 | `ui.allRepos` | All repositories on GitHub | Todos os repositórios no GitHub | Todos los repositorios en GitHub |
 | `ui.emailMe` | Email me | Enviar e-mail | Enviar correo |
 | `ui.backTop` | Back to top | Voltar ao topo | Volver arriba |
+| `ui.contact.email` | Email | E-mail | Correo |
+| `ui.contact.timezone` | Time zone | Fuso horário | Zona horaria |
 | `ui.menuOpen` | Open menu | Abrir menu | Abrir menú |
 | `ui.menuClose` | Close menu | Fechar menu | Cerrar menú |
 | `ui.language` | Language | Idioma | Idioma |

@@ -71,6 +71,13 @@ export interface Content {
     emailMe: string;
     linkedin: string;
     backTop: string;
+    /** Row labels of the Contact details list. */
+    contact: {
+      email: string;
+      linkedin: string;
+      github: string;
+      timezone: string;
+    };
     menuOpen: string;
     menuClose: string;
     language: string;

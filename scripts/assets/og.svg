@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!--
+    Open Graph card (1200×630), rendered to public/og.png by scripts/generate-assets.mjs.
+    {{name}}, {{title}} and {{url}} are filled from src/i18n/en.ts and astro.config.mjs `site`.
+    The generator embeds Instrument Sans and JetBrains Mono, so the families below always resolve.
+  -->
+  <defs>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#7B96FF" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="#0F1420"/>
+  <rect width="1200" height="630" fill="url(#grid)" opacity="0.12"/>
+  <text x="96" y="300" fill="#FFFFFF" font-family="Instrument Sans Variable" font-size="72" font-weight="600" letter-spacing="-2.5">{{name}}</text>
+  <text x="96" y="358" fill="#7B96FF" font-family="JetBrains Mono Variable" font-size="28" font-weight="500">{{title}}</text>
+  <text x="96" y="558" fill="#A6AFBF" font-family="JetBrains Mono Variable" font-size="20">{{url}}</text>
+</svg>
