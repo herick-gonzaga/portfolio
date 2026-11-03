@@ -1,16 +1,22 @@
 ---
-/** Chip: mono 12px, 28px tall, 1px border. `light` for mist/surface, `dark` for ink. */
+/**
+ * Chip: mono 12px, 28px tall, 1px border. `light` for mist/surface, `dark` for ink.
+ * `wrap` lets the label break onto a second line instead of overflowing a narrow container
+ * (e.g. 4-column skill cards at 1200px with long PT/ES labels); it is 28px tall otherwise.
+ */
 interface Props {
   variant?: 'light' | 'dark';
+  wrap?: boolean;
   class?: string;
 }
 
-const { variant = 'light', class: className } = Astro.props;
+const { variant = 'light', wrap = false, class: className } = Astro.props;
 ---
 
 <span
   class:list={[
-    'inline-flex h-chip items-center whitespace-nowrap rounded-chip border px-3 font-mono text-mono-sm',
+    'inline-flex items-center rounded-chip border px-3 font-mono text-mono-sm',
+    wrap ? 'min-h-chip max-w-full py-[5px] leading-[1.35]' : 'h-chip whitespace-nowrap',
     variant === 'dark' ? 'border-ink-border bg-ink-surface text-muted-dark' : 'border-line bg-surface text-text-2',
     className,
   ]}
