@@ -56,6 +56,12 @@ export const pt: Content = {
     emailMe: 'Enviar e-mail',
     linkedin: 'LinkedIn',
     backTop: 'Voltar ao topo',
+    contact: {
+      email: 'E-mail',
+      linkedin: 'LinkedIn',
+      github: 'GitHub',
+      timezone: 'Fuso horário',
+    },
     menuOpen: 'Abrir menu',
     menuClose: 'Fechar menu',
     language: 'Idioma',

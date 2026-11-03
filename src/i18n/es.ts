@@ -56,6 +56,12 @@ export const es: Content = {
     emailMe: 'Enviar correo',
     linkedin: 'LinkedIn',
     backTop: 'Volver arriba',
+    contact: {
+      email: 'Correo',
+      linkedin: 'LinkedIn',
+      github: 'GitHub',
+      timezone: 'Zona horaria',
+    },
     menuOpen: 'Abrir menú',
     menuClose: 'Cerrar menú',
     language: 'Idioma',
