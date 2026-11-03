@@ -1,0 +1,110 @@
+/*
+ * Design tokens — "Signal" (see docs/DESIGN_SPEC.md).
+ * Single source of truth for raw values. Tailwind maps these in tailwind.config.mjs.
+ * Breakpoints (mobile-first): sm ≥600, md ≥900, lg ≥1200.
+ */
+:root {
+  /* The site has its own fixed palette; OS dark mode is intentionally ignored. */
+  color-scheme: light;
+
+  /* Color — ink (dark bookends: hero, contact, featured card) */
+  --color-ink: #0f1420;
+  --color-ink-line: #1e2635;
+  --color-ink-surface: #141a28;
+  --color-ink-border: #2a3242;
+
+  /* Color — light surfaces */
+  --color-mist: #f4f5f7;
+  --color-surface: #ffffff;
+  --color-line: #dce0e6;
+
+  /* Color — text */
+  --color-text: #141922;
+  --color-text-2: #3c4654;
+  --color-muted: #5b6472;
+  --color-muted-dark: #a6afbf;
+
+  /* Color — accent */
+  --color-cobalt: #2b5bff;
+  --color-cobalt-hover: #1e45d6;
+  --color-cobalt-soft: #7b96ff;
+
+  /* Color — status (only the "open to work" dot) */
+  --color-signal: #3ddc84;
+
+  /* Typography — families */
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Typography — scale (mobile values; overridden at ≥900 below) */
+  --text-h1: 44px;
+  --leading-h1: 1.02;
+  --tracking-h1: -0.035em;
+  --measure-h1: 14ch;
+  --text-h2: 32px;
+  --leading-h2: 1.1;
+  --tracking-h2: -0.02em;
+  --text-h3-sm: 20px;
+  --text-h3-lg: 32px;
+  --weight-h3: 600;
+  --text-body-sm: 15px;
+  --text-body: 17px;
+  --text-body-lg: 19px;
+  --leading-body: 1.55;
+  --text-mono-sm: 12px;
+  --text-mono: 13px;
+  --text-metric: 44px;
+
+  /* Spacing & layout (8px base) */
+  --space-unit: 8px;
+  --container-max: 1248px;
+  --page-padding-x: 24px;
+  --grid-columns: 12;
+  --grid-gutter: 24px;
+  --section-padding-y: 72px;
+
+  /* Component sizes */
+  --button-height: 48px;
+  --chip-height: 28px;
+  --touch-target: 44px;
+  --card-padding: 32px;
+
+  /* Radii */
+  --radius-chip: 6px;
+  --radius-button: 8px;
+  --radius-card: 12px;
+
+  /* Elevation — the only shadow, used on card hover */
+  --shadow-card-hover: 0 8px 24px rgba(15, 20, 32, 0.08);
+
+  /* Navbar */
+  --nav-bg-scrolled: rgba(15, 20, 32, 0.86);
+  --nav-scroll-threshold: 40px;
+
+  /* Motion */
+  --duration-hover: 160ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-hero-sequence: 900ms;
+
+  /* Focus ring */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-color: var(--color-cobalt);
+}
+
+/* 900–1199: full type scale, 48px margins, desktop section rhythm */
+@media (min-width: 900px) {
+  :root {
+    --text-h1: 72px;
+    --text-h2: 40px;
+    --page-padding-x: 48px;
+    --section-padding-y: 112px;
+  }
+}
+
+/* ≥1200: full layout */
+@media (min-width: 1200px) {
+  :root {
+    --page-padding-x: 96px;
+  }
+}
