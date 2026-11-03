@@ -1,6 +1,8 @@
 ---
 /**
- * Skills: four accent cards — 4 columns from 1200px, 2×2 from 900px, 1 column below.
+ * Skills: four accent cards — 4 columns from 1392px, 2×2 from 900px, 1 column below.
+ * 4 columns start at 1392px (not lg/1200): below that the longest ES chip ("Relaciones
+ * Internacionales", ~215px) would overflow a 4-column card.
  * Cards in a row share the tallest height; chips sit at the bottom of each card.
  */
 import Card from './ui/Card.astro';
@@ -26,7 +28,7 @@ const header = content.sections.skills;
   intro={header.intro}
   padding="bottom"
 >
-  <ul class="grid gap-gutter md:grid-cols-2 lg:grid-cols-4">
+  <ul class="grid gap-gutter md:grid-cols-2 min-[1392px]:grid-cols-4">
     {
       content.skills.map((skill) => (
         <li class="flex">
@@ -36,8 +38,8 @@ const header = content.sections.skills;
             <p class="text-body-sm text-muted">{skill.description}</p>
             <ul class="mt-auto flex flex-wrap gap-[6px]">
               {skill.chips.map((chip) => (
-                <li class="max-w-full">
-                  <Chip wrap>{chip}</Chip>
+                <li>
+                  <Chip>{chip}</Chip>
                 </li>
               ))}
             </ul>
