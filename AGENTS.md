@@ -8,6 +8,10 @@ astro dev --background
 
 Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
 
+## UI checks
+
+Every section PR must add or extend a check in `scripts/checks/` (one `*.check.mjs` file per area) and pass `npm run check:ui` before it is pushed. See "Browser UI checks" in README.md.
+
 ## Documentation
 
 Full documentation: https://docs.astro.build
