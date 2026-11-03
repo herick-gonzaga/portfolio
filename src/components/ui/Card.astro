@@ -3,6 +3,7 @@
  * Card: surface + 1px line border, radius 12, padding 32 (24 below 900px).
  * `dark` switches to ink with an ink-line border; `topAccent` adds a 3px cobalt top border.
  * `padding="list"` keeps the horizontal padding but uses 8px vertical padding (row lists).
+ * `padding="featured"` uses 40px from 900px (24px below), for the featured project.
  * Hover lifts 2px with the spec's single shadow; no hover motion under prefers-reduced-motion.
  */
 import type { HTMLTag } from 'astro/types';
@@ -11,7 +12,7 @@ interface Props {
   as?: HTMLTag;
   dark?: boolean;
   topAccent?: boolean;
-  padding?: 'default' | 'list';
+  padding?: 'default' | 'list' | 'featured';
   class?: string;
 }
 
@@ -23,7 +24,7 @@ const { as: Tag = 'div', dark = false, topAccent = false, padding = 'default', c
     'card rounded-card border',
     dark ? 'border-ink-line bg-ink text-white' : 'border-line bg-surface text-text',
     topAccent && 'border-t-[3px] border-t-cobalt',
-    padding === 'list' ? 'px-6 py-2 md:px-card' : 'p-6 md:p-card',
+    { default: 'p-6 md:p-card', list: 'px-6 py-2 md:px-card', featured: 'p-6 md:p-10' }[padding],
     className,
   ]}
 >
