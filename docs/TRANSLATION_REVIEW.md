@@ -50,6 +50,7 @@ change the locale files and regenerate.
 | `ui.menuOpen` | Open menu | Abrir menu | Abrir menú |
 | `ui.menuClose` | Close menu | Fechar menu | Cerrar menú |
 | `ui.language` | Language | Idioma | Idioma |
+| `ui.navLabel` | Main navigation | Navegação principal | Navegación principal |
 | `sections.about.kicker` | 02 / About | 02 / Sobre | 02 / Sobre mí |
 | `sections.about.title` | Engineering, AI and a global point of view, in the same person. | Engenharia, IA e uma visão global, na mesma pessoa. | Ingeniería, IA y una visión global, en la misma persona. |
 | `sections.skills.kicker` | 03 / Skills & expertise | 03 / Habilidades & expertise | 03 / Habilidades & experiencia |

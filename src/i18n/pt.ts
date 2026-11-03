@@ -59,6 +59,7 @@ export const pt: Content = {
     menuOpen: 'Abrir menu',
     menuClose: 'Fechar menu',
     language: 'Idioma',
+    navLabel: 'Navegação principal',
   },
   sections: {
     about: { kicker: '02 / Sobre', title: 'Engenharia, IA e uma visão global, na mesma pessoa.' },

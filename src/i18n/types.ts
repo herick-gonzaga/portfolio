@@ -74,6 +74,8 @@ export interface Content {
     menuOpen: string;
     menuClose: string;
     language: string;
+    /** aria-label for the main <nav> landmarks. */
+    navLabel: string;
   };
   sections: {
     about: SectionHeader;
