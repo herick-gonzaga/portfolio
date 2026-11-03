@@ -1,0 +1,23 @@
+---
+/** Simplified United States flag: 7 stripes and a plain blue canton. 20×14, decorative. */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+const stripes = [0, 4, 8, 12];
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="20"
+  height="14"
+  viewBox="0 0 20 14"
+  aria-hidden="true"
+  focusable="false"
+  class:list={['shrink-0 overflow-hidden rounded-[2px]', className]}
+>
+  <rect width="20" height="14" fill="#FFFFFF"></rect>
+  {stripes.map((y) => <rect y={y} width="20" height="2" fill="#B22234" />)}
+  <rect width="9" height="8" fill="#3C3B6E"></rect>
+</svg>

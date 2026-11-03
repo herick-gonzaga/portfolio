@@ -1,0 +1,21 @@
+---
+/** Simplified Spain flag: red–yellow–red bands (1:2:1). 20×14, decorative. */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="20"
+  height="14"
+  viewBox="0 0 20 14"
+  aria-hidden="true"
+  focusable="false"
+  class:list={['shrink-0 overflow-hidden rounded-[2px]', className]}
+>
+  <rect width="20" height="14" fill="#AA151B"></rect>
+  <rect y="3.5" width="20" height="7" fill="#F1BF00"></rect>
+</svg>
