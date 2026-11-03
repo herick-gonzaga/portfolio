@@ -37,6 +37,9 @@ src/
 │   ├── Hero.astro          # Hero + SystemDiagram.astro
 │   ├── About.astro         # Bio paragraphs + fact sheet
 │   ├── Skills.astro        # Four skill cards
+│   ├── Projects.astro      # Featured, secondary and small project cards
+│   ├── ProjectFeatured.astro / ProjectCard.astro / ProjectCardSmall.astro
+│   ├── ProjectLinks.astro  # Project links row (external links open in a new tab)
 │   ├── ui/                 # Button, Card, Chip, Icon, Kicker, Section primitives
 │   └── flags/              # Simplified US / BR / ES flags (inline SVG)
 ├── layouts/Base.astro      # <head>: SEO, hreflang alternates, JSON-LD

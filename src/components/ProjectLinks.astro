@@ -1,0 +1,39 @@
+---
+/**
+ * Project links row: 14px/600 links, cobalt on light cards and cobalt-soft on the dark featured card.
+ * External (http/https) links open in a new tab with rel="noopener". Renders nothing when `links` is empty.
+ */
+import Icon from './ui/Icon.astro';
+import type { Content } from '../i18n';
+
+interface Props {
+  links: Content['projects'][number]['links'];
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+
+const { links, tone = 'light', class: className } = Astro.props;
+const isExternal = (href: string) => /^https?:\/\//.test(href);
+---
+
+{
+  links.length > 0 && (
+    <ul class:list={['flex flex-wrap gap-x-6', className]}>
+      {links.map(({ label, href }) => (
+        <li>
+          <a
+            href={href}
+            {...(isExternal(href) ? { target: '_blank', rel: 'noopener' } : {})}
+            class:list={[
+              'inline-flex min-h-touch items-center gap-1.5 text-[14px] font-semibold underline-offset-4 hover:underline',
+              tone === 'dark' ? 'text-cobalt-soft' : 'text-cobalt',
+            ]}
+          >
+            {label}
+            <Icon name="arrow-right" size={16} />
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}

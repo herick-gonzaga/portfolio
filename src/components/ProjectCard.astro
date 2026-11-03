@@ -1,0 +1,35 @@
+---
+/**
+ * Secondary project card: mono kind, 22px title, 15px description, light chips and a links row.
+ * Chips and links sit at the bottom, so cards stretched to a shared height stay aligned.
+ */
+import ProjectLinks from './ProjectLinks.astro';
+import Card from './ui/Card.astro';
+import Chip from './ui/Chip.astro';
+import type { Content } from '../i18n';
+
+interface Props {
+  project: Content['projects'][number];
+  class?: string;
+}
+
+const { project, class: className } = Astro.props;
+---
+
+<Card as="article" class:list={['flex flex-col', className]}>
+  <p class="font-mono text-mono-sm text-cobalt">{project.kind}</p>
+  <h3 class="mt-3 text-[22px] leading-[1.25] font-semibold tracking-[-0.01em]">{project.name}</h3>
+  <p class="mt-3 text-[15px] leading-[1.55] text-muted">{project.description}</p>
+  <div class="mt-auto pt-6">
+    <ul class="flex flex-wrap gap-[6px]">
+      {
+        project.stack.map((item) => (
+          <li>
+            <Chip>{item}</Chip>
+          </li>
+        ))
+      }
+    </ul>
+    <ProjectLinks links={project.links} class="mt-3" />
+  </div>
+</Card>

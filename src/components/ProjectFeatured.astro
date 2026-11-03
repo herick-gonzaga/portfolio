@@ -1,0 +1,55 @@
+---
+/**
+ * Featured project: dark card (padding 40, min-height 420). Kind chip and period on top, title,
+ * description, a metrics row above an ink-line rule (3 columns, 1 below 600px), stack chips and links.
+ * Metrics keep "[N]" placeholders exactly as they appear in the locale files.
+ */
+import ProjectLinks from './ProjectLinks.astro';
+import Card from './ui/Card.astro';
+import Chip from './ui/Chip.astro';
+import type { Content } from '../i18n';
+
+interface Props {
+  project: Content['projects'][number];
+  class?: string;
+}
+
+const { project, class: className } = Astro.props;
+---
+
+<Card as="article" dark padding="featured" class:list={['flex min-h-[420px] flex-col', className]}>
+  <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+    <Chip variant="dark">{project.kind}</Chip>
+    {project.period && <p class="ml-auto font-mono text-mono-sm text-cobalt-soft">{project.period}</p>}
+  </div>
+
+  <h3 class="mt-6 text-[32px] leading-[1.15] font-semibold tracking-[-0.02em] text-white">{project.name}</h3>
+  <p class="mt-4 max-w-[60ch] text-[16px] leading-[1.6] text-muted-dark">{project.description}</p>
+
+  <div class="mt-auto pt-8">
+    {
+      project.metrics && project.metrics.length > 0 && (
+        <dl class="grid gap-6 border-t border-ink-line pt-6 sm:grid-cols-3">
+          {project.metrics.map(({ value, label }) => (
+            <div class="flex flex-col-reverse justify-end gap-1">
+              <dt class="text-[13px] leading-[1.4] text-muted-dark">{label}</dt>
+              <dd class="font-mono text-[24px] leading-[1.2] font-semibold text-white">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
+
+    <ul class="mt-6 flex flex-wrap gap-[6px]">
+      {
+        project.stack.map((item) => (
+          <li>
+            <Chip variant="dark">{item}</Chip>
+          </li>
+        ))
+      }
+    </ul>
+
+    <ProjectLinks links={project.links} tone="dark" class="mt-4" />
+  </div>
+</Card>
