@@ -34,7 +34,9 @@ src/
 │   ├── Navbar.astro        # Sticky navbar, active section, mobile sheet
 │   ├── LanguageSwitcher.astro
 │   ├── Hero.astro          # Hero + SystemDiagram.astro
-│   ├── ui/                 # Button, Chip, Kicker, Icon primitives
+│   ├── About.astro         # Bio paragraphs + fact sheet
+│   ├── Skills.astro        # Four skill cards
+│   ├── ui/                 # Button, Card, Chip, Icon, Kicker, Section primitives
 │   └── flags/              # Simplified US / BR / ES flags (inline SVG)
 ├── layouts/Base.astro      # <head>: SEO, hreflang alternates, JSON-LD
 ├── i18n/                   # Typed content: en.ts, pt.ts, es.ts
