@@ -5,6 +5,9 @@
  * `padding="bottom"` drops the top padding when the previous section shares the background.
  * `surface` puts the section on white with 1px line borders top and bottom.
  * The optional "action" slot sits right of the header from 900px and below it on smaller screens.
+ * `layout="aside"` puts the header in a 200px left column beside the content from 900px (single
+ * column below); there the header sticks at 96px from the top and the intro is 15px. The H2 hyphenates
+ * (by the page's lang) so a long word like ES "producción." fits the 200px column at 40px.
  * `locale` is accepted per the i18n conventions; all texts arrive already localized.
  */
 import Kicker from './Kicker.astro';
@@ -19,9 +22,20 @@ interface Props {
   dark?: boolean;
   surface?: boolean;
   padding?: 'both' | 'bottom';
+  layout?: 'stacked' | 'aside';
 }
 
-const { id, kicker, title, intro, dark = false, surface = false, padding = 'both' } = Astro.props;
+const {
+  id,
+  kicker,
+  title,
+  intro,
+  dark = false,
+  surface = false,
+  padding = 'both',
+  layout = 'stacked',
+} = Astro.props;
+const aside = layout === 'aside';
 const hasAction = Astro.slots.has('action');
 const kickerId = `${id}-kicker`;
 const titleId = `${id}-title`;
@@ -36,9 +50,10 @@ const titleId = `${id}-title`;
     padding === 'both' ? 'py-section' : 'pb-section',
   ]}
 >
-  <div class="container">
+  <div class:list={['container', aside && 'md:grid md:grid-cols-[200px_1fr] md:gap-x-12']}>
     <div
       class:list={[
+        aside && 'md:sticky md:top-24 md:self-start',
         hasAction && 'flex flex-col items-start gap-6 md:flex-row md:items-end md:justify-between md:gap-gutter',
       ]}
     >
@@ -46,12 +61,19 @@ const titleId = `${id}-title`;
         <Kicker id={kickerId} tone={dark ? 'dark' : 'light'}>{kicker}</Kicker>
         {
           title && (
-            <h2 id={titleId} class:list={['mt-4 text-h2 font-semibold', dark ? 'text-white' : 'text-text']}>
+            <h2
+              id={titleId}
+              class:list={[
+                'mt-4 text-h2 font-semibold',
+                aside && 'hyphens-auto [hyphenate-limit-chars:10_4_4]',
+                dark ? 'text-white' : 'text-text',
+              ]}
+            >
               {title}
             </h2>
           )
         }
-        {intro && <p class:list={['mt-4 text-body-lg', dark ? 'text-muted-dark' : 'text-muted']}>{intro}</p>}
+        {intro && <p class:list={['mt-4', aside ? 'text-body-sm' : 'text-body-lg', dark ? 'text-muted-dark' : 'text-muted']}>{intro}</p>}
       </header>
       {
         hasAction && (
@@ -61,7 +83,7 @@ const titleId = `${id}-title`;
         )
       }
     </div>
-    <div class="mt-12 md:mt-16">
+    <div class:list={['mt-12', aside ? 'md:mt-0' : 'md:mt-16']}>
       <slot />
     </div>
   </div>
