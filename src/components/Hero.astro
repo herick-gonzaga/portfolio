@@ -1,0 +1,110 @@
+---
+/**
+ * Hero on ink: status, H1, intro, CTAs and chips (7fr) beside the system diagram (5fr).
+ * Stacks below 900px with the diagram under the text. The section carries id="top" for the
+ * navbar logo link, and its top padding includes the overlaid navbar height.
+ */
+import SystemDiagram from './SystemDiagram.astro';
+import Button from './ui/Button.astro';
+import Chip from './ui/Chip.astro';
+import Icon from './ui/Icon.astro';
+import { getContent, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const content = getContent(locale);
+const { profile, ui } = content;
+---
+
+<section id="top" class="hero relative overflow-hidden bg-ink text-white">
+  <!-- Starts the CSS load sequence before first paint; without JS the hero renders in its final state. -->
+  <script is:inline>
+    document.body.classList.add('hero-ready');
+  </script>
+  <div class="hero-grid pointer-events-none absolute inset-0" aria-hidden="true"></div>
+
+  <div class="container relative grid items-center gap-14 md:grid-cols-[7fr_5fr] md:gap-gutter">
+    <div class="min-w-0">
+      <p class="hero-status flex items-start gap-3 font-mono text-mono text-muted-dark">
+        <span class="mt-[5px] size-2 shrink-0 rounded-full bg-signal shadow-[0_0_0_4px_rgb(61_220_132/0.18)]"></span>
+        <span>{profile.status}</span>
+      </p>
+      <h1 class="hero-title mt-6 max-w-h1 text-h1 font-semibold text-white">{profile.headline}</h1>
+      <p class="hero-title mt-6 max-w-[56ch] text-body-lg text-muted-dark">{profile.intro}</p>
+      <div class="hero-ctas mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <Button href="#projects" class="w-full sm:w-auto">
+          {ui.viewProjects}
+          <Icon slot="icon" name="arrow-right" size={18} />
+        </Button>
+        <Button href="#contact" variant="ghost-dark" class="w-full sm:w-auto">{ui.contactMe}</Button>
+      </div>
+      <ul class="hero-ctas mt-10 flex flex-wrap gap-2">
+        {
+          profile.heroChips.map((chip) => (
+            <li>
+              <Chip variant="dark">{chip}</Chip>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="flex justify-center md:justify-end">
+      <SystemDiagram locale={locale} />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-top: calc(var(--nav-height) + 72px);
+    padding-bottom: 56px;
+  }
+
+  @media (min-width: 900px) {
+    .hero {
+      padding-top: calc(var(--nav-height) + 112px);
+      padding-bottom: 96px;
+    }
+  }
+
+  /* 48px grid of 1px ink-line, faded out radially around the diagram. */
+  .hero-grid {
+    background-image:
+      linear-gradient(to right, var(--color-ink-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-ink-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.45;
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 65% 45%, #000 0%, transparent 100%);
+    mask-image: radial-gradient(ellipse 70% 60% at 65% 45%, #000 0%, transparent 100%);
+  }
+
+  /* Load sequence: status 0ms → H1 + intro 120ms → CTAs + chips 240ms (320ms, 12px rise). */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.hero-ready) .hero-status {
+      animation: hero-rise 320ms ease-out 0ms both;
+    }
+
+    :global(.hero-ready) .hero-title {
+      animation: hero-rise 320ms ease-out 120ms both;
+    }
+
+    :global(.hero-ready) .hero-ctas {
+      animation: hero-rise 320ms ease-out 240ms both;
+    }
+  }
+
+  @keyframes hero-rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>
