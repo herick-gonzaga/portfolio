@@ -1,0 +1,59 @@
+---
+import '@fontsource-variable/instrument-sans';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/global.css';
+
+import { defaultLocale, getContent, htmlLang, localePath, locales, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+  /** Route path without the locale prefix. */
+  path?: string;
+}
+
+const { locale, path = '/' } = Astro.props;
+const content = getContent(locale);
+
+// Absolute URLs need `site` in astro.config.mjs; until it is set, fall back to the request origin.
+const base = Astro.site ?? Astro.url;
+const absolute = (p: string) => new URL(p, base).href;
+
+const alternates = [
+  ...locales.map(({ code }) => ({ hreflang: htmlLang[code], href: absolute(localePath(code, path)) })),
+  { hreflang: 'x-default', href: absolute(localePath(defaultLocale, path)) },
+];
+
+const personJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: content.profile.fullName,
+  alternateName: content.profile.name,
+  jobTitle: content.profile.title,
+  description: content.meta.description,
+  email: `mailto:${content.profile.contact.email}`,
+  url: absolute(localePath(locale, path)),
+  sameAs: [content.profile.contact.linkedin, content.profile.contact.github],
+  inLanguage: htmlLang[locale],
+};
+---
+
+<!doctype html>
+<html lang={htmlLang[locale]}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Fixed palette: the site does not follow prefers-color-scheme. -->
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#0F1420" />
+    <title>{content.meta.title}</title>
+    <meta name="description" content={content.meta.description} />
+    <link rel="canonical" href={absolute(localePath(locale, path))} />
+    {alternates.map(({ hreflang, href }) => <link rel="alternate" hreflang={hreflang} href={href} />)}
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script type="application/ld+json" set:html={JSON.stringify(personJsonLd)} />
+  </head>
+  <body class="bg-mist font-sans text-text">
+    <slot />
+  </body>
+</html>
