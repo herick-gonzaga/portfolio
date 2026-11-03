@@ -1,0 +1,59 @@
+---
+/**
+ * Projects: white section with line borders. Header row has the kicker and H2 on the left and an
+ * "all repositories" link on the right; it stacks below 900px.
+ * Row 1: featured card (2fr) beside a column of the two secondary cards (1fr) from 900px; single
+ * column below. The secondary column is a grid with equal (1fr) auto rows rather than flex: 1
+ * children: flex: 1 only shares the free space, so the card with more copy stays taller, while
+ * 1fr rows size both cards to the taller one and fill the column height.
+ * Row 2: the small cards in two columns from 600px, one column below.
+ */
+import ProjectCard from './ProjectCard.astro';
+import ProjectCardSmall from './ProjectCardSmall.astro';
+import ProjectFeatured from './ProjectFeatured.astro';
+import Icon from './ui/Icon.astro';
+import Section from './ui/Section.astro';
+import { getContent, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const content = getContent(locale);
+const header = content.sections.projects;
+
+const featured = content.projects.find((project) => project.tier === 'featured');
+const secondary = content.projects.filter((project) => project.tier === 'secondary');
+const small = content.projects.filter((project) => project.tier === 'small');
+---
+
+<Section id="projects" locale={locale} kicker={header.kicker} title={header.title} intro={header.intro} surface>
+  <a
+    slot="action"
+    href={content.profile.contact.github}
+    target="_blank"
+    rel="noopener"
+    class="inline-flex min-h-touch items-center gap-1.5 text-[14px] font-semibold text-cobalt underline-offset-4 hover:underline"
+  >
+    {content.ui.allRepos}
+    <Icon name="arrow-right" size={16} />
+  </a>
+
+  <div class="grid gap-gutter md:grid-cols-[2fr_1fr]">
+    {featured && <ProjectFeatured project={featured} />}
+    <div class="flex flex-col gap-gutter md:grid md:auto-rows-fr">
+      {secondary.map((project) => <ProjectCard project={project} />)}
+    </div>
+  </div>
+
+  {
+    small.length > 0 && (
+      <div class="mt-gutter grid gap-gutter sm:grid-cols-2">
+        {small.map((project) => (
+          <ProjectCardSmall project={project} />
+        ))}
+      </div>
+    )
+  }
+</Section>
