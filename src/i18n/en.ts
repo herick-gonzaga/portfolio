@@ -58,6 +58,7 @@ export const en: Content = {
     menuOpen: 'Open menu',
     menuClose: 'Close menu',
     language: 'Language',
+    navLabel: 'Main navigation',
   },
   sections: {
     about: { kicker: '02 / About', title: 'Engineering, AI and a global point of view, in the same person.' },

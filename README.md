@@ -29,7 +29,13 @@ npm run dev        # http://localhost:4321
 
 ```text
 src/
-├── components/Page.astro   # Full page for one locale
+├── components/
+│   ├── Page.astro          # Full page for one locale
+│   ├── Navbar.astro        # Sticky navbar, active section, mobile sheet
+│   ├── LanguageSwitcher.astro
+│   ├── Hero.astro          # Hero + SystemDiagram.astro
+│   ├── ui/                 # Button, Chip, Kicker, Icon primitives
+│   └── flags/              # Simplified US / BR / ES flags (inline SVG)
 ├── layouts/Base.astro      # <head>: SEO, hreflang alternates, JSON-LD
 ├── i18n/                   # Typed content: en.ts, pt.ts, es.ts
 ├── pages/                  # /, /pt/, /es/
@@ -42,7 +48,7 @@ scripts/translation-review.ts
 
 ## Internationalization
 
-English is the default locale at `/`; Portuguese (Brazil) and Spanish live at `/pt/` and `/es/`. All copy lives in `src/i18n/*.ts` and is checked against a shared type, so a missing key fails the type-check.
+English is the default locale at `/`; Portuguese (Brazil) and Spanish live at `/pt/` and `/es/`. On a first visit to `/`, browsers set to Portuguese or Spanish are redirected once to their locale; the choice (automatic or from the language switcher) is stored in `localStorage.lang`, and explicit `/pt/` or `/es/` URLs are never redirected. All copy lives in `src/i18n/*.ts` and is checked against a shared type, so a missing key fails the type-check.
 
 `npm run i18n:review` also enforces two rules: bracketed placeholders such as `[N]` must match in every locale, and `meta.description` must stay within 155 characters.
 

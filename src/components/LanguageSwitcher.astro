@@ -1,0 +1,153 @@
+---
+/**
+ * Locale switcher: a 40px ghost-dark trigger (flag + locale code) and a 160px dropdown of
+ * links to the other locale routes. The script keeps the current #hash on the target URL,
+ * remembers the choice in localStorage.lang, and supports Esc, outside click and arrow keys.
+ * Rendered twice (desktop navbar and mobile sheet), so every id derives from `id`.
+ */
+import BR from './flags/BR.astro';
+import ES from './flags/ES.astro';
+import US from './flags/US.astro';
+import Icon from './ui/Icon.astro';
+import { getContent, htmlLang, localePath, locales, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+  id: string;
+  /** Which edge of the trigger the dropdown aligns to. */
+  align?: 'start' | 'end';
+}
+
+const { locale, id, align = 'end' } = Astro.props;
+const content = getContent(locale);
+const flags = { US, BR, ES } as const;
+const CurrentFlag = flags[locales.find((l) => l.code === locale)!.country];
+const menuId = `${id}-menu`;
+---
+
+<div class="relative" data-lang-switcher>
+  <button
+    type="button"
+    class="inline-flex h-10 items-center gap-2 rounded-button border border-ink-border px-3 font-mono text-mono text-white transition-colors duration-hover ease-out hover:border-muted-dark hover:bg-ink-surface"
+    aria-label={content.ui.language}
+    aria-haspopup="listbox"
+    aria-expanded="false"
+    aria-controls={menuId}
+    data-lang-trigger
+  >
+    <CurrentFlag />
+    <span>{locale.toUpperCase()}</span>
+  </button>
+  <ul
+    id={menuId}
+    class:list={[
+      'absolute top-full z-10 mt-2 w-40 rounded-button border border-ink-border bg-ink-surface p-1',
+      align === 'end' ? 'right-0' : 'left-0',
+    ]}
+    hidden
+    data-lang-menu
+  >
+    {
+      locales.map(({ code, label, country }) => {
+        const Flag = flags[country];
+        const current = code === locale;
+        return (
+          <li>
+            <a
+              href={localePath(code, '/')}
+              hreflang={htmlLang[code]}
+              lang={htmlLang[code]}
+              aria-current={current ? 'true' : undefined}
+              data-lang-option={code}
+              class:list={[
+                'flex min-h-10 items-center gap-2 rounded-md px-2 text-[14px] text-white',
+                'hover:bg-ink-line focus-visible:bg-ink-line',
+              ]}
+            >
+              <Flag />
+              <span>{label}</span>
+              {current && <Icon name="check" size={16} class="ml-auto text-cobalt-soft" />}
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+</div>
+
+<script>
+  function setup(root: HTMLElement) {
+    const trigger = root.querySelector<HTMLButtonElement>('[data-lang-trigger]')!;
+    const menu = root.querySelector<HTMLUListElement>('[data-lang-menu]')!;
+    const options = Array.from(menu.querySelectorAll<HTMLAnchorElement>('[data-lang-option]'));
+
+    const isOpen = () => trigger.getAttribute('aria-expanded') === 'true';
+
+    function open(focusIndex?: number) {
+      menu.hidden = false;
+      trigger.setAttribute('aria-expanded', 'true');
+      const current = options.findIndex((a) => a.getAttribute('aria-current') === 'true');
+      options[focusIndex ?? Math.max(current, 0)]?.focus();
+    }
+
+    function close(returnFocus = false) {
+      if (!isOpen()) return;
+      menu.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+      if (returnFocus) trigger.focus();
+    }
+
+    trigger.addEventListener('click', () => (isOpen() ? close() : open()));
+
+    trigger.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        open(event.key === 'ArrowUp' ? options.length - 1 : 0);
+      }
+    });
+
+    root.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && isOpen()) {
+        // Handled here so an enclosing dialog (the mobile sheet) stays open.
+        event.stopPropagation();
+        close(true);
+        return;
+      }
+      const index = options.indexOf(document.activeElement as HTMLAnchorElement);
+      if (index === -1) return;
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        options[(index + step + options.length) % options.length].focus();
+      } else if (event.key === 'Home' || event.key === 'End') {
+        event.preventDefault();
+        options[event.key === 'Home' ? 0 : options.length - 1].focus();
+      }
+    });
+
+    // Close when focus or a click lands outside the switcher.
+    document.addEventListener('click', (event) => {
+      if (!root.contains(event.target as Node)) close();
+    });
+    root.addEventListener('focusout', (event) => {
+      if (event.relatedTarget && !root.contains(event.relatedTarget as Node)) close();
+    });
+
+    for (const option of options) {
+      option.addEventListener('click', () => {
+        try {
+          localStorage.setItem('lang', option.dataset.langOption!);
+        } catch {
+          // Storage can be unavailable (private mode, blocked site data); navigation still works.
+        }
+        // Land on the same section in the target locale.
+        const url = new URL(option.getAttribute('href')!, location.href);
+        url.hash = location.hash;
+        option.href = url.href;
+        close();
+      });
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-lang-switcher]').forEach(setup);
+</script>

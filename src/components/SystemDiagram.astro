@@ -1,0 +1,193 @@
+---
+/**
+ * Hero diagram: four discipline nodes at the corners connected to a central "Herick" hub.
+ * Inline SVG with explicit width/height (no layout shift); texts come from content.diagram.
+ *
+ * Nodes are 56px tall and at least 132px wide. They widen only when a localized title or
+ * subtitle would overflow (mono 11px ≈ 6.6px per character), so no locale clips.
+ */
+import { getContent, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { diagram } = getContent(locale);
+
+const VIEW_W = 460;
+const VIEW_H = 420;
+const INSET = 4;
+const NODE_H = 56;
+const NODE_PAD_X = 14;
+const MONO_11_CHAR = 6.6;
+const TITLE_13_CHAR = 7.3;
+const TOP_Y = INSET;
+const BOTTOM_Y = 316;
+
+const longest = (values: string[]) => Math.max(...values.map((v) => v.length));
+const contentWidth = Math.max(
+  longest(diagram.nodes.map((n) => n.sub)) * MONO_11_CHAR,
+  longest(diagram.nodes.map((n) => n.title)) * TITLE_13_CHAR,
+);
+const NODE_W = Math.max(132, Math.ceil((contentWidth + 2 * NODE_PAD_X) / 2) * 2);
+
+const LEFT_X = INSET;
+const RIGHT_X = VIEW_W - INSET - NODE_W;
+const cx = VIEW_W / 2;
+const cy = (TOP_Y + BOTTOM_Y + NODE_H) / 2;
+const R = 46;
+const RING_R = 58;
+
+// Corner order matches content.diagram.nodes: top-left, top-right, bottom-left, bottom-right.
+const corners = [
+  { x: LEFT_X, y: TOP_Y },
+  { x: RIGHT_X, y: TOP_Y },
+  { x: LEFT_X, y: BOTTOM_Y },
+  { x: RIGHT_X, y: BOTTOM_Y },
+];
+
+const nodes = diagram.nodes.slice(0, 4).map((node, i) => ({ ...node, ...corners[i] }));
+
+const round = (n: number) => Math.round(n * 10) / 10;
+
+// Spokes run from the hub's edge to the middle of each node's inner side.
+const spokes = corners.map(({ x, y }) => {
+  const ex = x + NODE_W / 2;
+  const ey = y === TOP_Y ? y + NODE_H : y;
+  const len = Math.hypot(ex - cx, ey - cy);
+  const sx = cx + ((ex - cx) / len) * R;
+  const sy = cy + ((ey - cy) / len) * R;
+  return { x1: round(sx), y1: round(sy), x2: round(ex), y2: round(ey) };
+});
+
+const rails = [TOP_Y, BOTTOM_Y].map((y) => ({
+  x1: LEFT_X + NODE_W,
+  y1: y + NODE_H / 2,
+  x2: RIGHT_X,
+  y2: y + NODE_H / 2,
+}));
+
+const edges = [...spokes, ...rails];
+const upperSpokes = spokes.slice(0, 2);
+const d = (e: { x1: number; y1: number; x2: number; y2: number }) => `M${e.x1} ${e.y1}L${e.x2} ${e.y2}`;
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width={VIEW_W}
+  height={VIEW_H}
+  viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+  role="img"
+  aria-label={diagram.ariaLabel}
+  class="system-diagram h-auto w-full max-w-[320px] md:max-w-[460px]"
+>
+  <defs>
+    <linearGradient id="sd-hub" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2B5BFF"></stop>
+      <stop offset="1" stop-color="#7B96FF"></stop>
+    </linearGradient>
+    {
+      upperSpokes.map((e, i) => (
+        <linearGradient id={`sd-edge-${i}`} gradientUnits="userSpaceOnUse" x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}>
+          <stop offset="0" stop-color="#2B5BFF" />
+          <stop offset="1" stop-color="#7B96FF" />
+        </linearGradient>
+      ))
+    }
+  </defs>
+
+  <g fill="none" class="stroke-ink-border" stroke-width="1">
+    {edges.map((e) => <path class="sd-edge" d={d(e)} pathLength="1" />)}
+  </g>
+  <g fill="none" stroke-width="1.5" stroke-dasharray="4 6" class="sd-dash">
+    {upperSpokes.map((e, i) => <path d={d(e)} stroke={`url(#sd-edge-${i})`} />)}
+  </g>
+
+  <g class="sd-hub">
+    <circle cx={cx} cy={cy} r={RING_R} fill="none" stroke="url(#sd-hub)" stroke-width="1" opacity="0.25"></circle>
+    <circle cx={cx} cy={cy} r={R} class="fill-ink" stroke="url(#sd-hub)" stroke-width="2"></circle>
+    <text x={cx} y={cy + 5} text-anchor="middle" font-size="14" font-weight="700" class="fill-white font-sans">
+      {diagram.center}
+    </text>
+    <text
+      x={cx}
+      y={cy + RING_R + 18}
+      text-anchor="middle"
+      font-size="10"
+      class="sd-label fill-cobalt-soft stroke-ink font-mono"
+    >
+      {diagram.centerSub}
+    </text>
+  </g>
+
+  {
+    nodes.map((node) => (
+      <g class="sd-node">
+        <rect
+          x={node.x}
+          y={node.y}
+          width={NODE_W}
+          height={NODE_H}
+          rx="8"
+          class="fill-ink-surface stroke-ink-border"
+          stroke-width="1"
+        />
+        <text x={node.x + NODE_PAD_X} y={node.y + 24} font-size="13" font-weight="600" class="fill-white font-sans">
+          {node.title}
+        </text>
+        <text x={node.x + NODE_PAD_X} y={node.y + 42} font-size="11" class="fill-muted-dark font-mono">
+          {node.sub}
+        </text>
+      </g>
+    ))
+  }
+
+  <text x={cx} y={VIEW_H - 8} text-anchor="middle" font-size="11" class="fill-muted font-mono">
+    {diagram.caption}
+  </text>
+</svg>
+
+<style>
+  /* Knock the spokes out behind the hub subtitle so it reads cleanly. */
+  .sd-label {
+    paint-order: stroke;
+    stroke-width: 6px;
+    stroke-linejoin: round;
+  }
+
+  /* Load sequence (after the hero copy): hub + edges draw 400–900ms, nodes fade in after. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.hero-ready) .sd-edge {
+      stroke-dasharray: 1;
+      animation: sd-draw 500ms var(--ease-out) 400ms both;
+    }
+
+    :global(.hero-ready) .sd-dash,
+    :global(.hero-ready) .sd-hub {
+      animation: sd-fade 500ms ease-out 400ms both;
+    }
+
+    :global(.hero-ready) .sd-node {
+      animation: sd-fade 320ms ease-out 900ms both;
+    }
+  }
+
+  @keyframes sd-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes sd-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>

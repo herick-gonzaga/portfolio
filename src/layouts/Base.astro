@@ -42,6 +42,29 @@ const personJsonLd = {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {
+      /*
+       * First visit to "/" only: send pt/es browsers to their locale before anything paints.
+       * Runs once (stores localStorage.lang) and is never rendered on /pt/ or /es/.
+       */
+      locale === defaultLocale && (
+        <script is:inline>
+          (function () {
+            try {
+              if (location.pathname !== '/' && location.pathname !== '/index.html') return;
+              if (localStorage.getItem('lang')) return;
+              var lang = (navigator.language || '').toLowerCase();
+              var target = lang.indexOf('pt') === 0 ? 'pt' : lang.indexOf('es') === 0 ? 'es' : null;
+              if (!target) return;
+              localStorage.setItem('lang', target);
+              location.replace('/' + target + '/' + location.hash);
+            } catch (e) {
+              // Storage unavailable: stay on English.
+            }
+          })();
+        </script>
+      )
+    }
     <!-- Fixed palette: the site does not follow prefers-color-scheme. -->
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#0F1420" />

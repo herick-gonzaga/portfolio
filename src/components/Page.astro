@@ -1,8 +1,10 @@
 ---
 /**
- * Renders the full page for one locale. Section components replace the
- * placeholder sections below in later steps; every text comes from getContent().
+ * Renders the full page for one locale: Navbar and Hero, then placeholder sections that
+ * section components replace in later steps; every text comes from getContent().
  */
+import Hero from './Hero.astro';
+import Navbar from './Navbar.astro';
 import Base from '../layouts/Base.astro';
 import { getContent, type Locale } from '../i18n';
 
@@ -24,12 +26,9 @@ const sections = [
 ---
 
 <Base locale={locale}>
+  <Navbar locale={locale} />
   <main id="main">
-    <section id="hero" class="bg-ink text-white">
-      <div class="container py-section">
-        <h1 class="max-w-h1 text-h1 font-semibold">{content.profile.headline}</h1>
-      </div>
-    </section>
+    <Hero locale={locale} />
     {
       sections.map(({ id, header }) => (
         <section id={id} aria-labelledby={`${id}-kicker`}>

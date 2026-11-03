@@ -1,0 +1,14 @@
+---
+/** Section kicker: mono 13px, cobalt on light surfaces, cobalt-soft on ink. Format "NN / Section name". */
+interface Props {
+  tone?: 'light' | 'dark';
+  id?: string;
+  class?: string;
+}
+
+const { tone = 'light', id, class: className } = Astro.props;
+---
+
+<p id={id} class:list={['font-mono text-mono', tone === 'dark' ? 'text-cobalt-soft' : 'text-cobalt', className]}>
+  <slot />
+</p>

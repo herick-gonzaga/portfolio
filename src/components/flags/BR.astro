@@ -1,0 +1,22 @@
+---
+/** Simplified Brazil flag: green field, yellow rhombus, blue circle. 20×14, decorative. */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="20"
+  height="14"
+  viewBox="0 0 20 14"
+  aria-hidden="true"
+  focusable="false"
+  class:list={['shrink-0 overflow-hidden rounded-[2px]', className]}
+>
+  <rect width="20" height="14" fill="#009C3B"></rect>
+  <path d="M10 1.8 18 7l-8 5.2L2 7z" fill="#FFDF00"></path>
+  <circle cx="10" cy="7" r="3.1" fill="#002776"></circle>
+</svg>
