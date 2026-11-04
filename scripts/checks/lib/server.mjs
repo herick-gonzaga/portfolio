@@ -1,11 +1,12 @@
 /**
  * Static file server for the built site (dist/), on a free port of 127.0.0.1. Responses carry the
  * headers from dist/_headers (Cloudflare Pages format), so the checks run under the production
- * Content-Security-Policy.
+ * Content-Security-Policy. A path with no file gets the nearest 404.html (walking up from its
+ * directory) with status 404, as Cloudflare Pages does when the site has a top-level 404.html.
  */
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
-import { extname, join, resolve, sep } from 'node:path';
+import { dirname, extname, join, resolve, sep } from 'node:path';
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -61,6 +62,16 @@ export function headersFor(rules, pathname) {
   return out;
 }
 
+/** Nearest 404.html at or above the directory of `file`, inside `root`; null if there is none. */
+function nearest404(root, file) {
+  for (let dir = dirname(file); dir === root || dir.startsWith(root + sep); dir = dirname(dir)) {
+    const candidate = join(dir, '404.html');
+    if (isFile(candidate)) return candidate;
+    if (dir === root) break;
+  }
+  return null;
+}
+
 export function serveDist(dir) {
   const root = resolve(dir);
   const headersFile = join(root, '_headers');
@@ -74,7 +85,13 @@ export function serveDist(dir) {
     }
     if (!isFile(file)) file = join(file, 'index.html');
     if (!isFile(file)) {
-      response.writeHead(404, { 'content-type': 'text/plain' }).end('Not found');
+      const notFound = nearest404(root, file);
+      if (!notFound) {
+        response.writeHead(404, { 'content-type': 'text/plain' }).end('Not found');
+        return;
+      }
+      response.writeHead(404, { ...headersFor(rules, pathname), 'content-type': TYPES['.html'] });
+      createReadStream(notFound).pipe(response);
       return;
     }
     response.writeHead(200, {

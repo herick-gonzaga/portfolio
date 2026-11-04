@@ -69,6 +69,9 @@ export const en: Content = {
     menuClose: 'Close menu',
     language: 'Language',
     navLabel: 'Main navigation',
+    notFoundTitle: 'Page not found',
+    notFoundText: 'This address doesn’t exist on this site.',
+    notFoundBack: 'Go to the homepage',
   },
   personal: {
     title: 'Beyond the code',

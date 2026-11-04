@@ -13,10 +13,18 @@ interface Props {
   locale: Locale;
   /** Route path without the locale prefix. */
   path?: string;
+  /** Overrides content.meta.title in <title>, og:title and twitter:title. */
+  title?: string;
+  /**
+   * For pages served at URLs that aren't theirs (the 404 pages): adds robots noindex and drops
+   * canonical, hreflang, og:url and the JSON-LD Person, which would all point at the wrong URL.
+   */
+  noindex?: boolean;
 }
 
-const { locale, path = '/' } = Astro.props;
+const { locale, path = '/', noindex = false } = Astro.props;
 const content = getContent(locale);
+const title = Astro.props.title ?? content.meta.title;
 
 // Absolute URLs need `site` in astro.config.mjs; until it is set, fall back to the request origin.
 const base = Astro.site ?? Astro.url;
@@ -78,19 +86,20 @@ const personJsonLd = {
     <!-- Fixed palette: the site does not follow prefers-color-scheme. -->
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#0F1420" />
-    <title>{content.meta.title}</title>
+    <title>{title}</title>
     <meta name="description" content={content.meta.description} />
-    <link rel="canonical" href={canonical} />
-    {alternates.map(({ hreflang, href }) => <link rel="alternate" hreflang={hreflang} href={href} />)}
+    {noindex && <meta name="robots" content="noindex" />}
+    {!noindex && <link rel="canonical" href={canonical} />}
+    {!noindex && alternates.map(({ hreflang, href }) => <link rel="alternate" hreflang={hreflang} href={href} />)}
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <meta property="og:type" content="profile" />
     <meta property="og:site_name" content={content.profile.name} />
-    <meta property="og:title" content={content.meta.title} />
+    <meta property="og:title" content={title} />
     <meta property="og:description" content={content.meta.description} />
-    <meta property="og:url" content={canonical} />
+    {!noindex && <meta property="og:url" content={canonical} />}
     <meta property="og:locale" content={ogLocale[locale]} />
     {
       locales
@@ -101,13 +110,13 @@ const personJsonLd = {
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={content.meta.title} />
+    <meta property="og:image:alt" content={title} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={content.meta.title} />
+    <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={content.meta.description} />
     <meta name="twitter:image" content={ogImage} />
-    <meta name="twitter:image:alt" content={content.meta.title} />
-    <script type="application/ld+json" set:html={JSON.stringify(personJsonLd)} />
+    <meta name="twitter:image:alt" content={title} />
+    {!noindex && <script type="application/ld+json" set:html={JSON.stringify(personJsonLd)} />}
   </head>
   <body class="bg-mist font-sans text-text">
     <slot />

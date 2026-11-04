@@ -70,6 +70,9 @@ export const pt: Content = {
     menuClose: 'Fechar menu',
     language: 'Idioma',
     navLabel: 'Navegação principal',
+    notFoundTitle: 'Página não encontrada',
+    notFoundText: 'Este endereço não existe neste site.',
+    notFoundBack: 'Ir para a página inicial',
   },
   personal: {
     title: 'Além do código',
