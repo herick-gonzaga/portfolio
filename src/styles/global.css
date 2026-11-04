@@ -28,7 +28,15 @@
     line-height: var(--leading-body);
   }
 
-  /* Focus ring: 2px cobalt, 2px offset, on every interactive element. */
+  /*
+   * Focus ring: 2px cobalt, 2px offset, on every interactive element. outline-color is cobalt
+   * at rest too: `transition-colors` animates outline-color, which would otherwise fade the ring
+   * in from currentColor for 160ms on every focus.
+   */
+  :where(*) {
+    outline-color: var(--focus-ring-color);
+  }
+
   :focus-visible {
     outline: var(--focus-ring-width) solid var(--focus-ring-color);
     outline-offset: var(--focus-ring-offset);
