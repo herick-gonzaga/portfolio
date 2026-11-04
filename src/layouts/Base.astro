@@ -2,6 +2,10 @@
 import '@fontsource-variable/instrument-sans';
 import '@fontsource-variable/jetbrains-mono';
 import '../styles/global.css';
+// The latin variable files are the only ones the copy needs; preloading them lets the fonts
+// download in parallel with the CSS instead of after it. Same files (and hashes) as the CSS uses.
+import instrumentSansLatin from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
+import jetbrainsMonoLatin from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
 
 import { defaultLocale, getContent, htmlLang, localePath, locales, ogLocale, type Locale } from '../i18n';
 
@@ -69,6 +73,8 @@ const personJsonLd = {
         </script>
       )
     }
+    <link rel="preload" href={instrumentSansLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={jetbrainsMonoLatin} as="font" type="font/woff2" crossorigin />
     <!-- Fixed palette: the site does not follow prefers-color-scheme. -->
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#0F1420" />
