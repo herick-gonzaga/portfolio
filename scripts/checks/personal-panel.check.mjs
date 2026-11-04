@@ -5,7 +5,9 @@
  * localized name ("Herick Gonzaga — beyond the code"), and keyboard Tab goes logo → name.
  * Triggers: the navbar name and the name inside the hero intro are buttons that open one
  * modal <dialog> (aria-modal, labelled by its title); the hero intro still reads as the locale
- * string. Content: title, body, the photo or the "HG" monogram fallback (exactly one) and the
+ * string. Content: title, body, the photo (/images/herick.jpg, loaded, localized alt, object-fit
+ * cover filling the media box) with the "HG" monogram kept hidden as its fallback (a broken image
+ * swaps to it), and the
  * Instagram button (new tab, rel noopener). Keyboard: the close button gets focus on open, Tab
  * and Shift+Tab wrap inside the panel, Esc closes and returns focus to the trigger. The close
  * button and a backdrop click close it too; the page scroll lock is released on close. The panel
@@ -77,7 +79,19 @@ function readOpen() {
     title: text(dialog.querySelector('h2')),
     body: text(dialog.querySelector('h2 + p')),
     instagram: { label: text(ig), href: ig?.getAttribute('href'), target: ig?.getAttribute('target'), rel: ig?.getAttribute('rel') },
-    media: { photo: Boolean(photo), photoAlt: photo?.getAttribute('alt') ?? null, fallback: text(fallback) },
+    media: photo && {
+      src: photo.getAttribute('src'),
+      alt: photo.getAttribute('alt'),
+      loaded: photo.complete && photo.naturalWidth > 0,
+      visible: !photo.hidden && photo.getBoundingClientRect().height > 0,
+      fit: getComputedStyle(photo).objectFit,
+      fillsBox: (() => {
+        const m = dialog.querySelector('[data-personal-media]').getBoundingClientRect();
+        const r = photo.getBoundingClientRect();
+        return Math.abs(r.width - m.width) < 1 && Math.abs(r.height - m.height) < 1;
+      })(),
+    },
+    fallback: fallback && { inDom: true, hidden: fallback.hidden, text: text(fallback) },
     focusIsClose: document.activeElement?.hasAttribute('data-personal-close'),
     closeLabel: dialog.querySelector('[data-personal-close]')?.getAttribute('aria-label'),
     inside: box.left >= -0.5 && box.right <= vw + 0.5 && box.top >= -0.5 && box.bottom <= window.innerHeight + 0.5,
@@ -175,12 +189,11 @@ export default {
         t.eq(o.body, normalize(personal.body), `${at}: body matches locale`);
         t.eq(o.instagram, { label: profile.contact.instagramLabel, href: INSTAGRAM, target: '_blank', rel: 'noopener' }, `${at}: Instagram button (new tab, rel noopener)`);
         t.eq(profile.contact.instagramLabel, '@herick.andrey', `${at}: Instagram handle`);
-        t.ok(
-          o.media.photo ? o.media.photoAlt === personal.photoAlt && o.media.fallback === '' : o.media.fallback === profile.initials,
-          `${at}: shows the photo or, without it, the ${profile.initials} monogram`,
-          JSON.stringify(o.media),
-        );
-        t.note(`${at}: panel media is ${o.media.photo ? 'the photo' : 'the monogram fallback'}`);
+        t.eq(o.media?.src, '/images/herick.jpg', `${at}: panel shows an <img> pointing to /images/herick.jpg`);
+        t.ok(o.media?.alt?.trim() && o.media.alt === personal.photoAlt, `${at}: photo alt text is non-empty and matches locale`, o.media?.alt);
+        t.ok(o.media?.loaded && o.media.visible, `${at}: photo loads and is visible`, JSON.stringify(o.media));
+        t.eq([o.media?.fit, o.media?.fillsBox], ['cover', true], `${at}: photo fills the media box with object-fit: cover (no distortion)`);
+        t.eq(o.fallback, { inDom: true, hidden: true, text: profile.initials }, `${at}: ${profile.initials} monogram fallback stays in the DOM, hidden`);
         t.ok(o.focusIsClose, `${at}: focus moves to the close button on open`);
         t.eq(o.closeLabel, personal.close, `${at}: close button label matches locale`);
         t.ok(o.inside, `${at}: panel fits inside the viewport`);
@@ -218,6 +231,24 @@ export default {
         await page.waitFor(isClosed);
         await page.settle(); // the 'close' event fires a task after dialog.open turns false
         t.ok(await page.eval(isClosed), `${at}: a backdrop click closes the panel`);
+
+        // Broken photo: the monogram replaces it in the same box.
+        await page.click('[data-navbar] [data-personal-open]');
+        await page.waitFor(isOpen);
+        await page.eval(() => {
+          document.querySelector('[data-personal-photo]').src = '/images/missing-photo.jpg';
+        });
+        const swapped = await page.waitFor(() => {
+          const photo = document.querySelector('[data-personal-photo]');
+          const fallback = document.querySelector('[data-personal-fallback]');
+          const box = document.querySelector('[data-personal-media]').getBoundingClientRect();
+          const r = fallback.getBoundingClientRect();
+          return photo.hidden && !fallback.hidden && Math.abs(r.width - box.width) < 1 && Math.abs(r.height - box.height) < 1;
+        });
+        t.ok(swapped, `${at}: a photo that fails to load is replaced by the ${profile.initials} monogram in the same box`);
+        await page.press('Escape');
+        await page.waitFor(isClosed);
+        await page.settle();
 
         // Instagram row in Contact.
         const row = await page.eval(() => {
