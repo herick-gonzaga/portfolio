@@ -188,7 +188,10 @@ export class Page {
     const code = KEYS[key];
     if (!code) throw new Error(`Unsupported key ${key}`);
     const base = { key, code: key, windowsVirtualKeyCode: code, nativeVirtualKeyCode: code, modifiers: shift ? 8 : 0 };
-    await this.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...base, ...(key === 'Enter' ? { text: '\r' } : {}) });
+    // Enter needs a keyDown with text (it also emits the keypress) so it activates a focused
+    // <button> like a real key; rawKeyDown only fires keydown.
+    const down = key === 'Enter' ? { type: 'keyDown', text: '\r' } : { type: 'rawKeyDown' };
+    await this.send('Input.dispatchKeyEvent', { ...down, ...base });
     await this.send('Input.dispatchKeyEvent', { type: 'keyUp', ...base });
   }
 
