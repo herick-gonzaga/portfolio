@@ -1,9 +1,12 @@
 ---
 /**
- * Locale switcher: a 40px ghost-dark trigger (flag + locale code) and a 160px dropdown of
- * links to the other locale routes. The script keeps the current #hash on the target URL,
+ * Locale switcher: a 40px ghost-dark trigger (flag + locale code) and a 160px dropdown of links
+ * to the other locale routes. Below 900px (the mobile sheet) trigger and options are 44px touch
+ * targets. The script keeps the current #hash on the target URL,
  * remembers the choice in localStorage.lang, and supports Esc, outside click and arrow keys.
  * Rendered twice (desktop navbar and mobile sheet), so every id derives from `id`.
+ * It is a disclosure (aria-expanded + aria-controls) of plain links, not a listbox, and the
+ * trigger's accessible name ("Language EN") contains its visible text (WCAG 2.5.3).
  */
 import BR from './flags/BR.astro';
 import ES from './flags/ES.astro';
@@ -28,9 +31,8 @@ const menuId = `${id}-menu`;
 <div class="relative" data-lang-switcher>
   <button
     type="button"
-    class="inline-flex h-10 items-center gap-2 rounded-button border border-ink-border px-3 font-mono text-mono text-white transition-colors duration-hover ease-out hover:border-muted-dark hover:bg-ink-surface"
-    aria-label={content.ui.language}
-    aria-haspopup="listbox"
+    class="inline-flex h-touch items-center md:h-10 gap-2 rounded-button border border-ink-border px-3 font-mono text-mono text-white transition-colors duration-hover ease-out hover:border-muted-dark hover:bg-ink-surface"
+    aria-label={`${content.ui.language} ${locale.toUpperCase()}`}
     aria-expanded="false"
     aria-controls={menuId}
     data-lang-trigger
@@ -60,7 +62,7 @@ const menuId = `${id}-menu`;
               aria-current={current ? 'true' : undefined}
               data-lang-option={code}
               class:list={[
-                'flex min-h-10 items-center gap-2 rounded-md px-2 text-[14px] text-white',
+                'flex min-h-touch items-center md:min-h-10 gap-2 rounded-md px-2 text-[14px] text-white',
                 'hover:bg-ink-line focus-visible:bg-ink-line',
               ]}
             >

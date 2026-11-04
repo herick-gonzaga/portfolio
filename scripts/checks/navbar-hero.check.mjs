@@ -96,7 +96,7 @@ async function checkSwitcher(t, browser, baseUrl, route) {
       options: [...document.querySelectorAll(`${menu} a`)].map((a) => [a.dataset.langOption, a.getAttribute('href'), a.hreflang, a.getAttribute('aria-current')]),
     };
   }, trigger, root);
-  t.eq([initial.label, initial.ariaLabel, initial.expanded, initial.hidden], [route.locale.toUpperCase(), route.content.ui.language, 'false', true], `${at}: closed trigger shows the locale code`);
+  t.eq([initial.label, initial.ariaLabel, initial.expanded, initial.hidden], [route.locale.toUpperCase(), `${route.content.ui.language} ${route.locale.toUpperCase()}`, 'false', true], `${at}: closed trigger shows the locale code`);
   t.eq(
     initial.options,
     [['en', '/', 'en', route.locale === 'en' ? 'true' : null], ['pt', '/pt/', 'pt-BR', route.locale === 'pt' ? 'true' : null], ['es', '/es/', 'es', route.locale === 'es' ? 'true' : null]],
