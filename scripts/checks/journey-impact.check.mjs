@@ -24,15 +24,6 @@ const IMPACT_VALUES = {
   es: ['10+', '500+', '98,85%'],
 };
 
-const COLORS = {
-  white: 'rgb(255, 255, 255)',
-  mist: 'rgb(244, 245, 247)',
-  line: 'rgb(220, 224, 230)',
-  text: 'rgb(20, 25, 34)',
-  muted: 'rgb(91, 100, 114)',
-  transparent: 'rgba(0, 0, 0, 0)',
-};
-
 function readTexts(expectedIcons) {
   const text = (el) => (el?.textContent ?? '').replace(/\s+/g, ' ').trim();
   const journey = document.getElementById('journey');
@@ -223,7 +214,7 @@ const spread = (values) => Math.max(...values) - Math.min(...values);
 function checkJourneyLayout(t, j, at, width) {
   const desktop = width >= 900;
   const pad = desktop ? 112 : 72;
-  t.eq(j.background, COLORS.transparent, `${at}: Journey sits on the mist page background`);
+  t.eq(j.background, TOKENS.transparent, `${at}: Journey sits on the mist page background`);
   t.eq(j.padding, [pad, pad], `${at}: Journey padding ${pad}px top and bottom`);
 
   if (desktop) {
@@ -238,10 +229,10 @@ function checkJourneyLayout(t, j, at, width) {
   }
   t.ok(j.kicker.mono && j.kicker.size === 13 && j.kicker.color === TOKENS.cobalt, `${at}: kicker is mono 13px cobalt`);
   t.eq(j.titleFont.size, desktop ? 40 : 32, `${at}: H2 size`);
-  t.ok(j.intro.size === 15 && j.intro.color === COLORS.muted, `${at}: intro is 15px muted`, JSON.stringify(j.intro));
+  t.ok(j.intro.size === 15 && j.intro.color === TOKENS.muted, `${at}: intro is 15px muted`, JSON.stringify(j.intro));
 
   t.eq(j.olTag, 'OL', `${at}: timeline is an <ol>`);
-  t.eq(j.olBorder, ['1px', COLORS.line], `${at}: timeline has a 1px line left border`);
+  t.eq(j.olBorder, ['1px', TOKENS.line], `${at}: timeline has a 1px line left border`);
   const last = j.items.length - 1;
   t.eq(
     j.items.map((i) => i.padding),
@@ -250,9 +241,9 @@ function checkJourneyLayout(t, j, at, width) {
   );
 
   const expectedDot = {
-    current: { background: TOKENS.cobalt, border: [0, ''], shadow: `${COLORS.mist} 0px 0px 0px 3px` },
-    past: { background: COLORS.white, border: [3, TOKENS.cobalt], shadow: 'none' },
-    education: { background: COLORS.white, border: [3, COLORS.text], shadow: 'none' },
+    current: { background: TOKENS.cobalt, border: [0, ''], shadow: `${TOKENS.mist} 0px 0px 0px 3px` },
+    past: { background: TOKENS.white, border: [3, TOKENS.cobalt], shadow: 'none' },
+    education: { background: TOKENS.white, border: [3, TOKENS.text], shadow: 'none' },
   };
   for (const [n, item] of j.items.entries()) {
     const d = item.dot;
@@ -271,17 +262,17 @@ function checkJourneyLayout(t, j, at, width) {
 
     const current = item.kind === 'current';
     t.ok(
-      item.period.mono && item.period.size === 13 && item.period.color === (current ? TOKENS.cobalt : COLORS.muted),
+      item.period.mono && item.period.size === 13 && item.period.color === (current ? TOKENS.cobalt : TOKENS.muted),
       `${at}: item ${n + 1} period is mono 13px ${current ? 'cobalt' : 'muted'}`,
       JSON.stringify(item.period),
     );
     t.ok(item.title.size === 20 && item.title.weight === '600', `${at}: item ${n + 1} H3 is 20px/600`, JSON.stringify(item.title));
     if (item.orgNote) {
       const note = item.orgNote;
-      t.ok(note.size === 15 && note.weight === '400' && note.color === COLORS.muted, `${at}: item ${n + 1} org note is 15px/400 muted`, JSON.stringify(note));
+      t.ok(note.size === 15 && note.weight === '400' && note.color === TOKENS.muted, `${at}: item ${n + 1} org note is 15px/400 muted`, JSON.stringify(note));
     }
     const desc = item.description;
-    t.ok(desc.size === 15 && desc.lineHeight === 1.55 && desc.color === COLORS.muted, `${at}: item ${n + 1} description is 15px/1.55 muted`, JSON.stringify(desc));
+    t.ok(desc.size === 15 && desc.lineHeight === 1.55 && desc.color === TOKENS.muted, `${at}: item ${n + 1} description is 15px/1.55 muted`, JSON.stringify(desc));
     t.ok(Math.abs(desc.maxWidth - desc.ch62) <= 0.5 && desc.width <= desc.ch62 + 0.5, `${at}: item ${n + 1} description max 62ch`, JSON.stringify(desc));
   }
   t.eq(j.overflowing, [], `${at}: nothing in Journey overflows`);
@@ -289,7 +280,7 @@ function checkJourneyLayout(t, j, at, width) {
 
 function checkImpactLayout(t, m, at, width) {
   const pad = width >= 900 ? 112 : 72;
-  t.eq(m.background, COLORS.transparent, `${at}: Impact sits on the mist page background`);
+  t.eq(m.background, TOKENS.transparent, `${at}: Impact sits on the mist page background`);
   t.eq(m.padding, [0, pad], `${at}: Impact has bottom padding only (${pad}px)`);
 
   const metricCols = width >= 600 ? 3 : 1;
@@ -311,12 +302,12 @@ function checkImpactLayout(t, m, at, width) {
     JSON.stringify(m.metricValues[0]),
   );
   t.ok(
-    m.metricLabels.every((l) => l.size === 15 && l.weight === '600' && l.color === COLORS.text),
+    m.metricLabels.every((l) => l.size === 15 && l.weight === '600' && l.color === TOKENS.text),
     `${at}: metric labels are 15px/600`,
     JSON.stringify(m.metricLabels[0]),
   );
   t.ok(
-    m.metricNotes.every((n) => n.size === 14 && n.lineHeight === 1.5 && n.color === COLORS.muted),
+    m.metricNotes.every((n) => n.size === 14 && n.lineHeight === 1.5 && n.color === TOKENS.muted),
     `${at}: metric notes are 14px/1.5 muted`,
     JSON.stringify(m.metricNotes[0]),
   );
@@ -337,7 +328,7 @@ function checkImpactLayout(t, m, at, width) {
     t.near(a.iconTopOffset, 2, 0.5, `${label} icon is offset 2px from the top`);
     t.ok(a.title.size === 17 && a.title.weight === '600', `${label} H3 is 17px/600`, JSON.stringify(a.title));
     t.ok(
-      a.description.size === 14 && a.description.lineHeight === 1.55 && a.description.color === COLORS.muted,
+      a.description.size === 14 && a.description.lineHeight === 1.55 && a.description.color === TOKENS.muted,
       `${label} description is 14px/1.55 muted`,
       JSON.stringify(a.description),
     );
