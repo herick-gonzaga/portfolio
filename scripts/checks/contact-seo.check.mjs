@@ -10,19 +10,11 @@
  * and theme-color per route; og.png is a 1200×630 PNG; favicons, robots.txt and sitemap reachable.
  */
 import config from '../../astro.config.mjs';
-import { normalize } from './lib/context.mjs';
+import { TOKENS, normalize } from './lib/context.mjs';
 
 const WIDTHS = [1440, 900, 600, 390];
 const SITE = new URL(config.site).origin;
 const OG_LOCALE = { en: 'en_US', pt: 'pt_BR', es: 'es_LA' };
-
-const COLORS = {
-  ink: 'rgb(15, 20, 32)',
-  inkLine: 'rgb(30, 38, 53)',
-  white: 'rgb(255, 255, 255)',
-  mutedDark: 'rgb(166, 175, 191)',
-  cobaltSoft: 'rgb(123, 150, 255)',
-};
 
 function readTexts() {
   const text = (el) => (el?.textContent ?? '').replace(/\s+/g, ' ').trim();
@@ -218,7 +210,7 @@ function checkTexts(t, texts, content, at) {
 function checkLayout(t, m, at, width) {
   const desktop = width >= 900;
   t.ok(m.hscroll <= 0, `${at}: no horizontal scroll`, `${m.hscroll}px`);
-  t.eq(m.background, COLORS.ink, `${at}: ink background`);
+  t.eq(m.background, TOKENS.ink, `${at}: ink background`);
   t.eq(m.padding, desktop ? [120, 56] : [72, 40], `${at}: padding ${desktop ? '120/56' : '72/40'}`);
   t.ok(
     m.topLine.height === 1 && m.topLine.top === 0 && m.topLine.width === 0,
@@ -241,16 +233,16 @@ function checkLayout(t, m, at, width) {
     t.near(m.listTop - m.leftBottom, 48, 0.5, `${at}: 48px between text and details list`);
   }
 
-  t.eq([m.kicker.size, m.kicker.color, m.kicker.mono], [13, COLORS.cobaltSoft, true], `${at}: kicker mono 13px cobalt-soft`);
+  t.eq([m.kicker.size, m.kicker.color, m.kicker.mono], [13, TOKENS.cobaltSoft, true], `${at}: kicker mono 13px cobalt-soft`);
   t.ok(
-    m.h2.size === (desktop ? 48 : 32) && m.h2.lineHeight === 1.1 && m.h2.color === COLORS.white && m.h2.weight === '600',
+    m.h2.size === (desktop ? 48 : 32) && m.h2.lineHeight === 1.1 && m.h2.color === TOKENS.white && m.h2.weight === '600',
     `${at}: H2 ${desktop ? 48 : 32}px/1.1 white`,
     JSON.stringify(m.h2),
   );
   t.near(m.h2.maxWidth, m.h2.ch16, 0.5, `${at}: H2 max-width is 16ch`);
   t.ok(m.h2.width <= m.h2.ch16 + 0.5, `${at}: H2 stays within 16ch`, JSON.stringify(m.h2));
   t.ok(
-    m.body.size === 17 && m.body.lineHeight === 1.6 && m.body.color === COLORS.mutedDark,
+    m.body.size === 17 && m.body.lineHeight === 1.6 && m.body.color === TOKENS.mutedDark,
     `${at}: text 17px/1.6 muted-dark`,
     JSON.stringify(m.body),
   );
@@ -266,13 +258,13 @@ function checkLayout(t, m, at, width) {
   }
 
   t.eq(m.list.tag, 'UL', `${at}: details are a <ul>`);
-  t.eq(m.list.borderTop, [1, COLORS.inkLine], `${at}: list has a 1px ink-line top border`);
+  t.eq(m.list.borderTop, [1, TOKENS.inkLine], `${at}: list has a 1px ink-line top border`);
   t.eq(m.rows.length, 5, `${at}: 5 detail rows`);
   for (const [n, row] of m.rows.entries()) {
     const label = `${at}: row ${n + 1}`;
-    t.eq(row.borderBottom, [1, COLORS.inkLine], `${label} has a 1px ink-line bottom border`);
-    t.eq([row.label.size, row.label.color, row.label.mono], [14, COLORS.mutedDark, false], `${label} label is 14px muted-dark`);
-    t.eq([row.value.size, row.value.color, row.value.mono], [15, COLORS.white, true], `${label} value is mono 15px white`);
+    t.eq(row.borderBottom, [1, TOKENS.inkLine], `${label} has a 1px ink-line bottom border`);
+    t.eq([row.label.size, row.label.color, row.label.mono], [14, TOKENS.mutedDark, false], `${label} label is 14px muted-dark`);
+    t.eq([row.value.size, row.value.color, row.value.mono], [15, TOKENS.white, true], `${label} value is mono 15px white`);
     t.ok(row.valueHeight >= 44, `${label} value is a ≥44px target`, `${row.valueHeight}px`);
     if (width < 600) {
       t.ok(row.stacked && row.leftAligned, `${label} label sits above the value`, JSON.stringify(row));
@@ -282,9 +274,9 @@ function checkLayout(t, m, at, width) {
   }
 
   const f = m.footer;
-  t.eq(f.borderTop, [1, COLORS.inkLine], `${at}: footer has a 1px ink-line top border`);
+  t.eq(f.borderTop, [1, TOKENS.inkLine], `${at}: footer has a 1px ink-line top border`);
   t.eq(f.paddingTop, 24, `${at}: footer has 24px top padding`);
-  t.eq([f.size, f.color], [13, COLORS.mutedDark], `${at}: footer text is 13px muted`);
+  t.eq([f.size, f.color], [13, TOKENS.mutedDark], `${at}: footer text is 13px muted`);
   t.ok(f.taglineMono, `${at}: footer tagline is mono`);
   t.eq(f.flexWrap, 'wrap', `${at}: footer row can wrap`);
   t.ok(f.backTopHeight >= 44, `${at}: back-to-top is a ≥44px target`, `${f.backTopHeight}px`);
