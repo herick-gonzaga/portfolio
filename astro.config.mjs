@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://herick-gonzaga.github.io',
+  site: 'https://herick-gonzaga.pages.dev',
   i18n: {
     defaultLocale: 'en',
     locales: ['en', 'pt', 'es'],

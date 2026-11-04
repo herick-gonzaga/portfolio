@@ -1,7 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <!--
     Open Graph card (1200×630), rendered to public/og.png by scripts/generate-assets.mjs.
-    {{name}}, {{title}} and {{url}} are filled from src/i18n/en.ts and astro.config.mjs `site`.
+    {{name}}, {{title}} and {{url}} are filled from src/i18n/en.ts and the host of astro.config.mjs
+    `site` (herick-gonzaga.pages.dev). After changing the host, run `npm run assets` and commit og.png.
     The generator embeds Instrument Sans and JetBrains Mono, so the families below always resolve.
   -->
   <defs>

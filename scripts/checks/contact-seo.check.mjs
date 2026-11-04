@@ -9,11 +9,11 @@
  * Head: title, description, canonical, 4 hreflang, Open Graph, Twitter card, valid JSON-LD Person
  * and theme-color per route; og.png is a 1200×630 PNG; favicons, robots.txt and sitemap reachable.
  */
-import config from '../../astro.config.mjs';
-import { normalize } from './lib/context.mjs';
+import { normalize, SITE_HOST } from './lib/context.mjs';
 
 const WIDTHS = [1440, 900, 600, 390];
-const SITE = new URL(config.site).origin;
+// Pinned, not read from astro.config.mjs: a wrong `site` fails canonical, hreflang, og:url and robots.
+const SITE = `https://${SITE_HOST}`;
 const OG_LOCALE = { en: 'en_US', pt: 'pt_BR', es: 'es_LA' };
 
 const COLORS = {
