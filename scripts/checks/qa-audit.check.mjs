@@ -11,6 +11,8 @@
  * and the mobile sheet included, and Tab leaving the page after the footer (no trap).
  * Reduced motion: no transition or animation anywhere; hero, diagram, timeline, navbar and
  * switcher render their final states immediately.
+ * Performance: the two latin font preloads match the CSS files, font-display swap, one stylesheet,
+ * sized SVGs and images, inline head scripts under 1 KB.
  */
 import { TOKENS } from './lib/context.mjs';
 
@@ -317,8 +319,40 @@ async function reducedMotion(t, browser, url, at) {
   await page.close();
 }
 
+/* ---------- Performance hygiene ---------- */
+
+/** Font preloads match the CSS @font-face files; SVGs/images have explicit size; small redirect. */
+async function performanceHead(t, page, url, at) {
+  await page.goto(url);
+  const head = await page.eval(async () => {
+    const preloads = [...document.querySelectorAll('link[rel="preload"][as="font"]')].map((l) => ({
+      href: new URL(l.href).pathname,
+      type: l.type,
+      crossorigin: l.hasAttribute('crossorigin'),
+    }));
+    const css = (await Promise.all([...document.querySelectorAll('link[rel="stylesheet"]')].map((l) => fetch(l.href).then((r) => r.text())))).join('');
+    const fontFiles = [...css.matchAll(/url\(([^)]+\.woff2)\)/g)].map((m) => new URL(m[1], location.href).pathname);
+    const display = [...css.matchAll(/@font-face\{[^}]*\}/g)].map((m) => /font-display:swap/.test(m[0]));
+    const unsized = [...document.querySelectorAll('svg, img')]
+      .filter((el) => !el.closest('svg svg') && !(el.getAttribute('width') && el.getAttribute('height')))
+      .map((el) => el.outerHTML.slice(0, 60));
+    const inline = [...document.querySelectorAll('head script:not([src]):not([type])')].map((s) => s.textContent.length);
+    return { preloads, fontFiles, display, unsized, inline, stylesheets: document.querySelectorAll('link[rel="stylesheet"]').length };
+  });
+  t.eq(head.preloads.length, 2, `${at}: two font preloads`);
+  t.ok(
+    head.preloads.every((p) => p.type === 'font/woff2' && p.crossorigin && head.fontFiles.includes(p.href)),
+    `${at}: font preloads are crossorigin woff2 files the CSS uses (no double download)`,
+    JSON.stringify(head.preloads),
+  );
+  t.ok(head.display.length > 0 && head.display.every(Boolean), `${at}: every @font-face uses font-display: swap`);
+  t.eq(head.stylesheets, 1, `${at}: a single render-blocking stylesheet`);
+  t.eq(head.unsized, [], `${at}: every SVG and image has explicit width and height`);
+  t.ok(head.inline.every((n) => n < 1024), `${at}: inline head scripts stay under 1 KB`, JSON.stringify(head.inline));
+}
+
 export default {
-  name: 'QA audit: responsive, contrast, names, keyboard, reduced motion',
+  name: 'QA audit: responsive, contrast, names, keyboard, motion, performance',
   async run({ browser, baseUrl, routes, t }) {
     for (const route of routes) {
       const url = baseUrl + route.path;
@@ -328,6 +362,7 @@ export default {
       await contrast(t, page, url, at);
       await names(t, page, url, at);
       await keyboard(t, page, url, at);
+      await performanceHead(t, page, url, at);
       t.eq(page.errors, [], `${at}: no uncaught page errors`);
       await page.close();
       await reducedMotion(t, browser, url, at);
