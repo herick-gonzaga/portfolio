@@ -6,8 +6,9 @@
  *   embedded from @fontsource-variable and the texts filled from src/i18n/en.ts and the site URL.
  * - public/favicon.ico (16, 32 and 48px PNG entries) from public/favicon.svg.
  *
- * Files are only rewritten when their bytes change. Without Chrome the committed files are kept
- * and the build continues with a warning.
+ * Files are only rewritten when their bytes change. On Cloudflare Pages (CF_PAGES=1) Chrome is never
+ * looked for, and anywhere else without Chrome the committed files are kept with a warning: either
+ * way the build continues with the og.png and favicon.ico in git.
  */
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -78,11 +79,17 @@ async function render(browser, dir, name, html, { width, height, transparent = f
   return Buffer.from(data, 'base64');
 }
 
+const KEEP = 'Keeping the committed public/og.png and public/favicon.ico.';
+if (process.env.CF_PAGES) {
+  console.log(`assets: Cloudflare Pages build, Chrome skipped. ${KEEP}`);
+  process.exit(0);
+}
+
 let browser;
 try {
   browser = await launchBrowser();
 } catch (error) {
-  console.warn(`assets: ${error.message} Keeping the committed public/og.png and public/favicon.ico.`);
+  console.warn(`assets: ${error.message} ${KEEP}`);
   process.exit(0);
 }
 
