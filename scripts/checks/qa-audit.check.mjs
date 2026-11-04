@@ -1,7 +1,8 @@
 /**
  * Cross-section QA audit (docs/QA_REPORT.md).
  * Responsive sweep (1440, 1392, 1200, 900, 600, 390, 360): no horizontal scroll, no clipped text,
- * H1 at most 3 lines at 1440 and 5 at 390, touch targets ≥44px below 900px (sheet included).
+ * H1 at most 3 lines at 1440 and 5 at 390, touch targets ≥44px below 900px (sheet included;
+ * controls inline inside a sentence are exempt, per the WCAG 2.5.8 inline exception).
  * Contrast: every visible text node, SVG text included, ≥4.5:1 (3:1 for large text) against its
  * effective background, at 1440 and 390 with the mobile sheet and switcher open.
  * Names: every visible link/button has an accessible name; icon-only ones use aria-label; every
@@ -35,6 +36,12 @@ function measureLayout(width) {
     width < 900
       ? [...document.querySelectorAll('a[href], button')]
           .filter(visible)
+          // WCAG 2.5.8 inline exception: a control that is part of a sentence (the name in the
+          // hero intro) is sized by the line of text it sits in.
+          .filter((el) => {
+            const sentence = el.closest('p');
+            return !sentence || sentence.textContent.trim() === el.textContent.trim();
+          })
           .filter((el) => {
             const r = el.getBoundingClientRect();
             return r.width < 44 - 0.5 || r.height < 44 - 0.5;
