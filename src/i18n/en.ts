@@ -232,7 +232,7 @@ export const en: Content = {
       },
       {
         value: '98.85%',
-        label: 'extraction accuracy gain',
+        label: 'extraction precision gain',
         note: 'Measured across vendor prompt revisions in SubBase’s extraction pipeline.',
       },
     ],

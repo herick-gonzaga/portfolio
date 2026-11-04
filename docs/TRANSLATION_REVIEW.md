@@ -130,7 +130,7 @@ change the locale files and regenerate.
 | `achievements.metrics[1].label` | automated tests shipped | testes automatizados entregues | pruebas automatizadas entregadas |
 | `achievements.metrics[1].note` | In subbase-qa-tests, tracked in MQ-Test, run on CI. | No subbase-qa-tests, acompanhados no MQ-Test, executados no CI. | En subbase-qa-tests, con seguimiento en MQ-Test, ejecutadas en CI. |
 | `achievements.metrics[2].value` | 98.85% | 98,85% | 98,85% |
-| `achievements.metrics[2].label` | extraction accuracy gain | ganho de precisão na extração | mejora en la precisión de extracción |
+| `achievements.metrics[2].label` | extraction precision gain | ganho de precisão na extração | mejora en la precisión de extracción |
 | `achievements.metrics[2].note` | Measured across vendor prompt revisions in SubBase’s extraction pipeline. | Medido em revisões de prompts por fornecedor no pipeline de extração da SubBase. | Medido en revisiones de prompts por proveedor en el pipeline de extracción de SubBase. |
 | `achievements.items[0].title` | Speaker, DevParaná na Estrada 2026 & Anhembi Morumbi (São Paulo) | Palestrante, DevParaná na Estrada 2026 & Anhembi Morumbi (São Paulo) | Ponente, DevParaná na Estrada 2026 & Anhembi Morumbi (São Paulo) |
 | `achievements.items[0].description` | Talks on “From student to international developer” and “Paths and technology”: how early-career engineers reach global teams. | Palestras “De estudante a desenvolvedor internacional” e “Caminhos e tecnologia”: como engenheiros em início de carreira chegam a times globais. | Charlas “De estudiante a desarrollador internacional” y “Caminos y tecnología”: cómo los ingenieros que inician su carrera llegan a equipos globales. |
