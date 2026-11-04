@@ -1,11 +1,18 @@
 /**
  * Projects section: copy matches the locale files (by tier), section surface and rhythm, header row,
  * row 1 (2fr/1fr from 1200px, stacked with the featured card first below), row 2 (2 columns from 600px), card typography, equal-height secondary
- * cards, metrics grid, chips, overflow, and external links (target="_blank", rel="noopener").
+ * cards, metrics grid and real metric values, chips, overflow, and external links (target="_blank", rel="noopener").
  */
 import { TOKENS, normalize } from './lib/context.mjs';
 
 const WIDTHS = [1440, 1392, 1200, 1199, 900, 600, 390];
+
+/** Real MQ-Test metric values per locale: same numbers, locale-specific thousands separator. */
+const FEATURED_VALUES = {
+  en: ['500+', '9,000+', '10+'],
+  pt: ['500+', '9.000+', '10+'],
+  es: ['500+', '9.000+', '10+'],
+};
 
 const COLORS = {
   white: 'rgb(255, 255, 255)',
@@ -394,7 +401,11 @@ export default {
         },
         `${at}: featured project matches locale`,
       );
-      t.ok(texts.featured.metrics.every((m) => m.value === '[N]'), `${at}: "[N]" metric placeholders are untouched`);
+      t.eq(
+        texts.featured.metrics.map((m) => m.value),
+        FEATURED_VALUES[route.locale],
+        `${at}: featured metrics are the real numbers in the locale's number format`,
+      );
       t.eq(texts.secondary, byTier('secondary').map(card), `${at}: secondary projects match locale`);
       t.eq(texts.small, byTier('small').map(card), `${at}: small projects match locale (no links row when empty)`);
       await checkLinks(t, page, at);

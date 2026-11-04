@@ -112,7 +112,7 @@ export interface Content {
     period?: string;
     description: string;
     stack: string[];
-    /** Unknown values stay as "[N]". */
+    /** Display-ready value, formatted for the locale (e.g. "9,000+" in EN, "9.000+" in PT/ES). */
     metrics?: { value: string; label: string }[];
     links: Link[];
     tier: ProjectTier;
@@ -130,7 +130,7 @@ export interface Content {
     type: JourneyType;
   }[];
   achievements: {
-    /** Unknown values stay as "[N]". */
+    /** Display-ready value, formatted for the locale (e.g. "9,000+" in EN, "9.000+" in PT/ES). */
     metrics: { value: string; label: string; note: string }[];
     items: {
       icon: AchievementIcon;

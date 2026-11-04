@@ -3,8 +3,9 @@
  * Achievements & impact (id "impact"): shares the mist background with Journey above, so only the
  * bottom padding is kept.
  * Row 1: three metric cards (one column below 600px). Each value is the first line of its card at
- * a fixed 44px/1 line box, so the values share one baseline whatever the label wrapping below.
- * "[N]" placeholders are rendered as-is until real numbers replace them in all three locale files.
+ * a fixed 44px/1 line box (36px/1 between 600px and 900px, where three columns are too narrow for a
+ * value like "98.85%"), so the values share one baseline whatever the label wrapping below.
+ * Metric values are rendered as-is from the locale files, which own the per-locale number format.
  * Row 2: the achievement cards in two columns from 900px (one below), icon left of the text.
  */
 import Card from './ui/Card.astro';
@@ -35,7 +36,7 @@ const { metrics, items } = content.achievements;
       metrics.map((metric) => (
         <li class="flex">
           <Card class="flex w-full flex-col">
-            <p class="text-metric font-semibold tracking-[-0.03em] text-cobalt">{metric.value}</p>
+            <p class="text-metric font-semibold sm:max-md:text-[36px] tracking-[-0.03em] text-cobalt">{metric.value}</p>
             <p class="mt-3 text-[15px] leading-[1.4] font-semibold">{metric.label}</p>
             <p class="mt-2 text-[14px] leading-[1.5] text-muted">{metric.note}</p>
           </Card>
