@@ -75,6 +75,7 @@ export const es: Content = {
     body:
       'Fuera del trabajo, soy un gran aficionado al deporte, un apasionado de la música brasileña en todas sus formas y, de vez en cuando, alguien que transforma pensamientos sobre la vida en palabras. Me gusta subir al escenario para compartir ideas sobre tecnología y carrera profesional, ayudar a quienes están comenzando su camino y participar en proyectos de voluntariado con jóvenes de mi ciudad. Al fin y al cabo, creo que el conocimiento, las experiencias y las buenas historias son aún mejores cuando se comparten. Si quieres conocerme más allá de GitHub, Instagram es el lugar.',
     photoAlt: 'Retrato de Herick Gonzaga',
+    open: 'Herick Gonzaga — más allá del código',
     close: 'Cerrar',
   },
   sections: {

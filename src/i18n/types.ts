@@ -93,6 +93,8 @@ export interface Content {
     title: string;
     body: string;
     photoAlt: string;
+    /** aria-label of the navbar name button; starts with the visible name (WCAG 2.5.3). */
+    open: string;
     /** aria-label of the dialog's close button. */
     close: string;
   };
