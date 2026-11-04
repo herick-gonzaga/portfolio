@@ -14,9 +14,9 @@ export const es: Content = {
     title: 'Ingeniero de Software & IA',
     headline: 'Software que llega a producción, IA que resiste en ella.',
     intro:
-      'Soy Herick Gonzaga, Ingeniero de Software & IA. Trabajo con sistemas basados en LLM, automatización con agentes y QA para una plataforma estadounidense de compras para la construcción. Construyo el pipeline, los prompts y las pruebas que demuestran que todo funciona.',
-    status: 'Disponible para roles remotos · Brasil (UTC−3) · Inglés a diario',
-    heroChips: ['Ingeniería de Software', 'Ingeniería de IA', 'Prompt Engineering', 'QA & Automatización', 'MCP'],
+      'Soy Herick Gonzaga, Ingeniero de Software e IA y estudiante de Relaciones Internacionales. Trabajo con sistemas basados en LLM, automatización con agentes y QA para una plataforma estadounidense de compras para la construcción. Construyo el pipeline, los prompts y las pruebas que demuestran que todo funciona — con la mirada puesta en los mercados donde opera el software.',
+    status: 'Ingeniería de Software e IA + Relaciones Internacionales · Brasil (UTC−3)',
+    heroChips: ['Ingeniería de Software', 'Ingeniería de IA', 'Prompt Engineering', 'QA & Automatización', 'MCP', 'Relaciones Internacionales'],
     about: [
       'Divido mis días entre dos empresas: en Codengage trabajo como ingeniero de IA, creando y entrenando modelos y construyendo productos de datos; en SubBase, una plataforma SaaS estadounidense de compras para la construcción, me encargo del trabajo de datos human-in-the-loop, del prompt engineering y del QA de un pipeline de extracción de facturas basado en LLM.',
       'Creo que los buenos productos de IA son, en gran parte, buena ingeniería: contratos claros, resultados medidos y pruebas que detectan regresiones antes que los clientes. Estudiar Relaciones Internacionales junto con Ingeniería de Software es mi forma de no perder de vista la otra mitad: las personas, los mercados y las regulaciones a las que el software debe responder.',
@@ -26,7 +26,7 @@ export const es: Content = {
       { label: 'Trabajo en', value: 'SubBase (Fort Lauderdale, remoto) · Codengage' },
       { label: 'Estudio', value: 'Ingeniería de Software, UTFPR · Relaciones Internacionales, UNINTER' },
       { label: 'Idiomas', value: 'Portugués (nativo) · Inglés (profesional) · Español, Francés (básico)' },
-      { label: 'Disponible para', value: 'Roles remotos, híbridos o presenciales con equipos internacionales' },
+      { label: 'Disponible para', value: 'Charlas, mentorías y comunidades tech' },
     ],
     contact: {
       email: 'andreyherick8@gmail.com',
@@ -38,7 +38,7 @@ export const es: Content = {
     },
     contactHeadline: 'Construyamos software que funcione en todas partes.',
     contactText:
-      '¿Buscas a alguien para un rol de IA, backend o QA en un equipo distribuido? Respondo en menos de un día hábil, en inglés o portugués.',
+      '¿Organizas una charla, buscas mentoría o construyes una comunidad tech? Respondo en menos de un día hábil, en inglés o portugués.',
     footerTagline: 'Hecho con disciplina de Rails y uno o dos LLMs.',
   },
   ui: {

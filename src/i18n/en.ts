@@ -13,9 +13,9 @@ export const en: Content = {
     title: 'Software & AI Engineer',
     headline: 'Software that ships, AI that holds up in production.',
     intro:
-      'I’m Herick Gonzaga, a Software & AI Engineer working with LLM-based systems, agent automation and QA for a U.S. construction-procurement platform. I build the pipeline, the prompts and the tests that prove it works.',
-    status: 'Open to remote roles · Brazil (UTC−3) · English, daily',
-    heroChips: ['Software Engineering', 'AI Engineering', 'Prompt Engineering', 'QA & Automation', 'MCP'],
+      'I’m Herick Gonzaga, a Software & AI Engineer and International Relations undergraduate. I work on LLM-based systems, agent automation and QA for a US construction-procurement platform. I build the pipeline, the prompts and the tests that prove it all works — with an eye on the markets where software operates.',
+    status: 'Software & AI Engineering + International Relations · Brazil (UTC−3)',
+    heroChips: ['Software Engineering', 'AI Engineering', 'Prompt Engineering', 'QA & Automation', 'MCP', 'International Relations'],
     about: [
       'I split my days between two companies: an AI engineering role at Codengage, where I create and train models and build data products, and SubBase, a U.S. SaaS platform for construction procurement, where I run human-in-the-loop data work, prompt engineering and QA for an LLM-based invoice extraction pipeline.',
       'I believe good AI products are mostly good engineering: clear contracts, measured outputs, tests that catch regressions before customers do. Studying International Relations alongside Software Engineering is how I keep the other half in view: the people, markets and regulations the software has to serve.',
@@ -25,7 +25,7 @@ export const en: Content = {
       { label: 'Working at', value: 'SubBase (Fort Lauderdale, remote) · Codengage' },
       { label: 'Studying', value: 'Software Engineering, UTFPR · International Relations, UNINTER' },
       { label: 'Languages', value: 'Portuguese (native) · English (professional) · Spanish, French (basic)' },
-      { label: 'Open to', value: 'Remote, hybrid or on-site roles with international teams' },
+      { label: 'Available for', value: 'Talks, mentoring and tech communities' },
     ],
     contact: {
       email: 'andreyherick8@gmail.com',
@@ -37,7 +37,7 @@ export const en: Content = {
     },
     contactHeadline: 'Let’s build software that works everywhere.',
     contactText:
-      'Hiring for an AI, backend or QA role on a distributed team? I reply within a business day, in English or Portuguese.',
+      'Organizing a talk, looking for a mentor or building a tech community? I reply within a business day, in English or Portuguese.',
     footerTagline: 'Built with Rails-grade discipline and an LLM or two.',
   },
   ui: {
