@@ -6,8 +6,9 @@
  * fade-in once at 30% visibility, final state under prefers-reduced-motion and without JS.
  * Org notes ("through Codengage") render after the org as muted 15px regular text, and the work
  * history shows a single current engagement, with Codengage only as a note, never its own entry.
- * Achievements: copy and "[N]" placeholders; bottom-only padding; 3 metric cards (1 column below
- * 600px) whose values share one baseline; 2-column achievement grid (1 column below 900px) with
+ * Achievements: copy and real metric values (no placeholders); bottom-only padding; 3 metric
+ * cards (1 column below 600px; values 36px between 600px and 900px, 44px elsewhere) whose values
+ * share one baseline; 2-column achievement grid (1 column below 900px) with
  * the icon left of the text. Both: nothing overflows and no horizontal scroll in any locale.
  */
 import { TOKENS, normalize } from './lib/context.mjs';
@@ -15,6 +16,13 @@ import { sleep } from './lib/browser.mjs';
 import { icons } from '../../src/components/ui/icons.ts';
 
 const WIDTHS = [1440, 1200, 900, 600, 390];
+
+/** Real metric values per locale: same numbers, locale-specific separators. */
+const IMPACT_VALUES = {
+  en: ['10+', '500+', '98.85%'],
+  pt: ['10+', '500+', '98,85%'],
+  es: ['10+', '500+', '98,85%'],
+};
 
 const COLORS = {
   white: 'rgb(255, 255, 255)',
@@ -295,9 +303,11 @@ function checkImpactLayout(t, m, at, width) {
     if (spread(wraps) > 0) t.note(`${at}: metric labels wrap unevenly (${wraps.join('/')} lines), baselines still aligned`);
   }
   t.ok(m.valueFirst, `${at}: each metric value is the first line of its card`);
+  // 36px in the narrow 3-column band (600-899px) so values like "98.85%" fit on one line; 44px elsewhere.
+  const valueSize = width >= 600 && width < 900 ? 36 : 44;
   t.ok(
-    m.metricValues.every((v) => v.size === 44 && v.weight === '600' && v.color === TOKENS.cobalt && v.tracking === -0.03),
-    `${at}: metric values are 44px/600 cobalt, -0.03em`,
+    m.metricValues.every((v) => v.size === valueSize && v.weight === '600' && v.color === TOKENS.cobalt && v.tracking === -0.03),
+    `${at}: metric values are ${valueSize}px/600 cobalt, -0.03em`,
     JSON.stringify(m.metricValues[0]),
   );
   t.ok(
@@ -496,9 +506,14 @@ export default {
         content.achievements.metrics.map((m) => ({ value: m.value, label: normalize(m.label), note: normalize(m.note) })),
         `${at}: metrics match locale`,
       );
+      t.eq(
+        texts.impact.metrics.map((m) => m.value),
+        IMPACT_VALUES[route.locale],
+        `${at}: metric values are the real numbers in the locale's number format`,
+      );
       t.ok(
-        texts.impact.metrics.every((m) => m.value.includes('[N]')) && texts.impact.metrics.some((m) => m.note.startsWith('[')),
-        `${at}: "[N]" and bracketed placeholders are untouched`,
+        texts.impact.metrics.every((m) => !/\[(N|Replace)/.test(m.value + m.label + m.note)),
+        `${at}: no "[N]" or bracketed "[Replace" placeholders remain`,
       );
       t.eq(
         texts.impact.items.map(({ title, description }) => ({ title, description })),

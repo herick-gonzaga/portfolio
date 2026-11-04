@@ -137,9 +137,9 @@ export const es: Content = {
         'Una plataforma de gestión de pruebas (suites, casos, planes, ejecuciones, bugs, requisitos) con un servidor MCP para que los agentes de código lean y escriban datos de prueba. Se integra con GitHub, Linear y Slack; el repositorio de automatización sigue siendo la fuente de verdad y MQ-Test se convierte en el panel que lo organiza y le da seguimiento.',
       stack: ['Rails 8', 'PostgreSQL', 'Docker', 'MCP', 'GitHub API', 'Linear'],
       metrics: [
-        { value: '[N]', label: 'casos de prueba organizados' },
-        { value: '[N]', label: 'ejecuciones registradas vía MCP' },
-        { value: '[N]', label: 'integraciones' },
+        { value: '500+', label: 'casos de prueba organizados' },
+        { value: '9.000+', label: 'ejecuciones registradas vía MCP' },
+        { value: '10+', label: 'integraciones' },
       ],
       links: [
         { label: 'Repositorio', href: 'https://github.com/herick-gonzaga/MQ-Test' },
@@ -228,19 +228,19 @@ export const es: Content = {
   achievements: {
     metrics: [
       {
-        value: '[N]',
+        value: '10+',
         label: 'sistemas de prompt por proveedor',
         note: 'Creados o auditados para el pipeline de extracción de SubBase (Wesco, Airgas, White Cap y otros).',
       },
       {
-        value: '[N]',
+        value: '500+',
         label: 'pruebas automatizadas entregadas',
         note: 'En subbase-qa-tests, con seguimiento en MQ-Test, ejecutadas en CI.',
       },
       {
-        value: '[N]%',
+        value: '98,85%',
         label: 'mejora en la precisión de extracción',
-        note: '[Replace with a measured before/after from a vendor prompt revision.]',
+        note: 'Medido en revisiones de prompts por proveedor en el pipeline de extracción de SubBase.',
       },
     ],
     items: [

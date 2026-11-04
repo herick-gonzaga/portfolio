@@ -130,9 +130,9 @@ export const en: Content = {
         'A test-management platform (suites, cases, plans, runs, bugs, requirements) with an MCP server so coding agents can read and write test data. Integrates with GitHub, Linear and Slack; the automation repo stays the source of truth and MQ-Test becomes the dashboard that organizes and tracks it.',
       stack: ['Rails 8', 'PostgreSQL', 'Docker', 'MCP', 'GitHub API', 'Linear'],
       metrics: [
-        { value: '[N]', label: 'test cases organized' },
-        { value: '[N]', label: 'runs tracked via MCP' },
-        { value: '[N]', label: 'integrations' },
+        { value: '500+', label: 'test cases organized' },
+        { value: '9,000+', label: 'runs tracked via MCP' },
+        { value: '10+', label: 'integrations' },
       ],
       links: [
         { label: 'Repository', href: 'https://github.com/herick-gonzaga/MQ-Test' },
@@ -221,19 +221,19 @@ export const en: Content = {
   achievements: {
     metrics: [
       {
-        value: '[N]',
+        value: '10+',
         label: 'vendor prompt systems',
         note: 'Authored or audited for the SubBase extraction pipeline (Wesco, Airgas, White Cap and others).',
       },
       {
-        value: '[N]',
+        value: '500+',
         label: 'automated tests shipped',
         note: 'In subbase-qa-tests, tracked in MQ-Test, run on CI.',
       },
       {
-        value: '[N]%',
+        value: '98.85%',
         label: 'extraction accuracy gain',
-        note: '[Replace with a measured before/after from a vendor prompt revision.]',
+        note: 'Measured across vendor prompt revisions in SubBase’s extraction pipeline.',
       },
     ],
     items: [
