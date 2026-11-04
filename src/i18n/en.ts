@@ -69,6 +69,9 @@ export const en: Content = {
     menuClose: 'Close menu',
     language: 'Language',
     navLabel: 'Main navigation',
+    notFoundTitle: 'Page not found',
+    notFoundText: 'This address doesn’t exist on this site.',
+    notFoundBack: 'Go to the homepage',
   },
   personal: {
     title: 'Beyond the code',
@@ -181,10 +184,7 @@ export const en: Content = {
         { value: '9,000+', label: 'runs tracked via MCP' },
         { value: '10+', label: 'integrations' },
       ],
-      links: [
-        { label: 'Repository', href: 'https://github.com/herick-gonzaga/MQ-Test' },
-        { label: 'Case study', href: '#projects' },
-      ],
+      links: [],
       tier: 'featured',
     },
     {
@@ -194,7 +194,7 @@ export const en: Content = {
       description:
         'Vendor-specific prompt rules, a pre-extraction page-classification gate for mixed PDFs, schema migrations and structured bug reports for an extraction pipeline used in production.',
       stack: ['Prompt systems', 'LLM eval', 'Redash / SQL'],
-      links: [{ label: 'Read the write-up', href: '#projects' }],
+      links: [],
       tier: 'secondary',
     },
     {

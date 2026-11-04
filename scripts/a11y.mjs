@@ -12,6 +12,7 @@
  *
  * Besides the page as loaded, each mobile run also audits the open mobile menu sheet, and each
  * run audits the open language switcher, so content that is hidden on load is covered too.
+ * Each locale's 404 page (an unknown path under the route) is audited as loaded at both widths.
  * JSON results are written to reports/axe/ (gitignored).
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -95,6 +96,17 @@ const rows = [];
 
 try {
   for (const route of ROUTES) {
+    const notFound = `${route.path}does-not-exist`;
+    for (const { width, height } of WIDTHS) {
+      const page = await browser.newPage({ width, height, language: 'en-US' });
+      try {
+        await page.goto(`${server.url}${notFound}`);
+        await sleep(SETTLE_MS);
+        rows.push({ route: notFound, width, state: '404 page', ...(await audit(page)) });
+      } finally {
+        await page.close();
+      }
+    }
     for (const { width, height } of WIDTHS) {
       for (const [state, triggers] of statesFor(width)) {
         const page = await browser.newPage({ width, height, language: 'en-US' });
@@ -125,7 +137,7 @@ writeFileSync(join(outDir, 'results.json'), JSON.stringify({ axeVersion, rows },
 let total = 0;
 console.log(`axe-core ${axeVersion}\n`);
 for (const row of rows) {
-  const label = `${row.route.padEnd(5)} @${String(row.width).padEnd(4)} ${row.state}`;
+  const label = `${row.route.padEnd(20)} @${String(row.width).padEnd(4)} ${row.state}`;
   if (row.skipped) {
     console.log(`SKIP  ${label} (trigger not found)`);
     continue;

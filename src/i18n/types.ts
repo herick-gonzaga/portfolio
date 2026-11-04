@@ -89,6 +89,10 @@ export interface Content {
     language: string;
     /** aria-label for the main <nav> landmarks. */
     navLabel: string;
+    /** 404 page: heading, one line of copy and the button back to the locale's homepage. */
+    notFoundTitle: string;
+    notFoundText: string;
+    notFoundBack: string;
   };
   /** "Beyond the code" dialog, opened by clicking the name in the navbar or the hero intro. */
   personal: {

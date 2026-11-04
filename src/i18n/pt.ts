@@ -70,6 +70,9 @@ export const pt: Content = {
     menuClose: 'Fechar menu',
     language: 'Idioma',
     navLabel: 'Navegação principal',
+    notFoundTitle: 'Página não encontrada',
+    notFoundText: 'Este endereço não existe neste site.',
+    notFoundBack: 'Ir para a página inicial',
   },
   personal: {
     title: 'Além do código',
@@ -185,10 +188,7 @@ export const pt: Content = {
         { value: '9.000+', label: 'execuções acompanhadas via MCP' },
         { value: '10+', label: 'integrações' },
       ],
-      links: [
-        { label: 'Repositório', href: 'https://github.com/herick-gonzaga/MQ-Test' },
-        { label: 'Estudo de caso', href: '#projects' },
-      ],
+      links: [],
       tier: 'featured',
     },
     {
@@ -198,7 +198,7 @@ export const pt: Content = {
       description:
         'Regras de prompt específicas por fornecedor, uma etapa de classificação de páginas antes da extração para PDFs mistos, migrações de schema e reports de bugs estruturados para um pipeline de extração em produção.',
       stack: ['Prompt systems', 'LLM eval', 'Redash / SQL'],
-      links: [{ label: 'Ler o artigo', href: '#projects' }],
+      links: [],
       tier: 'secondary',
     },
     {

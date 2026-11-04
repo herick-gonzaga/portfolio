@@ -7,7 +7,7 @@ change the locale files and regenerate.
 - Proper nouns, company and product names, stack names and technical terms (LLM, MCP, QA, CI/CD,
   prompt engineering, HITL, Rails, E2E, MLOps) stay in English.
 - "[N]" and every bracketed placeholder are identical in all three locales and must be replaced in all three.
-- 87 strings that are identical in all three locales (names, URLs, stack names, placeholders) are omitted.
+- 84 strings that are identical in all three locales (names, URLs, stack names, placeholders) are omitted.
 
 | Key | EN | PT | ES |
 | --- | --- | --- | --- |
@@ -55,6 +55,9 @@ change the locale files and regenerate.
 | `ui.menuClose` | Close menu | Fechar menu | Cerrar menú |
 | `ui.language` | Language | Idioma | Idioma |
 | `ui.navLabel` | Main navigation | Navegação principal | Navegación principal |
+| `ui.notFoundTitle` | Page not found | Página não encontrada | Página no encontrada |
+| `ui.notFoundText` | This address doesn’t exist on this site. | Este endereço não existe neste site. | Esta dirección no existe en este sitio. |
+| `ui.notFoundBack` | Go to the homepage | Ir para a página inicial | Ir a la página de inicio |
 | `personal.title` | Beyond the code | Além do código | Más allá del código |
 | `personal.body` | Outside of work, I’m a big sports fan, a lover of Brazilian music in all its forms, and every now and then, someone who turns thoughts about life into words. I enjoy taking the stage to share ideas about technology and careers, helping people who are just starting their journey, and getting involved in volunteer projects with young people in my town. After all, I believe knowledge, experiences, and good stories are even better when shared. If you want to get to know me beyond GitHub, Instagram is the place. | Fora do trabalho, sou um grande fã de esportes, um apaixonado pela música brasileira em suas mais diversas formas e, de vez em quando, alguém que transforma pensamentos sobre a vida em palavras. Gosto de subir no palco para compartilhar ideias sobre tecnologia e carreira, de ajudar quem está começando sua jornada e de participar de projetos voluntários com jovens da minha cidade. Afinal, acredito que conhecimento, experiências e boas histórias ficam ainda melhores quando compartilhados. Se quiser me conhecer além do GitHub, o Instagram é o lugar. | Fuera del trabajo, soy un gran aficionado al deporte, un apasionado de la música brasileña en todas sus formas y, de vez en cuando, alguien que transforma pensamientos sobre la vida en palabras. Me gusta subir al escenario para compartir ideas sobre tecnología y carrera profesional, ayudar a quienes están comenzando su camino y participar en proyectos de voluntariado con jóvenes de mi ciudad. Al fin y al cabo, creo que el conocimiento, las experiencias y las buenas historias son aún mejores cuando se comparten. Si quieres conocerme más allá de GitHub, Instagram es el lugar. |
 | `personal.photoAlt` | Photo of Herick Gonzaga | Foto de Herick Gonzaga | Foto de Herick Gonzaga |
@@ -113,12 +116,9 @@ change the locale files and regenerate.
 | `projects[mq-test].metrics[1].value` | 9,000+ | 9.000+ | 9.000+ |
 | `projects[mq-test].metrics[1].label` | runs tracked via MCP | execuções acompanhadas via MCP | ejecuciones registradas vía MCP |
 | `projects[mq-test].metrics[2].label` | integrations | integrações | integraciones |
-| `projects[mq-test].links[0].label` | Repository | Repositório | Repositorio |
-| `projects[mq-test].links[1].label` | Case study | Estudo de caso | Caso de estudio |
 | `projects[invoice-extraction].name` | LLM invoice extraction, vendor by vendor | Extração de notas fiscais com LLM, fornecedor por fornecedor | Extracción de facturas con LLM, proveedor por proveedor |
 | `projects[invoice-extraction].kind` | Professional · SubBase | Profissional · SubBase | Profesional · SubBase |
 | `projects[invoice-extraction].description` | Vendor-specific prompt rules, a pre-extraction page-classification gate for mixed PDFs, schema migrations and structured bug reports for an extraction pipeline used in production. | Regras de prompt específicas por fornecedor, uma etapa de classificação de páginas antes da extração para PDFs mistos, migrações de schema e reports de bugs estruturados para um pipeline de extração em produção. | Reglas de prompt específicas por proveedor, una etapa de clasificación de páginas previa a la extracción para PDFs mixtos, migraciones de schema y reportes de bugs estructurados para un pipeline de extracción en producción. |
-| `projects[invoice-extraction].links[0].label` | Read the write-up | Ler o artigo | Leer el artículo |
 | `projects[subbase-qa-tests].kind` | Automation | Automação | Automatización |
 | `projects[subbase-qa-tests].description` | Automated end-to-end suite for the SubBase platform, organized in MQ-Test and run on CI, so regressions are caught before release. | Suíte automatizada de testes E2E para a plataforma SubBase, organizada no MQ-Test e executada no CI, para que regressões sejam detectadas antes do release. | Suite automatizada de pruebas E2E para la plataforma SubBase, organizada en MQ-Test y ejecutada en CI, para detectar regresiones antes de cada release. |
 | `projects[susagendamento].kind` | Product design | Design de produto | Diseño de producto |

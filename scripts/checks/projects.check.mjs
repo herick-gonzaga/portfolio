@@ -2,8 +2,11 @@
  * Projects section: copy matches the locale files (by tier), section surface and rhythm, header row,
  * row 1 (2fr/1fr from 1200px, stacked with the featured card first below), row 2 (2 columns from 600px), card typography, equal-height secondary
  * cards, metrics grid and real metric values, chips, overflow, and external links (target="_blank", rel="noopener").
+ * Links: a card with no links has no links row, no link points at the "#projects" placeholder,
+ * and no link returns 404 (lib/links.mjs).
  */
 import { TOKENS, normalize } from './lib/context.mjs';
+import { checkLinkTargets } from './lib/links.mjs';
 
 const WIDTHS = [1440, 1392, 1200, 1199, 900, 600, 390];
 
@@ -22,6 +25,7 @@ function readTexts() {
   const chips = (list) => [...list.querySelectorAll(':scope > li')].map(text);
   const [row1, row2] = section.querySelectorAll(':scope .container > div:last-child > .grid');
   const featured = row1.querySelector(':scope > article');
+  const featuredLinks = featured.querySelector('dl + ul + ul');
   const card = (el) => {
     const lists = el.querySelectorAll('ul');
     return {
@@ -47,7 +51,8 @@ function readTexts() {
       description: text(featured.querySelector('h3 + p')),
       metrics: [...featured.querySelectorAll('dl > div')].map((m) => ({ value: text(m.querySelector('dd')), label: text(m.querySelector('dt')) })),
       stack: chips(featured.querySelector('dl + ul')),
-      links: links(featured.querySelector('dl + ul + ul')),
+      links: featuredLinks ? links(featuredLinks) : [],
+      hasLinksRow: Boolean(featuredLinks),
     },
     secondary: [...row1.querySelectorAll(':scope > div > article')].map(card),
     small: [...row2.querySelectorAll(':scope > article')].map(card),
@@ -280,7 +285,7 @@ function checkLayout(t, m, at, width) {
   }
   t.ok(f.chipBorders.every((c) => c === 'rgb(42, 50, 66)'), `${at}: featured chips are dark`);
   t.ok(
-    f.linkFonts.length > 0 && f.linkFonts.every((l) => l.size === 14 && l.weight === '600' && l.color === TOKENS.cobaltSoft && l.height >= TOKENS.touchTarget),
+    f.linkFonts.every((l) => l.size === 14 && l.weight === '600' && l.color === TOKENS.cobaltSoft && l.height >= TOKENS.touchTarget),
     `${at}: featured links are 14px/600 cobalt-soft, ≥44px tall`,
     JSON.stringify(f.linkFonts),
   );
@@ -321,9 +326,10 @@ function checkLayout(t, m, at, width) {
   t.eq(bad((c) => c.outside > 0.5), [], `${at}: chips sit inside their card's content box`);
 }
 
-async function checkLinks(t, page, at) {
+async function checkLinks(t, page, baseUrl, at) {
   const links = await page.eval(() =>
     [...document.querySelectorAll('#projects a[href]')].map((a) => ({
+      label: a.textContent.replace(/\s+/g, ' ').trim(),
       href: a.getAttribute('href'),
       target: a.getAttribute('target'),
       rel: (a.getAttribute('rel') ?? '').split(/\s+/).filter(Boolean),
@@ -331,13 +337,14 @@ async function checkLinks(t, page, at) {
   );
   const external = links.filter((l) => /^https?:\/\//.test(l.href));
   const internal = links.filter((l) => !/^https?:\/\//.test(l.href));
-  t.ok(external.length >= 2, `${at}: section has external links`, JSON.stringify(links));
+  t.ok(external.length >= 1, `${at}: section has external links`, JSON.stringify(links));
   t.eq(
     external.filter((l) => l.target !== '_blank' || !l.rel.includes('noopener')).map((l) => l.href),
     [],
     `${at}: external links open in a new tab with rel="noopener"`,
   );
   t.eq(internal.filter((l) => l.target !== null).map((l) => l.href), [], `${at}: internal links stay in the same tab`);
+  await checkLinkTargets(t, links, baseUrl, at);
 }
 
 async function checkHoverUnderline(t, browser, url, at) {
@@ -388,6 +395,7 @@ export default {
           metrics: (featured.metrics ?? []).map((m) => ({ value: m.value, label: normalize(m.label) })),
           stack: featured.stack.map(normalize),
           links: featured.links.map((l) => ({ label: normalize(l.label), href: l.href })),
+          hasLinksRow: featured.links.length > 0,
         },
         `${at}: featured project matches locale`,
       );
@@ -396,9 +404,9 @@ export default {
         FEATURED_VALUES[route.locale],
         `${at}: featured metrics are the real numbers in the locale's number format`,
       );
-      t.eq(texts.secondary, byTier('secondary').map(card), `${at}: secondary projects match locale`);
+      t.eq(texts.secondary, byTier('secondary').map(card), `${at}: secondary projects match locale (no links row when empty)`);
       t.eq(texts.small, byTier('small').map(card), `${at}: small projects match locale (no links row when empty)`);
-      await checkLinks(t, page, at);
+      await checkLinks(t, page, baseUrl, at);
 
       for (const width of WIDTHS) {
         await page.viewport(width);

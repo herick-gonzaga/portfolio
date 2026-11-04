@@ -1,0 +1,31 @@
+---
+/**
+ * 404 page for one locale, on ink: kicker "404", heading, one line of copy and a primary button
+ * back to the locale's homepage. Cloudflare Pages serves the nearest 404.html with status 404, so
+ * /pt/… and /es/… misses get their own language. The heading is the page's <h1> at the H2 size.
+ */
+import Base from '../layouts/Base.astro';
+import Button from './ui/Button.astro';
+import Kicker from './ui/Kicker.astro';
+import { getContent, localePath, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { ui, profile } = getContent(locale);
+---
+
+<Base locale={locale} title={`${ui.notFoundTitle} — ${profile.name}`} noindex>
+  <main id="main" class="flex min-h-dvh items-center bg-ink py-section text-white" data-not-found>
+    <div class="container">
+      <div class="max-w-[46rem]">
+        <Kicker tone="dark">404</Kicker>
+        <h1 class="mt-4 text-h2 font-semibold text-white">{ui.notFoundTitle}</h1>
+        <p class="mt-4 text-body-lg text-muted-dark">{ui.notFoundText}</p>
+        <Button href={localePath(locale, '/')} class="mt-10">{ui.notFoundBack}</Button>
+      </div>
+    </div>
+  </main>
+</Base>

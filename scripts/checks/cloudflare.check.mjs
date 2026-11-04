@@ -4,9 +4,10 @@
  * Build: `npm run build` runs no check:* script; .node-version and .nvmrc both pin Node 22; the
  * packages the build needs (astro check) are dependencies, so it also builds when devDependencies
  * are skipped; the committed og.png and favicon.ico exist for builds without Chrome.
- * Headers: dist/_headers is public/_headers; every route sends nosniff, Referrer-Policy,
- * Permissions-Policy and the CSP; /_astro/* is cached immutable and HTML is not.
- * CSP: script-src is 'self' plus exactly the sha256 of each inline script in the built pages (no
+ * Headers: dist/_headers is public/_headers; every route sends HSTS (one year, includeSubDomains),
+ * nosniff, Referrer-Policy, Permissions-Policy and the CSP; /_astro/* is cached immutable and HTML is not.
+ * CSP: script-src is 'self' plus exactly the sha256 of each inline script in the built pages, 404
+ * pages included (no
  * 'unsafe-inline', 'unsafe-eval' or wildcards), and the pages carry no inline styles or inline
  * event handlers. Under the
  * served CSP every route runs its inline and bundled scripts without errors, and the locale
@@ -21,7 +22,9 @@ import { SITE_HOST } from './lib/context.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const read = (...parts) => readFileSync(join(root, ...parts), 'utf8');
-const distHtml = (path) => read('dist', path, 'index.html');
+const distHtml = (path) => read('dist', path.endsWith('.html') ? path : join(path, 'index.html'));
+/** Every built HTML page: the three routes and their 404 pages. */
+const htmlPages = (routes) => routes.flatMap((r) => [r.path, `${r.path}404.html`]);
 const sha256 = (text) => `'sha256-${createHash('sha256').update(text).digest('base64')}'`;
 
 /** Executable inline scripts (no src, no type such as application/ld+json). */
@@ -55,6 +58,7 @@ async function checkHeaders(t, baseUrl, routes) {
   const js = readdirSync(join(root, 'dist', '_astro')).find((file) => file.endsWith('.js'));
   for (const path of [...routes.map((r) => r.path), '/robots.txt', `/_astro/${css}`]) {
     const { headers } = await fetch(baseUrl + path);
+    t.eq(headers.get('strict-transport-security'), 'max-age=31536000; includeSubDomains', `${path}: Strict-Transport-Security one year, includeSubDomains`);
     t.eq(headers.get('x-content-type-options'), 'nosniff', `${path}: X-Content-Type-Options nosniff`);
     t.eq(headers.get('referrer-policy'), 'strict-origin-when-cross-origin', `${path}: Referrer-Policy strict-origin-when-cross-origin`);
     t.eq(headers.get('permissions-policy'), 'camera=(), microphone=(), geolocation=()', `${path}: minimal Permissions-Policy`);
@@ -79,15 +83,16 @@ async function checkPolicy(t, baseUrl, routes) {
   t.eq(loose, [], "script-src has no 'unsafe-*', wildcard or scheme sources");
   t.eq(csp['object-src'], ["'none'"], "object-src is 'none'");
 
-  const inline = routes.flatMap((r) => inlineScripts(distHtml(r.path)).map((code) => ({ route: r.path, hash: sha256(code), size: code.length })));
+  const pages = htmlPages(routes);
+  const inline = pages.flatMap((path) => inlineScripts(distHtml(path)).map((code) => ({ route: path, hash: sha256(code), size: code.length })));
   const needed = [...new Set(inline.map((s) => s.hash))].sort();
   const allowed = scriptSrc.filter((s) => s.startsWith("'sha256-")).sort();
   t.eq(allowed, needed, 'script-src hashes are exactly the inline scripts of the built pages (update public/_headers)');
   t.note(`inline scripts: ${inline.map((s) => `${s.route} ${s.size}B ${s.hash}`).join(', ')}`);
 
-  const styled = routes.filter((r) => /<style[\s>]|\sstyle="/.test(distHtml(r.path))).map((r) => r.path);
+  const styled = pages.filter((path) => /<style[\s>]|\sstyle="/.test(distHtml(path)));
   t.eq(styled, [], "pages have no <style> elements or style attributes (style-src is 'self')");
-  const handlers = routes.flatMap((r) => [...distHtml(r.path).matchAll(/<[a-z][^>]*\s(on[a-z]+)=/g)].map((m) => `${r.path} ${m[1]}`));
+  const handlers = pages.flatMap((path) => [...distHtml(path).matchAll(/<[a-z][^>]*\s(on[a-z]+)=/g)].map((m) => `${path} ${m[1]}`));
   t.eq(handlers, [], 'pages have no inline event handler attributes (hashes cannot allow them)');
 }
 
