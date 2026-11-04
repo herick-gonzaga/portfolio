@@ -24,5 +24,10 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      // Never inline bundled scripts or assets: public/_headers' Content-Security-Policy allows
+      // inline scripts only by hash, so component scripts must ship as files under /_astro/.
+      assetsInlineLimit: 0,
+    },
   },
 });
