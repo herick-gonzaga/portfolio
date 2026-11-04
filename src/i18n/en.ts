@@ -73,7 +73,7 @@ export const en: Content = {
     title: 'Beyond the code',
     body:
       'Outside of work, I’m a big sports fan, a lover of Brazilian music in all its forms, and every now and then, someone who turns thoughts about life into words. I enjoy taking the stage to share ideas about technology and careers, helping people who are just starting their journey, and getting involved in volunteer projects with young people in my town. After all, I believe knowledge, experiences, and good stories are even better when shared. If you want to get to know me beyond GitHub, Instagram is the place.',
-    photoAlt: 'Portrait of Herick Gonzaga',
+    photoAlt: 'Photo of Herick Gonzaga',
     open: 'Herick Gonzaga — beyond the code',
     close: 'Close',
   },
