@@ -7,7 +7,7 @@ change the locale files and regenerate.
 - Proper nouns, company and product names, stack names and technical terms (LLM, MCP, QA, CI/CD,
   prompt engineering, HITL, Rails, E2E, MLOps) stay in English.
 - "[N]" and every bracketed placeholder are identical in all three locales and must be replaced in all three.
-- 81 strings that are identical in all three locales (names, URLs, stack names, placeholders) are omitted.
+- 84 strings that are identical in all three locales (names, URLs, stack names, placeholders) are omitted.
 
 | Key | EN | PT | ES |
 | --- | --- | --- | --- |
@@ -76,11 +76,14 @@ change the locale files and regenerate.
 | `diagram.ariaLabel` | Diagram connecting Herick’s four disciplines: software engineering, AI engineering, quality assurance and international relations | Diagrama que conecta as quatro disciplinas de Herick: engenharia de software, engenharia de IA, garantia de qualidade e relações internacionais | Diagrama que conecta las cuatro disciplinas de Herick: ingeniería de software, ingeniería de IA, aseguramiento de la calidad y relaciones internacionales |
 | `skills[0].title` | Software Engineering | Engenharia de Software | Ingeniería de Software |
 | `skills[0].description` | Backend-leaning full-stack work, from data model to API to deploy. | Full-stack com foco em backend, do modelo de dados à API e ao deploy. | Full-stack con enfoque en backend, del modelo de datos a la API y al deploy. |
+| `skills[0].chips[9]` | Networking fundamentals | Fundamentos de redes | Fundamentos de redes |
 | `skills[1].title` | AI Engineering | Engenharia de IA | Ingeniería de IA |
 | `skills[1].description` | LLM pipelines that extract structured data, agents that act, and the prompt systems that keep them precise. | Pipelines de LLM que extraem dados estruturados, agentes que agem e os sistemas de prompts que os mantêm precisos. | Pipelines de LLM que extraen datos estructurados, agentes que actúan y los sistemas de prompts que los mantienen precisos. |
 | `skills[1].chips[0]` | LLM pipelines | Pipelines de LLM | Pipelines de LLM |
 | `skills[1].chips[2]` | AI Agents | Agentes de IA | Agentes de IA |
 | `skills[1].chips[4]` | Model integration | Integração de modelos | Integración de modelos |
+| `skills[1].chips[6]` | LLM evals | Avaliação de LLMs | Evaluación de LLMs |
+| `skills[1].chips[7]` | Coding agents (Claude Code) | Agentes de código (Claude Code) | Agentes de código (Claude Code) |
 | `skills[2].title` | Quality & Automation | Qualidade & Automação | Calidad & Automatización |
 | `skills[2].description` | Test plans, automated suites and system validation, treated as part of the product, not an afterthought. | Planos de teste, suítes automatizadas e validação de sistemas, tratados como parte do produto, não como detalhe. | Planes de prueba, suites automatizadas y validación de sistemas, tratados como parte del producto, no como un añadido. |
 | `skills[2].chips[0]` | Test strategy | Estratégia de testes | Estrategia de pruebas |
@@ -88,11 +91,15 @@ change the locale files and regenerate.
 | `skills[2].chips[2]` | System validation | Validação de sistemas | Validación de sistemas |
 | `skills[2].chips[3]` | HITL evaluation | Avaliação HITL | Evaluación HITL |
 | `skills[2].chips[4]` | Bug reporting | Report de bugs | Reporte de bugs |
+| `skills[2].chips[5]` | E2E testing in CI | Testes E2E no CI | Pruebas E2E en CI |
+| `skills[2].chips[6]` | Test management (MQ-Test) | Gestão de testes (MQ-Test) | Gestión de pruebas (MQ-Test) |
 | `skills[3].title` | Global collaboration | Colaboração global | Colaboración global |
 | `skills[3].description` | Daily work in English with a U.S. team, plus International Relations training for the market side of software. | Trabalho diário em inglês com um time dos EUA, além da formação em Relações Internacionais para o lado de mercado do software. | Trabajo diario en inglés con un equipo de EE. UU., además de formación en Relaciones Internacionales para el lado de mercado del software. |
 | `skills[3].chips[0]` | English (professional) | Inglês (profissional) | Inglés (profesional) |
 | `skills[3].chips[2]` | International Relations | Relações Internacionais | Relaciones Internacionales |
 | `skills[3].chips[3]` | Public speaking | Oratória | Oratoria |
+| `skills[3].chips[4]` | Spanish & French (basic) | Espanhol e Francês (básico) | Español y Francés (básico) |
+| `skills[3].chips[5]` | Mentoring | Mentoria | Mentoría |
 | `projects[mq-test].kind` | Featured · Open source | Destaque · Open source | Destacado · Open source |
 | `projects[mq-test].period` | 2025 — now | 2025 — atual | 2025 — actual |
 | `projects[mq-test].description` | A test-management platform (suites, cases, plans, runs, bugs, requirements) with an MCP server so coding agents can read and write test data. Integrates with GitHub, Linear and Slack; the automation repo stays the source of truth and MQ-Test becomes the dashboard that organizes and tracks it. | Uma plataforma de gestão de testes (suítes, casos, planos, execuções, bugs, requisitos) com um servidor MCP para que agentes de código leiam e escrevam dados de teste. Integra com GitHub, Linear e Slack; o repositório de automação continua sendo a fonte da verdade e o MQ-Test vira o painel que o organiza e acompanha. | Una plataforma de gestión de pruebas (suites, casos, planes, ejecuciones, bugs, requisitos) con un servidor MCP para que los agentes de código lean y escriban datos de prueba. Se integra con GitHub, Linear y Slack; el repositorio de automatización sigue siendo la fuente de verdad y MQ-Test se convierte en el panel que lo organiza y le da seguimiento. |
