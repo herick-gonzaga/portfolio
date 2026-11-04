@@ -5,7 +5,7 @@ export const es: Content = {
   meta: {
     title: 'Herick Gonzaga — Ingeniero de Software & IA',
     description:
-      'Soy Herick Gonzaga, Ingeniero de Software & IA: sistemas basados en LLM, automatización con agentes y QA para una plataforma de compras de EE. UU.',
+      'Ingeniero de Software e IA que une ingeniería con formación en Relaciones Internacionales: LLM, agentes y QA para una plataforma de compras de EE. UU.',
   },
   profile: {
     name: 'Herick Gonzaga',
@@ -38,7 +38,7 @@ export const es: Content = {
     },
     contactHeadline: 'Construyamos software que funcione en todas partes.',
     contactText:
-      '¿Organizas una charla, buscas mentoría o construyes una comunidad tech? Respondo en menos de un día hábil, en inglés o portugués.',
+      '¿Organizas una charla, buscas mentoría o construyes una comunidad tech? Mi bandeja de entrada está abierta.',
     footerTagline: 'Hecho con disciplina de Rails y uno o dos LLMs.',
   },
   ui: {

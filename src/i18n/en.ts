@@ -4,7 +4,7 @@ export const en: Content = {
   meta: {
     title: 'Herick Gonzaga — Software & AI Engineer',
     description:
-      'I’m Herick Gonzaga, a Software & AI Engineer working with LLM-based systems, agent automation and QA for a U.S. construction-procurement platform.',
+      'Software & AI Engineer who pairs engineering with an International Relations background: LLM systems, agents and QA for U.S. construction procurement.',
   },
   profile: {
     name: 'Herick Gonzaga',
@@ -37,7 +37,7 @@ export const en: Content = {
     },
     contactHeadline: 'Let’s build software that works everywhere.',
     contactText:
-      'Organizing a talk, looking for a mentor or building a tech community? I reply within a business day, in English or Portuguese.',
+      'Organizing a talk, looking for a mentor or building a tech community? My inbox is open — English or Portuguese both work.',
     footerTagline: 'Built with Rails-grade discipline and an LLM or two.',
   },
   ui: {
