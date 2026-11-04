@@ -26,6 +26,8 @@ npm run dev        # http://localhost:4321
 | `npm run preview`      | Preview the production build                                  |
 | `npm run i18n:review`  | Validate locales and regenerate `docs/TRANSLATION_REVIEW.md`  |
 | `npm run check:ui`     | Build, serve `dist/` and run the browser UI checks            |
+| `npm run check:a11y`   | Build, then run axe on `/`, `/pt/`, `/es/` at 1440 and 390px  |
+| `npm run check:perf`   | Build, then run Lighthouse (desktop + mobile) on the three routes; fails below 95 |
 
 ## Project structure
 
@@ -51,12 +53,15 @@ src/
 └── styles/                 # Design tokens and global styles
 docs/
 ├── DESIGN_SPEC.md          # Visual system and section spec
+├── QA_REPORT.md            # Accessibility, performance, responsive and content audit
 └── TRANSLATION_REVIEW.md   # Generated side-by-side translation table
 public/                     # favicon.svg (source), favicon.ico and og.png (generated, committed)
 scripts/
 ├── translation-review.ts
 ├── generate-assets.mjs     # og.png from assets/og.svg, favicon.ico from favicon.svg
-└── checks/                 # Browser UI checks (npm run check:ui)
+├── checks/                 # Browser UI checks (npm run check:ui)
+├── a11y.mjs                # axe audit (npm run check:a11y)
+└── perf.mjs                # Lighthouse audit (npm run check:perf)
 ```
 
 ## Internationalization
@@ -84,3 +89,10 @@ The visual system ("Signal") is documented in [`docs/DESIGN_SPEC.md`](docs/DESIG
 - Each check file default-exports `{ name, run({ browser, baseUrl, routes, t }) }` and records assertions with `t.ok`, `t.eq`, `t.near` and `t.note`.
 
 Every section PR adds or extends a check file in `scripts/checks/` and must pass `npm run check:ui`.
+
+## Accessibility and performance audits
+
+Both scripts build the site, serve `dist/` locally and use the same Chrome as the UI checks (`CHROME_PATH` applies). Their output goes to `reports/`, which is gitignored. The latest results are in [`docs/QA_REPORT.md`](docs/QA_REPORT.md).
+
+- `npm run check:a11y` runs axe-core on each route at 1440px (as loaded, and with the language switcher open) and at 390px (as loaded, with the menu sheet open, and with the sheet's switcher open). It exits non-zero on any violation and writes `reports/axe/results.json`. The axe engine is the one bundled with `@axe-core/cli`. The CLI itself isn't used because its headless Chrome ignores `--window-size`, so it can't audit a 390px viewport.
+- `npm run check:perf` runs Lighthouse with the desktop preset and the default mobile preset on `/`, `/pt/` and `/es/`. It exits non-zero if Performance, Accessibility, Best Practices or SEO scores below 95, and writes one JSON report per route and preset to `reports/lighthouse/`. Chrome is pinned to `en-US` so the locale redirect doesn't send the `/` audit to `/pt/` or `/es/`. Mobile scores can vary by a point or two between runs on a busy machine.
