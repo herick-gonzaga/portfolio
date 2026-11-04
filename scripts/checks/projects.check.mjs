@@ -14,16 +14,6 @@ const FEATURED_VALUES = {
   es: ['500+', '9.000+', '10+'],
 };
 
-const COLORS = {
-  white: 'rgb(255, 255, 255)',
-  line: 'rgb(220, 224, 230)',
-  ink: 'rgb(15, 20, 32)',
-  inkLine: 'rgb(30, 38, 53)',
-  muted: 'rgb(91, 100, 114)',
-  mutedDark: 'rgb(166, 175, 191)',
-  cobaltSoft: 'rgb(123, 150, 255)',
-};
-
 /** Cards in DOM order: featured, the secondary column, then the small grid. */
 function readTexts() {
   const text = (el) => (el?.textContent ?? '').replace(/\s+/g, ' ').trim();
@@ -207,8 +197,8 @@ function checkLayout(t, m, at, width) {
   t.eq(m.overflowing, [], `${at}: nothing in Projects overflows`);
 
   // Section surface and rhythm.
-  t.eq(m.section.background, COLORS.white, `${at}: section is white`);
-  t.eq(m.section.borders, ['1px', COLORS.line, '1px', COLORS.line], `${at}: 1px line borders top and bottom`);
+  t.eq(m.section.background, TOKENS.white, `${at}: section is white`);
+  t.eq(m.section.borders, ['1px', TOKENS.line, '1px', TOKENS.line], `${at}: 1px line borders top and bottom`);
   const pad = desktop ? 112 : 72;
   t.eq(m.section.padding, [pad, pad], `${at}: section padding ${pad}px`);
   t.eq(m.section.headerMaxWidth, '736px', `${at}: section header max-width is 46rem`);
@@ -249,38 +239,38 @@ function checkLayout(t, m, at, width) {
 
   // Featured card.
   const f = m.featured;
-  t.eq(f.background, COLORS.ink, `${at}: featured card is ink`);
+  t.eq(f.background, TOKENS.ink, `${at}: featured card is ink`);
   const featuredPad = desktop ? 40 : 24;
   t.eq(f.padding, [featuredPad, featuredPad, featuredPad, featuredPad], `${at}: featured padding ${featuredPad}px`);
   t.ok(f.minHeight === '420px' && f.height >= 420, `${at}: featured min-height 420px`, `${f.minHeight}, ${f.height}px`);
   t.ok(f.topRow.chipAtStart && f.topRow.periodAtEnd, `${at}: kind chip and period are space-between`);
   if (width >= 600) t.ok(f.topRow.sameLine, `${at}: kind chip and period share a line`);
   t.ok(
-    f.topRow.periodFont.mono && f.topRow.periodFont.size === 12 && f.topRow.periodFont.color === COLORS.cobaltSoft,
+    f.topRow.periodFont.mono && f.topRow.periodFont.size === 12 && f.topRow.periodFont.color === TOKENS.cobaltSoft,
     `${at}: period is mono 12px cobalt-soft`,
     JSON.stringify(f.topRow.periodFont),
   );
   t.ok(
-    f.title.size === 32 && f.title.weight === '600' && f.title.tracking === -0.02 && f.title.color === COLORS.white,
+    f.title.size === 32 && f.title.weight === '600' && f.title.tracking === -0.02 && f.title.color === TOKENS.white,
     `${at}: featured H3 is 32px/600, -0.02em, white`,
     JSON.stringify(f.title),
   );
   t.ok(
-    f.description.size === 16 && f.description.lineHeight === 1.6 && f.description.color === COLORS.mutedDark,
+    f.description.size === 16 && f.description.lineHeight === 1.6 && f.description.color === TOKENS.mutedDark,
     `${at}: featured description is 16px/1.6 muted-dark`,
     JSON.stringify(f.description),
   );
   t.near(f.description.maxWidth, f.description.sixtyCh, 0.5, `${at}: featured description max-width is 60ch`);
   t.ok(f.description.width <= f.description.sixtyCh + 0.5, `${at}: featured description is at most 60ch wide`);
   t.eq(f.metrics.columns, width >= 600 ? 3 : 1, `${at}: metrics columns`);
-  t.eq(f.metrics.border, ['1px', COLORS.inkLine], `${at}: metrics have a 1px ink-line top border`);
+  t.eq(f.metrics.border, ['1px', TOKENS.inkLine], `${at}: metrics have a 1px ink-line top border`);
   t.ok(
-    f.metrics.valueFonts.every((v) => v.size === 24 && v.weight === '600' && v.color === COLORS.white),
+    f.metrics.valueFonts.every((v) => v.size === 24 && v.weight === '600' && v.color === TOKENS.white),
     `${at}: metric values are 24px/600 white`,
     JSON.stringify(f.metrics.valueFonts[0]),
   );
   t.ok(
-    f.metrics.labelFonts.every((l) => l.size === 13 && l.color === COLORS.mutedDark),
+    f.metrics.labelFonts.every((l) => l.size === 13 && l.color === TOKENS.mutedDark),
     `${at}: metric labels are 13px muted-dark`,
     JSON.stringify(f.metrics.labelFonts[0]),
   );
@@ -290,7 +280,7 @@ function checkLayout(t, m, at, width) {
   }
   t.ok(f.chipBorders.every((c) => c === 'rgb(42, 50, 66)'), `${at}: featured chips are dark`);
   t.ok(
-    f.linkFonts.length > 0 && f.linkFonts.every((l) => l.size === 14 && l.weight === '600' && l.color === COLORS.cobaltSoft && l.height >= TOKENS.touchTarget),
+    f.linkFonts.length > 0 && f.linkFonts.every((l) => l.size === 14 && l.weight === '600' && l.color === TOKENS.cobaltSoft && l.height >= TOKENS.touchTarget),
     `${at}: featured links are 14px/600 cobalt-soft, ≥44px tall`,
     JSON.stringify(f.linkFonts),
   );
@@ -302,7 +292,7 @@ function checkLayout(t, m, at, width) {
   );
   t.ok(m.secondary.every((c) => c.title.size === 22 && c.title.weight === '600'), `${at}: secondary H3 is 22px/600`);
   t.ok(
-    m.secondary.every((c) => c.description.size === 15 && c.description.lineHeight === 1.55 && c.description.color === COLORS.muted),
+    m.secondary.every((c) => c.description.size === 15 && c.description.lineHeight === 1.55 && c.description.color === TOKENS.muted),
     `${at}: secondary description is 15px/1.55 muted`,
     JSON.stringify(m.secondary.map((c) => c.description)),
   );
@@ -316,7 +306,7 @@ function checkLayout(t, m, at, width) {
   );
   t.ok(m.small.every((c) => c.title.size === 18 && c.title.weight === '600'), `${at}: small H3 is 18px/600`);
   t.ok(
-    m.small.every((c) => c.description.size === 14 && c.description.lineHeight === 1.55 && c.description.color === COLORS.muted),
+    m.small.every((c) => c.description.size === 14 && c.description.lineHeight === 1.55 && c.description.color === TOKENS.muted),
     `${at}: small description is 14px/1.55 muted`,
   );
 
