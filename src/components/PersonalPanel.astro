@@ -21,9 +21,6 @@ const { locale } = Astro.props;
 const { profile, personal } = getContent(locale);
 
 const PHOTO = '/images/herick.jpg';
-
-// Inline so it also covers an error that fires before the bundled script has run.
-const showFallback = 'this.hidden=true;this.nextElementSibling.hidden=false';
 ---
 
 <dialog
@@ -43,7 +40,6 @@ const showFallback = 'this.hidden=true;this.nextElementSibling.hidden=false';
         loading="lazy"
         decoding="async"
         class="size-full object-cover object-[50%_22%]"
-        onerror={showFallback}
         data-personal-photo
       />
       <!-- Fallback: same box as the photo; shown only if the photo fails to load. -->
@@ -134,6 +130,18 @@ const showFallback = 'this.hidden=true;this.nextElementSibling.hidden=false';
   const closeButton = dialog.querySelector<HTMLButtonElement>('[data-personal-close]')!;
   const triggers = document.querySelectorAll<HTMLElement>('[data-personal-open]');
   let returnFocus: HTMLElement | null = null;
+
+  // Broken photo → monogram. A listener, not an onerror attribute: the CSP blocks inline handlers.
+  // The photo is lazy inside a closed dialog, so it can't have failed before this runs; the
+  // `complete` test still covers that case.
+  const photo = dialog.querySelector<HTMLImageElement>('[data-personal-photo]')!;
+  const fallback = dialog.querySelector<HTMLElement>('[data-personal-fallback]')!;
+  const showFallback = () => {
+    photo.hidden = true;
+    fallback.hidden = false;
+  };
+  photo.addEventListener('error', showFallback);
+  if (photo.complete && photo.naturalWidth === 0) showFallback();
 
   function open(trigger: HTMLElement) {
     if (dialog.open) return;

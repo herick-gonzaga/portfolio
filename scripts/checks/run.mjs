@@ -9,6 +9,9 @@
  * A check file default-exports { name, run({ browser, baseUrl, routes, t }) }. `t` records
  * assertions: t.ok(condition, label, detail?), t.eq(actual, expected, label),
  * t.near(actual, expected, tolerance, label) and t.note(text) for informational lines.
+ *
+ * dist/ is served with the headers from dist/_headers, Content-Security-Policy included. Every
+ * check file also gets an assertion that it caused no CSP violation in any page it opened.
  */
 import { existsSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -71,11 +74,14 @@ try {
     const { default: check } = await import(pathToFileURL(join(here, file)).href);
     const t = createRecorder();
     const started = Date.now();
+    const violationsBefore = browser.cspViolations.length;
     try {
       await check.run({ browser, baseUrl: server.url, routes: ROUTES, t });
     } catch (error) {
       t.ok(false, 'check crashed', error?.stack ?? String(error));
     }
+    const violations = [...new Set(browser.cspViolations.slice(violationsBefore))];
+    t.ok(violations.length === 0, 'no Content-Security-Policy violations', violations.join('\n        '));
     const failures = t.results.filter((r) => !r.pass);
     failed += failures.length;
     total += t.results.length;

@@ -58,6 +58,7 @@ export const pt: Content = {
     emailMe: 'Enviar e-mail',
     linkedin: 'LinkedIn',
     backTop: 'Voltar ao topo',
+    logoLabel: 'HG — Herick Gonzaga, voltar ao topo',
     contact: {
       email: 'E-mail',
       linkedin: 'LinkedIn',

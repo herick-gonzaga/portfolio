@@ -74,6 +74,8 @@ export interface Content {
     emailMe: string;
     linkedin: string;
     backTop: string;
+    /** Accessible name of the navbar logo link; starts with the visible initials (WCAG 2.5.3). */
+    logoLabel: string;
     /** Row labels of the Contact details list. */
     contact: {
       email: string;

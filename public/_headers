@@ -1,0 +1,17 @@
+# Cloudflare Pages response headers (https://developers.cloudflare.com/pages/configuration/headers/).
+# Also applied by the local server behind check:ui, check:a11y and check:perf (scripts/checks/lib/server.mjs).
+#
+# script-src allows inline scripts only by hash:
+#   sha256-DOAbO…  locale redirect in src/layouts/Base.astro (rendered on / only)
+#   sha256-Y9XeU…  hero-ready flag in src/components/Hero.astro
+# Editing either script changes its hash. scripts/checks/cloudflare.check.mjs fails and prints the
+# new value, which then has to be pasted here.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-DOAbO5EA4CYVs2gsq+aL+Mr+xcl+3nGOUDte7sRVLHw=' 'sha256-Y9XeUTwzkmuqHOb7a8Fez9NT513DVlJWvGGW2dEq9kY='; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

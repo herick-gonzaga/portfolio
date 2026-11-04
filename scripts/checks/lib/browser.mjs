@@ -78,12 +78,14 @@ const KEYS = {
 };
 
 export class Page {
-  constructor(connection, sessionId, browserContextId) {
+  constructor(connection, sessionId, browserContextId, cspViolations = []) {
     this.connection = connection;
     this.sessionId = sessionId;
     this.browserContextId = browserContextId;
     /** Uncaught page exceptions since the page was created. */
     this.errors = [];
+    /** Content-Security-Policy violations reported by Chrome, shared with the Browser. */
+    this.cspViolations = cspViolations;
     this.loads = 0;
     this.mouse = { x: 0, y: 0 };
   }
@@ -96,8 +98,12 @@ export class Page {
         const details = message.params.exceptionDetails;
         this.errors.push(details.exception?.description ?? details.text);
       }
+      if (message.method === 'Log.entryAdded' && /Content Security Policy/i.test(message.params.entry.text)) {
+        this.cspViolations.push(`${message.params.entry.url ?? ''} ${message.params.entry.text}`.trim());
+      }
     });
     await this.send('Page.enable');
+    await this.send('Log.enable');
     await this.send('Runtime.enable');
     await this.viewport(width, height);
     await this.setLanguage(language);
@@ -243,6 +249,8 @@ export class Browser {
     this.connection = connection;
     this.process = process;
     this.userDataDir = userDataDir;
+    /** Every Content-Security-Policy violation on any page opened by this browser. */
+    this.cspViolations = [];
   }
 
   /** A new page in a fresh browser context (empty storage). `language` sets navigator.language. */
@@ -250,7 +258,7 @@ export class Browser {
     const { browserContextId } = await this.connection.send('Target.createBrowserContext');
     const { targetId } = await this.connection.send('Target.createTarget', { url: 'about:blank', browserContextId });
     const { sessionId } = await this.connection.send('Target.attachToTarget', { targetId, flatten: true });
-    const page = new Page(this.connection, sessionId, browserContextId);
+    const page = new Page(this.connection, sessionId, browserContextId, this.cspViolations);
     await page.init({ width, height, language });
     return page;
   }

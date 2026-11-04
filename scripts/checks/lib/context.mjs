@@ -12,6 +12,12 @@ export const ROUTES = [
   { path: '/es/', locale: 'es', lang: 'es', content: es },
 ];
 
+/**
+ * Production host (Cloudflare Pages). astro.config.mjs `site` must match; moving to a custom domain
+ * means changing both, then `npm run assets` to re-render the URL on og.png.
+ */
+export const SITE_HOST = 'herick-gonzaga.pages.dev';
+
 /** Computed-style values of the tokens in src/styles/tokens.css. */
 export const TOKENS = {
   ink: 'rgb(15, 20, 32)',

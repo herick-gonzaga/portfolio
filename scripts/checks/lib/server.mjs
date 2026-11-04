@@ -1,5 +1,9 @@
-/** Static file server for the built site (dist/), on a free port of 127.0.0.1. */
-import { createReadStream, statSync } from 'node:fs';
+/**
+ * Static file server for the built site (dist/), on a free port of 127.0.0.1. Responses carry the
+ * headers from dist/_headers (Cloudflare Pages format), so the checks run under the production
+ * Content-Security-Policy.
+ */
+import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve, sep } from 'node:path';
 
@@ -27,8 +31,40 @@ const isFile = (path) => {
   }
 };
 
+/**
+ * Parses a Cloudflare Pages _headers file into [{ pattern, headers }]. Supports path rules with
+ * `*` splats and `:name` placeholders; absolute-URL rules and `! Header` removals are ignored.
+ */
+export function parseHeaders(text) {
+  const rules = [];
+  for (const raw of text.split('\n')) {
+    const line = raw.trimEnd();
+    if (!line.trim() || line.trim().startsWith('#')) continue;
+    if (!/^\s/.test(line)) {
+      const source = line.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/:\w+/g, '[^/]+');
+      rules.push({ path: line, pattern: line.startsWith('/') ? new RegExp(`^${source}$`) : null, headers: [] });
+      continue;
+    }
+    const match = line.trim().match(/^([^!:][^:]*):\s*(.*)$/);
+    if (match && rules.length) rules.at(-1).headers.push([match[1].toLowerCase(), match[2]]);
+  }
+  return rules;
+}
+
+/** Headers for `pathname`; a header set by several matching rules is joined with ", ". */
+export function headersFor(rules, pathname) {
+  const out = {};
+  for (const rule of rules) {
+    if (!rule.pattern?.test(pathname)) continue;
+    for (const [name, value] of rule.headers) out[name] = out[name] ? `${out[name]}, ${value}` : value;
+  }
+  return out;
+}
+
 export function serveDist(dir) {
   const root = resolve(dir);
+  const headersFile = join(root, '_headers');
+  const rules = existsSync(headersFile) ? parseHeaders(readFileSync(headersFile, 'utf8')) : [];
   const server = createServer((request, response) => {
     const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
     let file = resolve(root, `.${pathname}`);
@@ -41,7 +77,10 @@ export function serveDist(dir) {
       response.writeHead(404, { 'content-type': 'text/plain' }).end('Not found');
       return;
     }
-    response.writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' });
+    response.writeHead(200, {
+      ...headersFor(rules, pathname),
+      'content-type': TYPES[extname(file)] ?? 'application/octet-stream',
+    });
     createReadStream(file).pipe(response);
   });
   return new Promise((resolveServer) => {
