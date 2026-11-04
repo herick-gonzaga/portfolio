@@ -74,7 +74,7 @@ try {
     }
   }
 } finally {
-  await chrome.kill();
+  chrome.kill();
   await server.close();
 }
 
