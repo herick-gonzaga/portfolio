@@ -1,6 +1,6 @@
 /**
  * "Beyond the code" panel (PersonalPanel.astro) at 1440 and 390px, in every locale.
- * Navbar brand split: the "HG" square is a "Back to top" link (≥44px target) that scrolls to the
+ * Navbar brand split: the "HG" square is a back-to-top link named "HG — …" (WCAG 2.5.3; ≥44px target) that scrolls to the
  * top without opening the panel; only the name next to it opens the panel, under its own
  * localized name ("Herick Gonzaga — beyond the code"), and keyboard Tab goes logo → name.
  * Triggers: the navbar name and the name inside the hero intro are buttons that open one
@@ -146,15 +146,16 @@ export default {
         );
         t.ok(personal.open.startsWith(profile.name), `${at}: navbar name's accessible name starts with its visible text (WCAG 2.5.3)`);
 
-        // Navbar brand split: the logo is a separate "Back to top" link.
+        // Navbar brand split: the logo is a separate back-to-top link.
         const b = await page.eval(readBrand);
         t.eq(
           b.logo && { ...b.logo, size: undefined },
-          { tag: 'A', href: '#top', label: ui.backTop, text: profile.initials, opensPanel: false, containsName: false, size: undefined },
-          `${at}: "${profile.initials}" logo is a "Back to top" link, separate from the name`,
+          { tag: 'A', href: '#top', label: ui.logoLabel, text: profile.initials, opensPanel: false, containsName: false, size: undefined },
+          `${at}: "${profile.initials}" logo is a back-to-top link, separate from the name`,
         );
+        t.ok(ui.logoLabel.startsWith(profile.initials), `${at}: logo's accessible name starts with its visible text "${profile.initials}" (WCAG 2.5.3)`, ui.logoLabel);
         t.ok(b.logo && Math.min(...b.logo.size) >= TOKENS.touchTarget, `${at}: logo link is a ≥44px target`, JSON.stringify(b.logo?.size));
-        t.ok(ui.backTop !== personal.open, `${at}: logo and name have distinct accessible names`);
+        t.ok(ui.logoLabel !== personal.open, `${at}: logo and name have distinct accessible names`);
         t.eq(b.nameText, profile.name, `${at}: name button shows only the name`);
 
         await page.eval(() => window.scrollTo(0, 1500));

@@ -57,6 +57,7 @@ export const en: Content = {
     emailMe: 'Email me',
     linkedin: 'LinkedIn',
     backTop: 'Back to top',
+    logoLabel: 'HG — Herick Gonzaga, back to top',
     contact: {
       email: 'Email',
       linkedin: 'LinkedIn',
