@@ -11,7 +11,7 @@ Personal portfolio of Herick Gonzaga, Software & AI Engineer. A static, trilingu
 
 ## Getting started
 
-Requires Node 22+ (see `.nvmrc`).
+Requires Node 22 (pinned in `.node-version` and `.nvmrc`; keep them in sync).
 
 ```sh
 npm install
@@ -55,7 +55,7 @@ docs/
 ├── DESIGN_SPEC.md          # Visual system and section spec
 ├── QA_REPORT.md            # Accessibility, performance, responsive and content audit
 └── TRANSLATION_REVIEW.md   # Generated side-by-side translation table
-public/                     # favicon.svg (source), favicon.ico and og.png (generated, committed)
+public/                     # favicon.svg (source), favicon.ico and og.png (generated, committed), _headers
 scripts/
 ├── translation-review.ts
 ├── generate-assets.mjs     # og.png from assets/og.svg, favicon.ico from favicon.svg
@@ -76,7 +76,7 @@ The visual system ("Signal") is documented in [`docs/DESIGN_SPEC.md`](docs/DESIG
 
 ## SEO assets
 
-`npm run build` first runs `scripts/generate-assets.mjs`, which renders `scripts/assets/og.svg` (with Instrument Sans and JetBrains Mono embedded, the name and title from `src/i18n/en.ts` and the host from `site`) to `public/og.png` at 1200×630, and `public/favicon.svg` to a 16/32/48px `public/favicon.ico`. It uses the same headless Chrome driver as the UI checks, so there is no npm dependency. Files are only rewritten when their bytes change; without Chrome the committed files are kept. The "HG" in `favicon.svg` is JetBrains Mono Bold converted to outlines, so it renders without the font.
+`npm run build` first runs `scripts/generate-assets.mjs`, which renders `scripts/assets/og.svg` (with Instrument Sans and JetBrains Mono embedded, the name and title from `src/i18n/en.ts` and the host from `site`) to `public/og.png` at 1200×630, and `public/favicon.svg` to a 16/32/48px `public/favicon.ico`. It uses the same headless Chrome driver as the UI checks, so there is no npm dependency. Files are only rewritten when their bytes change. On Cloudflare Pages (`CF_PAGES` set) Chrome is skipped, and anywhere else without Chrome the committed files are kept, so **commit `public/og.png` and `public/favicon.ico` after changing their sources** (`npm run assets`). The "HG" in `favicon.svg` is JetBrains Mono Bold converted to outlines, so it renders without the font.
 
 `robots.txt` is generated from `src/pages/robots.txt.ts` and points to the `@astrojs/sitemap` index.
 
@@ -84,11 +84,30 @@ The visual system ("Signal") is documented in [`docs/DESIGN_SPEC.md`](docs/DESIG
 
 `npm run check:ui` builds the site, serves `dist/` on a local port and runs every `scripts/checks/*.check.mjs` file in headless Chrome against `/`, `/pt/` and `/es/`. It exits non-zero if any assertion fails. Expected copy comes straight from `src/i18n/`, so the checks never drift from the locale files.
 
+- `dist/` is served with the headers from `dist/_headers` (copied from `public/_headers`), so pages load under the production Content-Security-Policy. Every check file also asserts that it caused no CSP violation, and `cloudflare.check.mjs` asserts that the CSP's `script-src` hashes match the inline scripts in the built pages.
 - Requires Google Chrome or Chromium. Set `CHROME_PATH` if it isn't in a standard location. There are no npm dependencies: the driver talks to Chrome over the DevTools protocol (`scripts/checks/lib/browser.mjs`).
 - `node scripts/checks/run.mjs <filter>` runs only the check files whose name contains `<filter>`, against the existing `dist/`.
 - Each check file default-exports `{ name, run({ browser, baseUrl, routes, t }) }` and records assertions with `t.ok`, `t.eq`, `t.near` and `t.note`.
 
 Every section PR adds or extends a check file in `scripts/checks/` and must pass `npm run check:ui`.
+
+## Deploy (Cloudflare Pages)
+
+The site is hosted on Cloudflare Pages at https://herick-gonzaga.pages.dev, built from this GitHub repository.
+
+| Setting                | Value           |
+| :--------------------- | :-------------- |
+| Framework preset       | Astro           |
+| Build command          | `npm run build` |
+| Build output directory | `dist`          |
+| Production branch      | `main`          |
+| Environment variable   | `NODE_VERSION` = `22` |
+
+- **Don't set `NODE_ENV=production` in the build settings.** Cloudflare installs devDependencies only when `NODE_ENV` is unset. The packages `npm run build` needs (`astro`, `@astrojs/check`, `typescript`, `@types/node`) are regular dependencies, so the build works either way, but leave it unset to match local installs.
+- The build image has no Chrome. `npm run build` ships the committed `public/og.png` and `public/favicon.ico`, and runs no `check:*` script. `astro check` needs no browser. Run the checks locally before pushing.
+- `public/_headers` sets the response headers: `/_astro/*` (hashed file names) is cached for a year as `immutable`, and every response gets `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` and a Content-Security-Policy. The CSP allows inline scripts only by their sha256: the locale redirect in `src/layouts/Base.astro` and the `hero-ready` flag in `src/components/Hero.astro`. Editing either script changes its hash, and `npm run check:ui` then fails and prints the new value to paste into `public/_headers`. Component `<script>`s ship as files because `vite.build.assetsInlineLimit` is `0`. Don't use inline event handlers (`onerror="…"`) or `style` attributes, which the CSP blocks.
+
+**Custom domain (later):** add the domain under the Pages project's *Custom domains*, then change `site` in `astro.config.mjs` and `SITE_HOST` in `scripts/checks/lib/context.mjs`. The canonical, hreflang and Open Graph URLs, `robots.txt` and the sitemap all follow `site`. The URL on the Open Graph card is the `{{url}}` placeholder in `scripts/assets/og.svg`, filled from `site`, so run `npm run assets` and commit the new `public/og.png`.
 
 ## Accessibility and performance audits
 
