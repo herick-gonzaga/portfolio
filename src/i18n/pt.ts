@@ -5,7 +5,7 @@ export const pt: Content = {
   meta: {
     title: 'Herick Gonzaga — Engenheiro de Software & IA',
     description:
-      'Sou Herick Gonzaga, Engenheiro de Software & IA. Trabalho com sistemas baseados em LLM, automação com agentes e QA para uma plataforma de compras dos EUA.',
+      'Engenheiro de Software & IA que une engenharia à formação em Relações Internacionais: sistemas LLM, agentes e QA para uma plataforma de compras dos EUA.',
   },
   profile: {
     name: 'Herick Gonzaga',
@@ -14,9 +14,9 @@ export const pt: Content = {
     title: 'Engenheiro de Software & IA',
     headline: 'Software que vai para produção, IA que se sustenta nela.',
     intro:
-      'Sou Herick Gonzaga, Engenheiro de Software & IA. Trabalho com sistemas baseados em LLM, automação com agentes e QA para uma plataforma norte-americana de compras para a construção civil. Construo o pipeline, os prompts e os testes que provam que tudo funciona.',
-    status: 'Aberto a vagas remotas · Brasil (UTC−3) · Inglês no dia a dia',
-    heroChips: ['Engenharia de Software', 'Engenharia de IA', 'Prompt Engineering', 'QA & Automação', 'MCP'],
+      'Sou Herick Gonzaga, Engenheiro de Software & IA e estudante de Relações Internacionais. Trabalho com sistemas baseados em LLM, automação com agentes e QA para uma plataforma norte-americana de compras para a construção civil. Construo o pipeline, os prompts e os testes que provam que tudo funciona — de olho nos mercados onde o software opera.',
+    status: 'Engenharia de Software & IA + Relações Internacionais · Brasil (UTC−3)',
+    heroChips: ['Engenharia de Software', 'Engenharia de IA', 'Prompt Engineering', 'QA & Automação', 'MCP', 'Relações Internacionais'],
     about: [
       'Divido meus dias entre duas empresas: na Codengage, atuo como engenheiro de IA, criando e treinando modelos e construindo produtos de dados; na SubBase, uma plataforma SaaS norte-americana de compras para a construção civil, cuido do trabalho de dados human-in-the-loop, de prompt engineering e de QA para um pipeline de extração de notas fiscais baseado em LLM.',
       'Acredito que bons produtos de IA são, em grande parte, boa engenharia: contratos claros, resultados medidos e testes que pegam regressões antes dos clientes. Cursar Relações Internacionais junto com Engenharia de Software é como mantenho a outra metade à vista: as pessoas, os mercados e as regulações que o software precisa atender.',
@@ -26,7 +26,7 @@ export const pt: Content = {
       { label: 'Trabalho na', value: 'SubBase (Fort Lauderdale, remoto) · Codengage' },
       { label: 'Estudo', value: 'Engenharia de Software, UTFPR · Relações Internacionais, UNINTER' },
       { label: 'Idiomas', value: 'Português (nativo) · Inglês (profissional) · Espanhol, Francês (básico)' },
-      { label: 'Aberto a', value: 'Vagas remotas, híbridas ou presenciais com times internacionais' },
+      { label: 'Disponível para', value: 'Palestras, mentorias e comunidades tech' },
     ],
     contact: {
       email: 'andreyherick8@gmail.com',
@@ -38,7 +38,7 @@ export const pt: Content = {
     },
     contactHeadline: 'Vamos construir software que funciona em qualquer lugar.',
     contactText:
-      'Contratando para uma vaga de IA, backend ou QA em um time distribuído? Respondo em até um dia útil, em inglês ou português.',
+      'Organizando uma palestra, buscando mentoria ou construindo uma comunidade tech? Minha caixa de entrada está aberta — em inglês ou português.',
     footerTagline: 'Feito com disciplina de Rails e um ou dois LLMs.',
   },
   ui: {

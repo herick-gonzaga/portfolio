@@ -10,7 +10,7 @@ ink #0F1420 (hero/contact bg, featured card) · ink-line #1E2635 · ink-surface 
 mist #F4F5F7 (page bg) · surface #FFFFFF · line #DCE0E6
 text #141922 · text-2 #3C4654 · muted #5B6472 · muted-dark #A6AFBF (on ink)
 cobalt #2B5BFF (single accent: CTAs, kickers, timeline dots) · cobalt-hover #1E45D6 · cobalt-soft #7B96FF (accent on ink)
-signal #3DDC84 (only the "open to work" dot)
+signal #3DDC84 (only the hero status dot)
 
 ## Typography
 Instrument Sans (display + body, 400–700). JetBrains Mono (dates, chips, metrics, email).
