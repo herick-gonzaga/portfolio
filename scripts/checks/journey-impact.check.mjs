@@ -4,6 +4,8 @@
  * 900px; timeline line, item padding, dot style per item type (current / past work / education)
  * and dot position (centered on the line, aligned with the first text line); item typography;
  * fade-in once at 30% visibility, final state under prefers-reduced-motion and without JS.
+ * Org notes ("through Codengage") render after the org as muted 15px regular text, and the work
+ * history shows a single current engagement, with Codengage only as a note, never its own entry.
  * Achievements: copy and "[N]" placeholders; bottom-only padding; 3 metric cards (1 column below
  * 600px) whose values share one baseline; 2-column achievement grid (1 column below 900px) with
  * the icon left of the text. Both: nothing overflows and no horizontal scroll in any locale.
@@ -40,7 +42,14 @@ function readTexts(expectedIcons) {
   };
   const items = [...journey.querySelectorAll('ol > li')].map((li) => {
     const [period, description] = li.querySelectorAll(':scope > p');
-    return { period: text(period), heading: text(li.querySelector('h3')), description: text(description), dot: li.dataset.dot };
+    const note = li.querySelector('h3 [data-org-note]');
+    return {
+      period: text(period),
+      heading: text(li.querySelector('h3')),
+      orgNote: note ? text(note) : undefined,
+      description: text(description),
+      dot: li.dataset.dot,
+    };
   });
   return {
     journey: { header: headerOf(journey), items, listTag: journey.querySelector('ol')?.tagName },
@@ -136,6 +145,7 @@ function measureLayout() {
       },
       period: font(period),
       title: font(li.querySelector('h3')),
+      orgNote: li.querySelector('h3 [data-org-note]') ? font(li.querySelector('h3 [data-org-note]')) : undefined,
       description: { ...font(description), maxWidth: px(style(description).maxWidth), width: box(description).width, ch62: descriptionProbe(description) },
     };
   });
@@ -258,6 +268,10 @@ function checkJourneyLayout(t, j, at, width) {
       JSON.stringify(item.period),
     );
     t.ok(item.title.size === 20 && item.title.weight === '600', `${at}: item ${n + 1} H3 is 20px/600`, JSON.stringify(item.title));
+    if (item.orgNote) {
+      const note = item.orgNote;
+      t.ok(note.size === 15 && note.weight === '400' && note.color === COLORS.muted, `${at}: item ${n + 1} org note is 15px/400 muted`, JSON.stringify(note));
+    }
     const desc = item.description;
     t.ok(desc.size === 15 && desc.lineHeight === 1.55 && desc.color === COLORS.muted, `${at}: item ${n + 1} description is 15px/1.55 muted`, JSON.stringify(desc));
     t.ok(Math.abs(desc.maxWidth - desc.ch62) <= 0.5 && desc.width <= desc.ch62 + 0.5, `${at}: item ${n + 1} description max 62ch`, JSON.stringify(desc));
@@ -456,12 +470,26 @@ export default {
         texts.journey.items,
         content.journey.map((item) => ({
           period: normalize(item.place ? `${item.period} · ${item.place}` : item.period),
-          heading: normalize(`${item.title} · ${item.org}`),
+          heading: normalize(`${item.title} · ${item.org}${item.orgNote ? ` ${item.orgNote}` : ''}`),
+          orgNote: item.orgNote ? normalize(item.orgNote) : undefined,
           description: normalize(item.description),
           dot: item.current ? 'current' : item.type === 'education' ? 'education' : 'past',
         })),
         `${at}: Journey items match locale (order, text, dot type)`,
       );
+      // One engagement: a single current work entry (SubBase), Codengage only as its "through" note.
+      const currentWork = content.journey.filter((item) => item.current && item.type === 'work');
+      t.eq(currentWork.map((item) => item.org), ['SubBase'], `${at}: exactly one current work entry, at SubBase`);
+      t.ok(/Codengage/.test(currentWork[0]?.orgNote ?? ''), `${at}: the SubBase entry notes Codengage`, currentWork[0]?.orgNote);
+      t.ok(
+        content.journey.every((item) => item.org !== 'Codengage'),
+        `${at}: Codengage is not a separate timeline entry`,
+      );
+      t.ok(
+        texts.journey.items.filter((item) => item.orgNote).length === content.journey.filter((item) => item.orgNote).length,
+        `${at}: every org note is rendered`,
+      );
+
       t.eq(texts.impact.header, header(content.sections.impact), `${at}: Impact header matches locale`);
       t.eq(
         texts.impact.metrics,

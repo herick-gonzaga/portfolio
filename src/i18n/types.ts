@@ -122,6 +122,8 @@ export interface Content {
     place?: string;
     title: string;
     org: string;
+    /** Secondary note shown after the org in muted text, e.g. the contracting company. */
+    orgNote?: string;
     description: string;
     /** Filled cobalt dot when true, hollow when false. */
     current: boolean;

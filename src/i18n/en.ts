@@ -17,12 +17,12 @@ export const en: Content = {
     status: 'Software & AI Engineering + International Relations · Brazil (UTC−3)',
     heroChips: ['Software Engineering', 'AI Engineering', 'Prompt Engineering', 'QA & Automation', 'MCP', 'International Relations'],
     about: [
-      'I split my days between two companies: an AI engineering role at Codengage, where I create and train models and build data products, and SubBase, a U.S. SaaS platform for construction procurement, where I run human-in-the-loop data work, prompt engineering and QA for an LLM-based invoice extraction pipeline.',
+      'I work as a contractor at SubBase — a US construction-procurement SaaS platform — through Codengage. I own the human-in-the-loop data work, prompt engineering and QA for an LLM-based invoice-extraction pipeline, from the prompt to the test that validates it.',
       'I believe good AI products are mostly good engineering: clear contracts, measured outputs, tests that catch regressions before customers do. Studying International Relations alongside Software Engineering is how I keep the other half in view: the people, markets and regulations the software has to serve.',
     ],
     facts: [
       { label: 'Based in', value: 'Dois Vizinhos, Paraná, Brazil' },
-      { label: 'Working at', value: 'SubBase (Fort Lauderdale, remote) · Codengage' },
+      { label: 'Working at', value: 'SubBase (Fort Lauderdale, remote) · through Codengage' },
       { label: 'Studying', value: 'Software Engineering, UTFPR · International Relations, UNINTER' },
       { label: 'Languages', value: 'Portuguese (native) · English (professional) · Spanish, French (basic)' },
       { label: 'Available for', value: 'Talks, mentoring and tech communities' },
@@ -181,27 +181,18 @@ export const en: Content = {
   ],
   journey: [
     {
-      period: 'Jan 2025 — now',
-      place: 'Remote (Fort Lauderdale, US)',
+      period: 'Sep 2024 — now',
+      place: 'Remote (Fort Lauderdale, USA)',
       title: 'Data Entry / HITL / Prompt Engineering Specialist',
       org: 'SubBase',
+      orgNote: 'through Codengage',
       description:
-        'Own the human-in-the-loop quality layer of an LLM invoice extraction pipeline: vendor prompt rules, behavioral diffs across prompt versions, bug reports, and QA automation for the platform.',
+        'Contractor through Codengage, dedicated to the SubBase platform: the human-in-the-loop quality layer of an LLM invoice-extraction pipeline — vendor-specific prompt rules, behavior diffs across prompt versions, structured bug reports and QA automation. Through Codengage, I also created and trained AI models and built data products.',
       current: true,
       type: 'work',
     },
     {
-      period: 'Sep 2024 — now',
-      place: 'Dois Vizinhos, BR',
-      title: 'AI Engineer',
-      org: 'Codengage',
-      description:
-        'Create and train AI models, build databases and data products, and run quality for AI-driven features. Started as Data Engineer; grew into the AI engineering scope.',
-      current: true,
-      type: 'work',
-    },
-    {
-      period: 'Mar 2024 — Jun 2024',
+      period: 'Sep 2023 — Mar 2024',
       title: 'Network Technician',
       org: 'Proveminas',
       description:

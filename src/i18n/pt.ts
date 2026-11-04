@@ -18,12 +18,12 @@ export const pt: Content = {
     status: 'Engenharia de Software & IA + Relações Internacionais · Brasil (UTC−3)',
     heroChips: ['Engenharia de Software', 'Engenharia de IA', 'Prompt Engineering', 'QA & Automação', 'MCP', 'Relações Internacionais'],
     about: [
-      'Divido meus dias entre duas empresas: na Codengage, atuo como engenheiro de IA, criando e treinando modelos e construindo produtos de dados; na SubBase, uma plataforma SaaS norte-americana de compras para a construção civil, cuido do trabalho de dados human-in-the-loop, de prompt engineering e de QA para um pipeline de extração de notas fiscais baseado em LLM.',
+      'Atuo como prestador de serviço na SubBase — uma plataforma SaaS norte-americana de compras para a construção civil — via Codengage. Cuido do trabalho de dados human-in-the-loop, do prompt engineering e do QA de um pipeline de extração de notas fiscais baseado em LLM, do prompt ao teste que o valida.',
       'Acredito que bons produtos de IA são, em grande parte, boa engenharia: contratos claros, resultados medidos e testes que pegam regressões antes dos clientes. Cursar Relações Internacionais junto com Engenharia de Software é como mantenho a outra metade à vista: as pessoas, os mercados e as regulações que o software precisa atender.',
     ],
     facts: [
       { label: 'Moro em', value: 'Dois Vizinhos, Paraná, Brasil' },
-      { label: 'Trabalho na', value: 'SubBase (Fort Lauderdale, remoto) · Codengage' },
+      { label: 'Trabalho na', value: 'SubBase (Fort Lauderdale, remoto) · via Codengage' },
       { label: 'Estudo', value: 'Engenharia de Software, UTFPR · Relações Internacionais, UNINTER' },
       { label: 'Idiomas', value: 'Português (nativo) · Inglês (profissional) · Espanhol, Francês (básico)' },
       { label: 'Disponível para', value: 'Palestras, mentorias e comunidades tech' },
@@ -185,27 +185,18 @@ export const pt: Content = {
   ],
   journey: [
     {
-      period: 'jan 2025 — atual',
+      period: 'set 2024 — atual',
       place: 'Remoto (Fort Lauderdale, EUA)',
       title: 'Data Entry / HITL / Prompt Engineering Specialist',
       org: 'SubBase',
+      orgNote: 'via Codengage',
       description:
-        'Responsável pela camada de qualidade human-in-the-loop de um pipeline de extração de notas fiscais com LLM: regras de prompt por fornecedor, diffs de comportamento entre versões de prompt, reports de bugs e automação de QA para a plataforma.',
+        'Prestador de serviço via Codengage, dedicado à plataforma SubBase: a camada de qualidade human-in-the-loop de um pipeline de extração de notas fiscais com LLM — regras de prompt por fornecedor, diffs de comportamento entre versões de prompt, reports de bugs estruturados e automação de QA. Pela Codengage, também criei e treinei modelos de IA e construí produtos de dados.',
       current: true,
       type: 'work',
     },
     {
-      period: 'set 2024 — atual',
-      place: 'Dois Vizinhos, BR',
-      title: 'Engenheiro de IA',
-      org: 'Codengage',
-      description:
-        'Crio e treino modelos de IA, construo bancos de dados e produtos de dados e cuido da qualidade de funcionalidades com IA. Comecei como Engenheiro de Dados e cresci para o escopo de engenharia de IA.',
-      current: true,
-      type: 'work',
-    },
-    {
-      period: 'mar 2024 — jun 2024',
+      period: 'set 2023 — mar 2024',
       title: 'Técnico de Redes',
       org: 'Proveminas',
       description:
