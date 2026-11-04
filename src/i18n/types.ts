@@ -50,6 +50,9 @@ export interface Content {
       linkedinLabel: string;
       github: string;
       githubLabel: string;
+      instagram: string;
+      /** Handle shown in the Contact details and on the personal panel's button. */
+      instagramLabel: string;
       timezone: string;
     };
     contactHeadline: string;
@@ -76,6 +79,7 @@ export interface Content {
       email: string;
       linkedin: string;
       github: string;
+      instagram: string;
       timezone: string;
     };
     menuOpen: string;
@@ -83,6 +87,14 @@ export interface Content {
     language: string;
     /** aria-label for the main <nav> landmarks. */
     navLabel: string;
+  };
+  /** "Beyond the code" dialog, opened by clicking the name in the navbar or the hero intro. */
+  personal: {
+    title: string;
+    body: string;
+    photoAlt: string;
+    /** aria-label of the dialog's close button. */
+    close: string;
   };
   sections: {
     about: SectionHeader;
