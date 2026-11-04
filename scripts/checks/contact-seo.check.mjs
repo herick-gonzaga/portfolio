@@ -3,7 +3,8 @@
  * Contact (1440, 900, 600, 390px): copy matches the locale files; mailto and external links
  * (new tab, rel noopener); ink background, 120/56 padding (72/40 below 900px) and the 1px
  * transparent → cobalt → transparent top line; 2 bottom-aligned columns with a 48px gap from 900px;
- * typography; CTAs full width below 600px; details list dividers and label/value stacking below
+ * typography; CTAs full width below 600px; 5 details rows (email, LinkedIn, GitHub, Instagram,
+ * time zone) with dividers and label/value stacking below
  * 600px; footer row (13px, 24px top padding, ink-line border) that wraps on mobile; no overflow.
  * Head: title, description, canonical, 4 hreflang, Open Graph, Twitter card, valid JSON-LD Person
  * and theme-color per route; og.png is a 1200×630 PNG; favicons, robots.txt and sitemap reachable.
@@ -205,6 +206,7 @@ function checkTexts(t, texts, content, at) {
       { label: ui.contact.email, value: contact.email, link: { label: contact.email, href: `mailto:${contact.email}`, target: null, rel: null } },
       { label: ui.contact.linkedin, value: contact.linkedinLabel, link: { label: contact.linkedinLabel, href: contact.linkedin, target: '_blank', rel: 'noopener' } },
       { label: ui.contact.github, value: contact.githubLabel, link: { label: contact.githubLabel, href: contact.github, target: '_blank', rel: 'noopener' } },
+      { label: ui.contact.instagram, value: contact.instagramLabel, link: { label: contact.instagramLabel, href: contact.instagram, target: '_blank', rel: 'noopener' } },
       { label: ui.contact.timezone, value: normalize(contact.timezone) },
     ],
     `${at}: detail rows (labels, values, links) match locale`,
@@ -265,7 +267,7 @@ function checkLayout(t, m, at, width) {
 
   t.eq(m.list.tag, 'UL', `${at}: details are a <ul>`);
   t.eq(m.list.borderTop, [1, COLORS.inkLine], `${at}: list has a 1px ink-line top border`);
-  t.eq(m.rows.length, 4, `${at}: 4 detail rows`);
+  t.eq(m.rows.length, 5, `${at}: 5 detail rows`);
   for (const [n, row] of m.rows.entries()) {
     const label = `${at}: row ${n + 1}`;
     t.eq(row.borderBottom, [1, COLORS.inkLine], `${label} has a 1px ink-line bottom border`);
@@ -340,7 +342,7 @@ function checkHead(t, head, route) {
         name: content.profile.fullName,
         jobTitle: content.profile.title,
         url: canonical,
-        sameAs: [content.profile.contact.linkedin, content.profile.contact.github],
+        sameAs: [content.profile.contact.linkedin, content.profile.contact.github, content.profile.contact.instagram],
         inLanguage: route.lang,
       },
       `${at}: JSON-LD Person fields`,

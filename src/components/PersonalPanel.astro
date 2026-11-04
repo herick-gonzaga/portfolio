@@ -1,0 +1,177 @@
+---
+/**
+ * "Beyond the code" panel: a modal <dialog> with a photo, a short personal note and the
+ * Instagram link. Any element with [data-personal-open] opens it (the navbar name and the name
+ * in the hero intro). Esc and the close button close it, as does a click on the backdrop;
+ * Tab and Shift+Tab wrap inside it and focus returns to the trigger on close.
+ *
+ * The photo is public/images/herick.jpg (640×800 JPEG), cropped to the media box with
+ * object-fit: cover. The "HG" monogram tile stays in the DOM, hidden, and replaces the photo if
+ * it fails to load.
+ */
+import Button from './ui/Button.astro';
+import Icon from './ui/Icon.astro';
+import { getContent, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { profile, personal } = getContent(locale);
+
+const PHOTO = '/images/herick.jpg';
+
+// Inline so it also covers an error that fires before the bundled script has run.
+const showFallback = 'this.hidden=true;this.nextElementSibling.hidden=false';
+---
+
+<dialog
+  id="personal-panel"
+  class="personal m-auto w-[calc(100%-32px)] max-w-[440px] overflow-hidden rounded-card bg-surface p-0 text-text"
+  aria-modal="true"
+  aria-labelledby="personal-title"
+  data-personal-panel
+>
+  <div class="max-h-[calc(100dvh-32px)] overflow-y-auto" data-personal-scroll>
+    <div class="relative aspect-[16/10] overflow-hidden bg-ink sm:aspect-[4/3]" data-personal-media>
+      <img
+        src={PHOTO}
+        alt={personal.photoAlt}
+        width="640"
+        height="800"
+        loading="lazy"
+        decoding="async"
+        class="size-full object-cover object-[50%_22%]"
+        onerror={showFallback}
+        data-personal-photo
+      />
+      <!-- Fallback: same box as the photo; shown only if the photo fails to load. -->
+      <div class="personal-fallback absolute inset-0 grid place-items-center" hidden data-personal-fallback>
+        <span
+          class="grid size-24 place-items-center rounded-[16px] bg-cobalt font-mono text-[34px] font-semibold text-white"
+          aria-hidden="true"
+        >
+          {profile.initials}
+        </span>
+      </div>
+      <button
+        type="button"
+        class="absolute top-3 right-3 inline-flex size-touch items-center justify-center rounded-button bg-ink/60 text-white backdrop-blur-sm transition-colors duration-hover ease-out hover:bg-ink/85"
+        aria-label={personal.close}
+        data-personal-close
+      >
+        <Icon name="close" size={22} />
+      </button>
+    </div>
+
+    <div class="p-6 sm:p-8">
+      <p class="font-mono text-mono-sm tracking-[0.04em] text-muted uppercase">{profile.name}</p>
+      <h2 id="personal-title" class="mt-2 text-[24px] leading-[1.2] font-semibold tracking-[-0.015em] text-text">
+        {personal.title}
+      </h2>
+      <p class="mt-4 text-[16px] leading-[1.6] text-text-2">{personal.body}</p>
+      <Button
+        href={profile.contact.instagram}
+        target="_blank"
+        rel="noopener"
+        class="mt-6 w-full sm:w-auto"
+        data-personal-instagram
+      >
+        <Icon name="instagram" size={18} />
+        {profile.contact.instagramLabel}
+      </Button>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .personal::backdrop {
+    background-color: rgb(15 20 32 / 0.72);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+
+  /* Same 48px ink-line grid as the hero, behind the monogram. */
+  .personal-fallback {
+    background-image:
+      linear-gradient(to right, var(--color-ink-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-ink-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: center;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .personal[open] {
+      animation: personal-in 200ms var(--ease-out) both;
+    }
+
+    .personal[open]::backdrop {
+      animation: personal-fade 200ms ease-out both;
+    }
+  }
+
+  @keyframes personal-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes personal-fade {
+    from {
+      opacity: 0;
+    }
+  }
+</style>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-personal-panel]')!;
+  const closeButton = dialog.querySelector<HTMLButtonElement>('[data-personal-close]')!;
+  const triggers = document.querySelectorAll<HTMLElement>('[data-personal-open]');
+  let returnFocus: HTMLElement | null = null;
+
+  function open(trigger: HTMLElement) {
+    if (dialog.open) return;
+    returnFocus = trigger;
+    dialog.showModal();
+    document.documentElement.style.overflow = 'hidden';
+    triggers.forEach((el) => el.setAttribute('aria-expanded', 'true'));
+    closeButton.focus();
+  }
+
+  triggers.forEach((trigger) => trigger.addEventListener('click', () => open(trigger)));
+  closeButton.addEventListener('click', () => dialog.close());
+
+  // Native <dialog> handles Esc (cancel → close); every way of closing ends up here.
+  dialog.addEventListener('close', () => {
+    document.documentElement.style.overflow = '';
+    triggers.forEach((el) => el.setAttribute('aria-expanded', 'false'));
+    returnFocus?.focus({ preventScroll: true });
+    returnFocus = null;
+  });
+
+  // The dialog has no padding, so a click whose target is the dialog itself hit the backdrop.
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+
+  // showModal() makes the page inert but lets Tab reach the browser chrome; keep it in the panel.
+  dialog.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab') return;
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+</script>

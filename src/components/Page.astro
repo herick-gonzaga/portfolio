@@ -1,7 +1,7 @@
 ---
 /**
  * Renders the full page for one locale: Navbar, Hero, About, Skills, Projects, Journey,
- * Achievements and Contact (with the footer); every text comes from getContent().
+ * Achievements and Contact (with the footer), plus the "Beyond the code" dialog; every text comes from getContent().
  */
 import About from './About.astro';
 import Achievements from './Achievements.astro';
@@ -9,6 +9,7 @@ import Contact from './Contact.astro';
 import Hero from './Hero.astro';
 import Journey from './Journey.astro';
 import Navbar from './Navbar.astro';
+import PersonalPanel from './PersonalPanel.astro';
 import Projects from './Projects.astro';
 import Skills from './Skills.astro';
 import Base from '../layouts/Base.astro';
@@ -32,4 +33,5 @@ const { locale } = Astro.props;
     <Achievements locale={locale} />
     <Contact locale={locale} />
   </main>
+  <PersonalPanel locale={locale} />
 </Base>

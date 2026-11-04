@@ -1,7 +1,8 @@
 /**
  * Cross-section QA audit (docs/QA_REPORT.md).
  * Responsive sweep (1440, 1392, 1200, 900, 600, 390, 360): no horizontal scroll, no clipped text,
- * H1 at most 3 lines at 1440 and 5 at 390, touch targets ≥44px below 900px (sheet included).
+ * H1 at most 3 lines at 1440 and 5 at 390, touch targets ≥44px below 900px (sheet included;
+ * controls inline inside a sentence are exempt, per the WCAG 2.5.8 inline exception).
  * Contrast: every visible text node, SVG text included, ≥4.5:1 (3:1 for large text) against its
  * effective background, at 1440 and 390 with the mobile sheet and switcher open.
  * Names: every visible link/button has an accessible name; icon-only ones use aria-label; every
@@ -35,6 +36,12 @@ function measureLayout(width) {
     width < 900
       ? [...document.querySelectorAll('a[href], button')]
           .filter(visible)
+          // WCAG 2.5.8 inline exception: a control that is part of a sentence (the name in the
+          // hero intro) is sized by the line of text it sits in.
+          .filter((el) => {
+            const sentence = el.closest('p');
+            return !sentence || sentence.textContent.trim() === el.textContent.trim();
+          })
           .filter((el) => {
             const r = el.getBoundingClientRect();
             return r.width < 44 - 0.5 || r.height < 44 - 0.5;
@@ -239,14 +246,15 @@ async function keyboard(t, page, url, at) {
   checkRings(t, desktop.stops, w, 'all Tab stops');
   await switcherOptions(t, page, '[data-navbar]', w);
 
-  // Mobile: brand → menu button; the sheet holds focus until Esc; then on to the footer.
+  // Mobile: logo → name → menu button; the sheet holds focus until Esc; then on to the footer.
   await page.viewport(390);
   await page.goto(url);
   w = `${at} @390`;
   await page.press('Tab');
   await page.press('Tab');
+  await page.press('Tab');
   const menuButton = await page.eval(focusState);
-  t.ok(menuButton && (await page.eval(() => document.activeElement.hasAttribute('data-menu-open'))), `${w}: second Tab stop is the menu button`);
+  t.ok(menuButton && (await page.eval(() => document.activeElement.hasAttribute('data-menu-open'))), `${w}: third Tab stop is the menu button`);
   checkRings(t, [menuButton].filter(Boolean), w, 'the menu button');
   await page.press('Enter');
   await page.waitFor(() => !document.querySelector('[data-mobile-menu]').hidden);
