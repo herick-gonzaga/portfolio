@@ -246,14 +246,15 @@ async function keyboard(t, page, url, at) {
   checkRings(t, desktop.stops, w, 'all Tab stops');
   await switcherOptions(t, page, '[data-navbar]', w);
 
-  // Mobile: brand → menu button; the sheet holds focus until Esc; then on to the footer.
+  // Mobile: logo → name → menu button; the sheet holds focus until Esc; then on to the footer.
   await page.viewport(390);
   await page.goto(url);
   w = `${at} @390`;
   await page.press('Tab');
   await page.press('Tab');
+  await page.press('Tab');
   const menuButton = await page.eval(focusState);
-  t.ok(menuButton && (await page.eval(() => document.activeElement.hasAttribute('data-menu-open'))), `${w}: second Tab stop is the menu button`);
+  t.ok(menuButton && (await page.eval(() => document.activeElement.hasAttribute('data-menu-open'))), `${w}: third Tab stop is the menu button`);
   checkRings(t, [menuButton].filter(Boolean), w, 'the menu button');
   await page.press('Enter');
   await page.waitFor(() => !document.querySelector('[data-mobile-menu]').hidden);

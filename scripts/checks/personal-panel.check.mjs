@@ -1,5 +1,8 @@
 /**
  * "Beyond the code" panel (PersonalPanel.astro) at 1440 and 390px, in every locale.
+ * Navbar brand split: the "HG" square is a "Back to top" link (≥44px target) that scrolls to the
+ * top without opening the panel; only the name next to it opens the panel, under its own
+ * localized name ("Herick Gonzaga — beyond the code"), and keyboard Tab goes logo → name.
  * Triggers: the navbar name and the name inside the hero intro are buttons that open one
  * modal <dialog> (aria-modal, labelled by its title); the hero intro still reads as the locale
  * string. Content: title, body, the photo or the "HG" monogram fallback (exactly one) and the
@@ -27,12 +30,38 @@ function readClosed() {
       tag: el.tagName,
       text: text(el),
       region: el.closest('[data-navbar]') ? 'navbar' : el.closest('#top') ? 'hero' : 'other',
+      label: el.getAttribute('aria-label'),
       haspopup: el.getAttribute('aria-haspopup'),
       controls: el.getAttribute('aria-controls'),
     })),
     heroIntro: text(document.querySelector('#top h1 + p')),
   };
 }
+
+function readBrand() {
+  const logo = document.querySelector('[data-navbar] [data-brand-top]');
+  const name = document.querySelector('[data-navbar] [data-personal-open]');
+  const r = logo?.getBoundingClientRect();
+  return {
+    logo: logo && {
+      tag: logo.tagName,
+      href: logo.getAttribute('href'),
+      label: logo.getAttribute('aria-label'),
+      text: logo.textContent.trim(),
+      opensPanel: logo.hasAttribute('data-personal-open') || logo.hasAttribute('aria-haspopup'),
+      containsName: logo.contains(name),
+      size: [Math.round(r.width), Math.round(r.height)],
+    },
+    nameText: name?.textContent.trim(),
+  };
+}
+
+const focusedBrand = () => {
+  const el = document.activeElement;
+  if (el?.hasAttribute('data-brand-top')) return 'logo';
+  if (el?.matches('[data-navbar] [data-personal-open]')) return 'name';
+  return el?.tagName ?? null;
+};
 
 function readOpen() {
   const text = (el) => (el?.textContent ?? '').replace(/\s+/g, ' ').trim();
@@ -95,9 +124,45 @@ export default {
         t.ok(c.titleMatches, `${at}: panel is labelled by its title`);
         t.eq(
           c.triggers,
-          ['navbar', 'hero'].map((region) => ({ tag: 'BUTTON', text: region === 'navbar' ? `${profile.initials}${profile.name}` : profile.name, region, haspopup: 'dialog', controls: 'personal-panel' })),
+          [
+            { tag: 'BUTTON', text: profile.name, region: 'navbar', label: personal.open, haspopup: 'dialog', controls: 'personal-panel' },
+            { tag: 'BUTTON', text: profile.name, region: 'hero', label: null, haspopup: 'dialog', controls: 'personal-panel' },
+          ],
           `${at}: navbar name and hero-intro name are dialog trigger buttons`,
         );
+        t.ok(personal.open.startsWith(profile.name), `${at}: navbar name's accessible name starts with its visible text (WCAG 2.5.3)`);
+
+        // Navbar brand split: the logo is a separate "Back to top" link.
+        const b = await page.eval(readBrand);
+        t.eq(
+          b.logo && { ...b.logo, size: undefined },
+          { tag: 'A', href: '#top', label: ui.backTop, text: profile.initials, opensPanel: false, containsName: false, size: undefined },
+          `${at}: "${profile.initials}" logo is a "Back to top" link, separate from the name`,
+        );
+        t.ok(b.logo && Math.min(...b.logo.size) >= TOKENS.touchTarget, `${at}: logo link is a ≥44px target`, JSON.stringify(b.logo?.size));
+        t.ok(ui.backTop !== personal.open, `${at}: logo and name have distinct accessible names`);
+        t.eq(b.nameText, profile.name, `${at}: name button shows only the name`);
+
+        await page.eval(() => window.scrollTo(0, 1500));
+        await page.click('[data-brand-top]');
+        const scrolledTop = await page.waitFor(() => window.scrollY < 1, { timeout: 3000 });
+        await page.settle();
+        t.ok(scrolledTop, `${at}: clicking the logo scrolls back to the top`);
+        t.ok(await page.eval(isClosed), `${at}: clicking the logo does not open the panel`);
+
+        // Keyboard: logo → name, and Enter on the name opens the panel.
+        await page.goto(baseUrl + route.path);
+        await page.press('Tab');
+        const firstStop = await page.eval(focusedBrand);
+        await page.press('Tab');
+        const secondStop = await page.eval(focusedBrand);
+        t.eq([firstStop, secondStop], ['logo', 'name'], `${at}: Tab reaches the logo, then the name`);
+        await page.press('Enter');
+        t.ok(await page.waitFor(isOpen), `${at}: Enter on the name opens the panel`);
+        await page.press('Escape');
+        await page.waitFor(isClosed);
+        await page.settle();
+        t.eq(await page.eval(focusedBrand), 'name', `${at}: Esc returns focus to the name`);
         t.eq(c.heroIntro, normalize(profile.intro), `${at}: hero intro still reads as the locale string`);
 
         // Open from the navbar with a real click.
