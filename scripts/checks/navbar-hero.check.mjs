@@ -5,7 +5,7 @@ import { TOKENS, normalize } from './lib/context.mjs';
 
 const anchorIds = ['about', 'skills', 'projects', 'journey', 'impact'];
 
-async function checkHead(t, page, route, baseOrigin) {
+async function checkHead(t, page, route) {
   const head = await page.eval(() => {
     const ld = JSON.parse(document.querySelector('script[type="application/ld+json"]').textContent);
     return {
@@ -318,7 +318,7 @@ export default {
       const page = await browser.newPage();
       page.url = baseUrl + route.path;
       await page.goto(page.url);
-      await checkHead(t, page, route, baseUrl);
+      await checkHead(t, page, route);
       await checkNavbar(t, page, route);
       await checkHero(t, page, route);
       t.eq(page.errors, [], `${route.path}: no uncaught page errors`);
