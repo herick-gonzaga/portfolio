@@ -4,8 +4,8 @@
  * Build: `npm run build` runs no check:* script; .node-version and .nvmrc both pin Node 22; the
  * packages the build needs (astro check) are dependencies, so it also builds when devDependencies
  * are skipped; the committed og.png and favicon.ico exist for builds without Chrome.
- * Headers: dist/_headers is public/_headers; every route sends nosniff, Referrer-Policy,
- * Permissions-Policy and the CSP; /_astro/* is cached immutable and HTML is not.
+ * Headers: dist/_headers is public/_headers; every route sends HSTS (one year, includeSubDomains),
+ * nosniff, Referrer-Policy, Permissions-Policy and the CSP; /_astro/* is cached immutable and HTML is not.
  * CSP: script-src is 'self' plus exactly the sha256 of each inline script in the built pages, 404
  * pages included (no
  * 'unsafe-inline', 'unsafe-eval' or wildcards), and the pages carry no inline styles or inline
@@ -58,6 +58,7 @@ async function checkHeaders(t, baseUrl, routes) {
   const js = readdirSync(join(root, 'dist', '_astro')).find((file) => file.endsWith('.js'));
   for (const path of [...routes.map((r) => r.path), '/robots.txt', `/_astro/${css}`]) {
     const { headers } = await fetch(baseUrl + path);
+    t.eq(headers.get('strict-transport-security'), 'max-age=31536000; includeSubDomains', `${path}: Strict-Transport-Security one year, includeSubDomains`);
     t.eq(headers.get('x-content-type-options'), 'nosniff', `${path}: X-Content-Type-Options nosniff`);
     t.eq(headers.get('referrer-policy'), 'strict-origin-when-cross-origin', `${path}: Referrer-Policy strict-origin-when-cross-origin`);
     t.eq(headers.get('permissions-policy'), 'camera=(), microphone=(), geolocation=()', `${path}: minimal Permissions-Policy`);
