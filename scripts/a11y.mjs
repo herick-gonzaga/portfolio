@@ -4,6 +4,7 @@
  *
  *   npm run check:a11y          # build, then audit
  *   node scripts/a11y.mjs       # audit the existing dist/
+ *   AUDIT_URL=https://herick-gonzaga.pages.dev node scripts/a11y.mjs   # audit a deployed site
  *
  * The axe engine is the one bundled with @axe-core/cli, so `npx axe <url>` and this script
  * always agree on rules. The CLI itself is not used here because its headless Chrome ignores
@@ -35,7 +36,7 @@ const cliRequire = createRequire(createRequire(import.meta.url).resolve('@axe-co
 const axeSource = readFileSync(cliRequire.resolve('axe-core/axe.min.js'), 'utf8');
 const axeVersion = JSON.parse(readFileSync(cliRequire.resolve('axe-core/package.json'), 'utf8')).version;
 
-if (!existsSync(join(dist, 'index.html'))) {
+if (!process.env.AUDIT_URL && !existsSync(join(dist, 'index.html'))) {
   console.error('dist/ is missing. Run `npm run build` first (or use `npm run check:a11y`).');
   process.exit(1);
 }
@@ -85,7 +86,9 @@ const statesFor = (width) =>
         ['language switcher open', ['[data-lang-trigger]']],
       ];
 
-const server = await serveDist(dist);
+// AUDIT_URL audits a deployed site instead of serving dist/.
+const live = process.env.AUDIT_URL?.replace(/\/+$/, '');
+const server = live ? { url: live, close: async () => {} } : await serveDist(dist);
 const browser = await launchBrowser();
 mkdirSync(outDir, { recursive: true });
 const rows = [];

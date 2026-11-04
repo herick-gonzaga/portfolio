@@ -5,6 +5,7 @@
  *
  *   npm run check:perf          # build, then audit
  *   node scripts/perf.mjs       # audit the existing dist/
+ *   AUDIT_URL=https://herick-gonzaga.pages.dev node scripts/perf.mjs   # audit a deployed site
  *
  * Uses the system Chrome (or $CHROME_PATH), like the UI checks, pinned to en-US: with a pt or es
  * system locale the redirect script would otherwise send the / audit to /pt/ or /es/.
@@ -37,7 +38,7 @@ const CHROME_CANDIDATES = [
   '/usr/bin/chromium-browser',
 ];
 
-if (!existsSync(join(dist, 'index.html'))) {
+if (!process.env.AUDIT_URL && !existsSync(join(dist, 'index.html'))) {
   console.error('dist/ is missing. Run `npm run build` first (or use `npm run check:perf`).');
   process.exit(1);
 }
@@ -48,7 +49,9 @@ if (!chromePath) {
 }
 
 mkdirSync(outDir, { recursive: true });
-const server = await serveDist(dist);
+// AUDIT_URL audits a deployed site instead of serving dist/.
+const live = process.env.AUDIT_URL?.replace(/\/+$/, '');
+const server = live ? { url: live, close: async () => {} } : await serveDist(dist);
 const chrome = await chromeLauncher.launch({ chromePath, chromeFlags: ['--headless=new', '--disable-gpu', '--lang=en-US', '--accept-lang=en-US'] });
 const rows = [];
 
