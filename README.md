@@ -88,6 +88,7 @@ The visual system ("Signal") is documented in [`docs/DESIGN_SPEC.md`](docs/DESIG
 - Requires Google Chrome or Chromium. Set `CHROME_PATH` if it isn't in a standard location. There are no npm dependencies: the driver talks to Chrome over the DevTools protocol (`scripts/checks/lib/browser.mjs`).
 - `node scripts/checks/run.mjs <filter>` runs only the check files whose name contains `<filter>`, against the existing `dist/`.
 - Each check file default-exports `{ name, run({ browser, baseUrl, routes, t }) }` and records assertions with `t.ok`, `t.eq`, `t.near` and `t.note`.
+- `contact-seo` and `projects` fail on any link in their section that points at the `#projects` placeholder or returns 404 (`scripts/checks/lib/links.mjs`). External links are requested over the network, once per run. Other error statuses and network failures are only printed as notes.
 
 Every section PR adds or extends a check file in `scripts/checks/` and must pass `npm run check:ui`.
 

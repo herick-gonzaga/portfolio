@@ -7,7 +7,7 @@ change the locale files and regenerate.
 - Proper nouns, company and product names, stack names and technical terms (LLM, MCP, QA, CI/CD,
   prompt engineering, HITL, Rails, E2E, MLOps) stay in English.
 - "[N]" and every bracketed placeholder are identical in all three locales and must be replaced in all three.
-- 87 strings that are identical in all three locales (names, URLs, stack names, placeholders) are omitted.
+- 84 strings that are identical in all three locales (names, URLs, stack names, placeholders) are omitted.
 
 | Key | EN | PT | ES |
 | --- | --- | --- | --- |
@@ -116,12 +116,9 @@ change the locale files and regenerate.
 | `projects[mq-test].metrics[1].value` | 9,000+ | 9.000+ | 9.000+ |
 | `projects[mq-test].metrics[1].label` | runs tracked via MCP | execuções acompanhadas via MCP | ejecuciones registradas vía MCP |
 | `projects[mq-test].metrics[2].label` | integrations | integrações | integraciones |
-| `projects[mq-test].links[0].label` | Repository | Repositório | Repositorio |
-| `projects[mq-test].links[1].label` | Case study | Estudo de caso | Caso de estudio |
 | `projects[invoice-extraction].name` | LLM invoice extraction, vendor by vendor | Extração de notas fiscais com LLM, fornecedor por fornecedor | Extracción de facturas con LLM, proveedor por proveedor |
 | `projects[invoice-extraction].kind` | Professional · SubBase | Profissional · SubBase | Profesional · SubBase |
 | `projects[invoice-extraction].description` | Vendor-specific prompt rules, a pre-extraction page-classification gate for mixed PDFs, schema migrations and structured bug reports for an extraction pipeline used in production. | Regras de prompt específicas por fornecedor, uma etapa de classificação de páginas antes da extração para PDFs mistos, migrações de schema e reports de bugs estruturados para um pipeline de extração em produção. | Reglas de prompt específicas por proveedor, una etapa de clasificación de páginas previa a la extracción para PDFs mixtos, migraciones de schema y reportes de bugs estructurados para un pipeline de extracción en producción. |
-| `projects[invoice-extraction].links[0].label` | Read the write-up | Ler o artigo | Leer el artículo |
 | `projects[subbase-qa-tests].kind` | Automation | Automação | Automatización |
 | `projects[subbase-qa-tests].description` | Automated end-to-end suite for the SubBase platform, organized in MQ-Test and run on CI, so regressions are caught before release. | Suíte automatizada de testes E2E para a plataforma SubBase, organizada no MQ-Test e executada no CI, para que regressões sejam detectadas antes do release. | Suite automatizada de pruebas E2E para la plataforma SubBase, organizada en MQ-Test y ejecutada en CI, para detectar regresiones antes de cada release. |
 | `projects[susagendamento].kind` | Product design | Design de produto | Diseño de producto |

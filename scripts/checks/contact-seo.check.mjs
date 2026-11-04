@@ -8,8 +8,11 @@
  * 600px; footer row (13px, 24px top padding, ink-line border) that wraps on mobile; no overflow.
  * Head: title, description, canonical, 4 hreflang, Open Graph, Twitter card, valid JSON-LD Person
  * and theme-color per route; og.png is a 1200×630 PNG; favicons, robots.txt and sitemap reachable.
+ * Link targets: no Contact or footer link points at the "#projects" placeholder or returns 404
+ * (lib/links.mjs).
  */
 import { normalize, SITE_HOST, TOKENS } from './lib/context.mjs';
+import { checkLinkTargets } from './lib/links.mjs';
 
 const WIDTHS = [1440, 900, 600, 390];
 // Pinned, not read from astro.config.mjs: a wrong `site` fails canonical, hreflang, og:url and robots.
@@ -399,6 +402,10 @@ export default {
       await page.goto(url);
       checkHead(t, await page.eval(readHead), route);
       checkTexts(t, await page.eval(readTexts), route.content, at);
+      const links = await page.eval(() =>
+        [...document.querySelectorAll('#contact a[href]')].map((a) => ({ label: a.textContent.replace(/\s+/g, ' ').trim(), href: a.getAttribute('href') })),
+      );
+      await checkLinkTargets(t, links, baseUrl, `${at} #contact`);
 
       for (const width of WIDTHS) {
         await page.viewport(width);

@@ -191,10 +191,7 @@ export const es: Content = {
         { value: '9.000+', label: 'ejecuciones registradas vía MCP' },
         { value: '10+', label: 'integraciones' },
       ],
-      links: [
-        { label: 'Repositorio', href: 'https://github.com/herick-gonzaga/MQ-Test' },
-        { label: 'Caso de estudio', href: '#projects' },
-      ],
+      links: [],
       tier: 'featured',
     },
     {
@@ -204,7 +201,7 @@ export const es: Content = {
       description:
         'Reglas de prompt específicas por proveedor, una etapa de clasificación de páginas previa a la extracción para PDFs mixtos, migraciones de schema y reportes de bugs estructurados para un pipeline de extracción en producción.',
       stack: ['Prompt systems', 'LLM eval', 'Redash / SQL'],
-      links: [{ label: 'Leer el artículo', href: '#projects' }],
+      links: [],
       tier: 'secondary',
     },
     {
