@@ -34,7 +34,7 @@ Button primary (cobalt bg, white text, 48px, radius 8) · Button ghost (1px bord
 One orchestrated hero load sequence only (status → H1 → CTAs → diagram lines draw via stroke-dashoffset, ~900ms total). Navbar turns from transparent to rgba(ink,.86)+blur after 40px scroll; active anchor via IntersectionObserver. Hover: cards translate -2px + shadow, 160ms ease-out. Timeline items fade in once at 0.3 threshold. Everything respects prefers-reduced-motion (final state, no transitions). Focus ring: 2px cobalt, 2px offset, on every interactive element.
 
 ## Responsive breakpoints
-Skills grid: 4 columns ≥1392, 2×2 900–1391, 1 column <900; chip labels never wrap · ≥1200 full layout · 900–1199 margins 48, featured project stacks above the two small cards · 600–899 single column, H1 44, hamburger menu (full-screen sheet with 6 anchors), hero diagram 320px below text · <600 margins 24, chips wrap, metrics 1 col, CTAs full width. Mobile-first CSS. Touch targets ≥44px.
+Skills grid: 2×2 ≥900, 1 column <900; chip labels never wrap · ≥1200 full layout · 900–1199 margins 48, featured project stacks above the two small cards · 600–899 single column, H1 44, hamburger menu (full-screen sheet with 6 anchors), hero diagram 320px below text · <600 margins 24, chips wrap, metrics 1 col, CTAs full width. Mobile-first CSS. Touch targets ≥44px.
 
 ## Rules
 No lorem ipsum, no invented numbers: unknown metrics stay as "[N]" placeholders. No gradient washes, glassmorphism, particles or per-section scroll animations. Inline SVG icons (stroke 1.8), never emoji. Semantic HTML, real <a>/<button>, aria-labels on icon-only buttons. Lighthouse target: 95+ on all four categories.

@@ -1,12 +1,37 @@
 /**
- * Skills grid and chips: 4 columns from 1392px, 2×2 from 900 to 1391px, 1 column below 900.
+ * Skills grid and chips: 2×2 from 900px (no 4-column row, even at 1440+), 1 column below 900.
  * Every chip stays on one line (nowrap, 28px) and inside its card's content box, at the
  * breakpoint edges and the review widths, in every locale.
+ * Expanded skills: each group renders its pinned chip count (10 / 8 / 7 / 6) with the
+ * new chips present, and the two cards in a row share one height (balanced chip blocks).
  */
 import { TOKENS } from './lib/context.mjs';
 
-const WIDTHS = [1440, 1392, 1391, 1360, 1200, 900, 899, 390];
-const expectedColumns = (width) => (width >= 1392 ? 4 : width >= 900 ? 2 : 1);
+const WIDTHS = [1920, 1440, 1392, 1360, 1200, 900, 899, 390];
+const expectedColumns = (width) => (width >= 900 ? 2 : 1);
+
+const CHIP_COUNTS = [10, 8, 7, 6];
+const SHARED_NEW_CHIPS = ['SQL / Redash', 'JavaScript', 'Astro & Tailwind CSS'];
+const NEW_CHIPS = {
+  en: [
+    [...SHARED_NEW_CHIPS, 'Networking fundamentals'],
+    ['LLM evals', 'Coding agents (Claude Code)'],
+    ['E2E testing in CI', 'Test management (MQ-Test)'],
+    ['Spanish & French (basic)', 'Mentoring'],
+  ],
+  pt: [
+    [...SHARED_NEW_CHIPS, 'Fundamentos de redes'],
+    ['Avaliação de LLMs', 'Agentes de código (Claude Code)'],
+    ['Testes E2E no CI', 'Gestão de testes (MQ-Test)'],
+    ['Espanhol e Francês (básico)', 'Mentoria'],
+  ],
+  es: [
+    [...SHARED_NEW_CHIPS, 'Fundamentos de redes'],
+    ['Evaluación de LLMs', 'Agentes de código (Claude Code)'],
+    ['Pruebas E2E en CI', 'Gestión de pruebas (MQ-Test)'],
+    ['Español y Francés (básico)', 'Mentoría'],
+  ],
+};
 
 function measure() {
   const items = [...document.querySelectorAll('#skills ul.grid > li')];
@@ -30,8 +55,15 @@ function measure() {
       });
     }
   }
+  const groups = items.map((li) => [...li.querySelectorAll('article ul li > span')].map((c) => c.textContent.trim()));
+  const rows = {};
+  for (const li of items) {
+    const r = li.querySelector('article').getBoundingClientRect();
+    (rows[Math.round(r.top)] ??= []).push(r.height);
+  }
+  const rowHeightSpread = Object.values(rows).map((hs) => Math.max(...hs) - Math.min(...hs));
   const root = document.documentElement;
-  return { lang: root.lang, columns, chips, hscroll: root.scrollWidth - root.clientWidth };
+  return { lang: root.lang, columns, chips, groups, rowHeightSpread, hscroll: root.scrollWidth - root.clientWidth };
 }
 
 export default {
@@ -52,8 +84,16 @@ export default {
         t.eq(bad((c) => Math.round(c.height) !== TOKENS.chipHeight), [], `${at}: every chip is one 28px line`);
         t.eq(bad((c) => c.textOverflow > 0.5), [], `${at}: no chip text overflows its chip`);
         t.eq(bad((c) => c.outside > 0.5), [], `${at}: every chip sits inside its card's content box`);
+        t.eq(m.rowHeightSpread.filter((d) => d > 0.5), [], `${at}: cards in a row share one height`);
+        if (width === 1440) {
+          t.eq(m.groups.map((g) => g.length), CHIP_COUNTS, `${at}: chip count per skill group`);
+          NEW_CHIPS[route.locale].forEach((chips, i) => {
+            const missing = chips.filter((c) => !m.groups[i]?.includes(c));
+            t.eq(missing, [], `${at}: group ${i + 1} renders its new chips`);
+          });
+        }
         const tightest = m.chips.reduce((a, b) => (b.spare < a.spare ? b : a));
-        if (route.locale === 'es' && (width === 1392 || width === 1440)) {
+        if (route.locale === 'es' && (width === 900 || width === 1440)) {
           t.note(`${at}: tightest chip "${tightest.label}" has ${Math.round(tightest.spare)}px spare`);
         }
       }
