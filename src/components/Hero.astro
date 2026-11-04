@@ -17,6 +17,14 @@ interface Props {
 const { locale } = Astro.props;
 const content = getContent(locale);
 const { profile, ui } = content;
+
+// The name inside the intro opens the "Beyond the code" panel. Split on its first occurrence;
+// an intro without the name renders as plain text.
+const nameAt = profile.intro.indexOf(profile.name);
+const introParts =
+  nameAt === -1
+    ? null
+    : [profile.intro.slice(0, nameAt), profile.intro.slice(nameAt + profile.name.length)];
 ---
 
 <section id="top" class="hero relative overflow-hidden bg-ink text-white">
@@ -33,7 +41,28 @@ const { profile, ui } = content;
         <span>{profile.status}</span>
       </p>
       <h1 class="hero-title mt-6 max-w-h1 text-h1 font-semibold text-white">{profile.headline}</h1>
-      <p class="hero-title mt-6 max-w-[56ch] text-body-lg text-muted-dark">{profile.intro}</p>
+      <p class="hero-title mt-6 max-w-[56ch] text-body-lg text-muted-dark">
+        {
+          introParts ? (
+            <>
+              {introParts[0]}
+              <button
+                type="button"
+                class="cursor-pointer rounded-[4px] font-medium text-white underline decoration-cobalt-soft/60 decoration-1 underline-offset-4 transition-colors duration-hover ease-out hover:decoration-cobalt-soft"
+                aria-haspopup="dialog"
+                aria-controls="personal-panel"
+                aria-expanded="false"
+                data-personal-open
+              >
+                {profile.name}
+              </button>
+              {introParts[1]}
+            </>
+          ) : (
+            profile.intro
+          )
+        }
+      </p>
       <div class="hero-ctas mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <Button href="#projects" class="w-full sm:w-auto">
           {ui.viewProjects}

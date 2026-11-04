@@ -1,5 +1,6 @@
 ---
 /**
+ * The brand (monogram + name) opens the "Beyond the code" panel (PersonalPanel.astro).
  * Sticky 72px navbar overlaying the hero. Transparent until 40px of scroll, then ink at 86%
  * with backdrop blur and a 1px ink-line border. Section anchors (≥900px) highlight the section
  * in view; below 900px a menu button opens a full-screen sheet with the switcher and 6 links.
@@ -33,13 +34,23 @@ const sheetLinks = [...anchors, { id: 'contact', label: nav.cta }];
   data-navbar
 >
   <div class="container flex h-full items-center justify-between gap-5 lg:gap-8">
-    <a href="#top" class="flex min-h-touch shrink-0 items-center gap-3 rounded-button">
+    <button
+      type="button"
+      class="group flex min-h-touch shrink-0 cursor-pointer items-center gap-3 rounded-button"
+      aria-haspopup="dialog"
+      aria-controls="personal-panel"
+      aria-expanded="false"
+      data-personal-open
+    >
       <span
         class="grid size-7 place-items-center rounded-[6px] bg-cobalt font-mono text-[12px] font-semibold"
         aria-hidden="true">{content.profile.initials}</span
       >
-      <span class="text-[15px] font-semibold">{content.profile.name}</span>
-    </a>
+      <span
+        class="text-[15px] font-semibold decoration-cobalt-soft decoration-1 underline-offset-4 group-hover:underline"
+        >{content.profile.name}</span
+      >
+    </button>
 
     <div class="hidden items-center gap-5 md:flex lg:gap-8">
       <nav aria-label={content.ui.navLabel}>
