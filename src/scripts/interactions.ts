@@ -11,9 +11,12 @@
  *   Fine pointers, motion allowed.
  * - Count-up ([data-countup]): each value counts from 0 the first time it scrolls into view, in the
  *   page's number format, and ends on the exact text from the locale file. Values already on screen
- *   (or scrolled past) at load stay as rendered. Motion allowed only.
+ *   (or scrolled past) when the script starts stay as rendered. Motion allowed only.
  *
- * Pointer work is batched into one write per animation frame.
+ * Nothing here is needed for first paint, so setup waits for an idle moment after load and never
+ * reads layout: the count-up decides from its IntersectionObserver's first report. Pointer work is
+ * batched into one write per animation frame. Turning on reduced motion mid-visit releases the
+ * magnetic buttons and jumps running or waiting counters to their final values (tilt is CSS-gated).
  */
 export {};
 
@@ -24,9 +27,9 @@ const MAGNET_MAX = 8;
 const MAGNET_PULL = 0.3;
 const COUNT_MS = 1600;
 
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-const motion = !reducedMotion;
+const motion = !reducedMotion.matches;
 
 /** Calls `fn` at most once per frame, with the latest arguments. */
 function perFrame<A extends unknown[]>(fn: (...args: A) => void) {
@@ -79,7 +82,7 @@ function initMagnetic() {
       const top = r.top - b.y;
       let x = 0;
       let y = 0;
-      if (pointer && r.width > 0) {
+      if (pointer && r.width > 0 && !reducedMotion.matches) {
         const dx = clamp(pointer.x, left, left + r.width) - pointer.x;
         const dy = clamp(pointer.y, top, top + r.height) - pointer.y;
         const distance = Math.hypot(dx, dy);
@@ -117,6 +120,7 @@ function initMagnetic() {
     pointer = null;
     update();
   });
+  reducedMotion.addEventListener('change', () => update());
 }
 
 /** Splits "9,000+" into its number (9000), the text after it ("+") and its grouping separator. */
@@ -127,55 +131,81 @@ function parseValue(text: string) {
   return { prefix, value: Number.parseInt(digits.replace(/\D/g, ''), 10), grouped: Boolean(separator), suffix };
 }
 
+type Counter = { final: string; prefix: string; value: number; suffix: string; format: Intl.NumberFormat; frame: number };
+
 function initCountUp() {
   const items = [...document.querySelectorAll<HTMLElement>('[data-countup]')];
   if (items.length === 0) return;
   const locale = document.documentElement.lang || undefined;
+  const counters = new Map<HTMLElement, Counter>();
+  /** Elements whose first observer report is still to come. */
+  const unseen = new Set<HTMLElement>(items);
+
+  const finish = (el: HTMLElement) => {
+    const c = counters.get(el);
+    if (!c) return;
+    cancelAnimationFrame(c.frame);
+    el.textContent = c.final;
+    counters.delete(el);
+    observer.unobserve(el);
+  };
+
+  const run = (el: HTMLElement) => {
+    const c = counters.get(el);
+    if (!c) return;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / COUNT_MS);
+      if (t >= 1 || reducedMotion.matches) return finish(el);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = `${c.prefix}${c.format.format(Math.round(c.value * eased))}${c.suffix}`;
+      c.frame = requestAnimationFrame(tick);
+    };
+    c.frame = requestAnimationFrame(tick);
+  };
+
+  const arm = (el: HTMLElement) => {
+    const final = el.textContent?.trim() ?? '';
+    const parsed = parseValue(final);
+    if (!parsed) return false;
+    // useGrouping "always" keeps "9.000" in Spanish, matching the locale files (es groups 4+ digits).
+    const format = new Intl.NumberFormat(locale, { useGrouping: parsed.grouped ? 'always' : false } as Intl.NumberFormatOptions);
+    counters.set(el, { final, prefix: parsed.prefix, value: parsed.value, suffix: parsed.suffix, format, frame: 0 });
+    el.textContent = `${parsed.prefix}${format.format(0)}${parsed.suffix}`;
+    return true;
+  };
 
   const observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        observer.unobserve(entry.target);
-        run(entry.target as HTMLElement);
+        const el = entry.target as HTMLElement;
+        if (unseen.delete(el)) {
+          // First report: on screen or scrolled past stays as rendered; below the fold waits at 0.
+          const below = entry.boundingClientRect.top >= window.innerHeight;
+          if (!below || !arm(el)) observer.unobserve(el);
+          continue;
+        }
+        if (entry.isIntersecting && counters.has(el)) {
+          observer.unobserve(el);
+          run(el);
+        }
       }
     },
     { rootMargin: '0px 0px -10% 0px' },
   );
+  items.forEach((el) => observer.observe(el));
 
-  const parsed = new Map<HTMLElement, { final: string; prefix: string; value: number; suffix: string; format: Intl.NumberFormat }>();
-
-  function run(el: HTMLElement) {
-    const p = parsed.get(el);
-    if (!p) return;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / COUNT_MS);
-      const eased = 1 - Math.pow(1 - t, 3);
-      if (t < 1) {
-        el.textContent = `${p.prefix}${p.format.format(Math.round(p.value * eased))}${p.suffix}`;
-        requestAnimationFrame(tick);
-      } else {
-        el.textContent = p.final;
-      }
-    };
-    requestAnimationFrame(tick);
-  }
-
-  for (const el of items) {
-    const final = el.textContent?.trim() ?? '';
-    const value = parseValue(final);
-    if (!value) continue;
-    // Already on screen or scrolled past: leave it as rendered.
-    if (el.getBoundingClientRect().top < window.innerHeight) continue;
-    // useGrouping "always" keeps "9.000" in Spanish, matching the locale files (es groups 4+ digits).
-    const format = new Intl.NumberFormat(locale, { useGrouping: value.grouped ? 'always' : false } as Intl.NumberFormatOptions);
-    parsed.set(el, { final, prefix: value.prefix, value: value.value, suffix: value.suffix, format });
-    el.textContent = `${value.prefix}${format.format(0)}${value.suffix}`;
-    observer.observe(el);
-  }
+  const finishAll = () => [...counters.keys()].forEach(finish);
+  reducedMotion.addEventListener('change', () => reducedMotion.matches && finishAll());
+  window.addEventListener('beforeprint', finishAll);
 }
 
-initCards();
-if (motion && finePointer) initMagnetic();
-if (motion) initCountUp();
+const init = () => {
+  initCards();
+  if (motion && finePointer) initMagnetic();
+  if (motion) initCountUp();
+  // Lets tests (scripts/checks/card-interactions.check.mjs) wait for the deferred setup.
+  document.documentElement.dataset.interactions = 'ready';
+};
+if ('requestIdleCallback' in window) requestIdleCallback(init, { timeout: 1000 });
+else setTimeout(init, 200);

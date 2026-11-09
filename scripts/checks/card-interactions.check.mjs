@@ -13,6 +13,8 @@
  *   within 80px (at most 8px per axis), not beyond, and spring back; never on touch or under
  *   reduced motion.
  * - Inline link underline: a 1px line that draws left-to-right on hover (no text-decoration).
+ * - Switching to reduced motion mid-visit releases a pulled CTA and shows the final metric values;
+ *   printing before the metrics were reached prints the final values, not 0.
  */
 import { sleep } from './lib/browser.mjs';
 import { TOKENS } from './lib/context.mjs';
@@ -21,6 +23,12 @@ const SPOTLIGHT = ['#skills ul.grid article', '#projects article', '#impact [dat
 const TILT = '#projects article';
 const MAGNETIC = ['#top [href="#projects"]', 'header [href="#contact"]', '#contact a[href^="mailto:"]'];
 const FEATURED = { en: ['500+', '9,000+', '10+'], pt: ['500+', '9.000+', '10+'], es: ['500+', '9.000+', '10+'] };
+
+/** Setup runs on idle after load; wait for it (and for the count-up's first observer report). */
+async function ready(page) {
+  await page.waitFor(() => document.documentElement.dataset.interactions === 'ready', { timeout: 3000 });
+  await sleep(150);
+}
 
 const settled = (sel) => {
   const el = document.querySelector(sel);
@@ -252,6 +260,7 @@ async function checkDisabled(t, browser, url, at, { reduced, touch }) {
   await page.reducedMotion(reduced);
   if (touch) await page.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
   await page.goto(url);
+  await ready(page);
   const mode = reduced ? 'reduced motion' : 'touch';
 
   const box = await bring(page, '#projects article.card-dark');
@@ -276,6 +285,38 @@ async function checkDisabled(t, browser, url, at, { reduced, touch }) {
   await page.close();
 }
 
+async function checkLiveChanges(t, browser, url, at) {
+  const page = await browser.newPage({ width: 1440, height: 900 });
+  await page.reducedMotion(false);
+  await page.goto(url);
+  await ready(page);
+  const sel = MAGNETIC[0];
+  const b = await page.eval((s) => document.querySelector(s).getBoundingClientRect().toJSON(), sel);
+  await page.moveMouse(b.right + 20, b.bottom + 20);
+  await sleep(400);
+  const pulled = await page.eval(readMagnet, sel);
+  const waiting = (await page.eval(readMetrics)).map((m) => m.shown);
+  await page.reducedMotion(true);
+  const released = await page.waitFor((s) => getComputedStyle(document.querySelector(s)).translate === 'none' || getComputedStyle(document.querySelector(s)).translate === '0px', {
+    args: [sel],
+    timeout: 1500,
+  });
+  t.ok(pulled.x > 0.5 && released, `${at}: turning on reduced motion releases a pulled CTA`, JSON.stringify(pulled));
+  const after = await page.eval(readMetrics);
+  t.ok(waiting[0] === '0+' && after.every((m) => m.shown === m.sr), `${at}: turning on reduced motion shows the final metric values`, JSON.stringify({ waiting, after: after.map((m) => m.shown) }));
+  await page.close();
+
+  const print = await browser.newPage({ width: 1440, height: 900 });
+  await print.reducedMotion(false);
+  await print.goto(url);
+  await ready(print);
+  const armed = (await print.eval(readMetrics)).map((m) => m.shown);
+  await print.eval(() => window.dispatchEvent(new Event('beforeprint')));
+  const printed = await print.eval(readMetrics);
+  t.ok(armed[0] === '0+' && printed.every((m) => m.shown === m.sr), `${at}: printing shows the final metric values`, JSON.stringify(printed.map((m) => m.shown)));
+  await print.close();
+}
+
 async function checkLoadedInView(t, browser, url, at) {
   // Metrics already on screen at load (a reload mid-page) are never reset to 0.
   const page = await browser.newPage({ width: 1440, height: 900 });
@@ -286,7 +327,7 @@ async function checkLoadedInView(t, browser, url, at) {
     }).observe(document, { childList: true, subtree: true });`,
   });
   await page.goto(url);
-  await sleep(200);
+  await ready(page);
   const m = await page.eval(readMetrics);
   t.eq(m.map((x) => x.shown), m.map((x) => x.sr), `${at}: metrics already on screen at load stay as rendered`);
   await page.close();
@@ -301,6 +342,7 @@ export default {
       const page = await browser.newPage({ width: 1440, height: 900 });
       await page.reducedMotion(false);
       await page.goto(url);
+      await ready(page);
       t.ok(await page.eval(() => matchMedia('(hover: hover) and (pointer: fine)').matches), `${at}: test browser has a fine hover pointer`);
       await checkCountUp(t, page, at, route.locale);
       await checkSpotlight(t, page, at);
@@ -313,6 +355,7 @@ export default {
       await checkDisabled(t, browser, url, at, { reduced: true, touch: false });
       await checkDisabled(t, browser, url, at, { reduced: false, touch: true });
       await checkLoadedInView(t, browser, url, at);
+      await checkLiveChanges(t, browser, url, at);
     }
   },
 };
