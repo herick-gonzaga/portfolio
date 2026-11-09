@@ -204,7 +204,8 @@ async function checkMotion(t, browser, url, at) {
   await page.settle();
   t.near(await page.eval(barScale), 0.5, 0.02, `${at}: progress bar tracks scroll progress`);
   await page.eval(() => window.scrollTo(0, 0));
-  await sleep(300);
+  // 800ms: a project card left hovered at mid-page springs back from its tilt over 650ms.
+  await sleep(800);
   t.ok((await page.eval(readState)).items.every(final), `${at}: revealed elements stay visible after scrolling back`);
 
   // Personal panel locks the page: Lenis pauses, then resumes on close.

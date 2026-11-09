@@ -25,11 +25,11 @@ const isExternal = (href: string) => /^https?:\/\//.test(href);
             href={href}
             {...(isExternal(href) ? { target: '_blank', rel: 'noopener' } : {})}
             class:list={[
-              'inline-flex min-h-touch items-center gap-1.5 text-[14px] font-semibold underline-offset-4 hover:underline',
+              'inline-flex min-h-touch items-center gap-1.5 text-[14px] font-semibold',
               tone === 'dark' ? 'text-cobalt-soft' : 'text-cobalt',
             ]}
           >
-            {label}
+            <span class="link-underline">{label}</span>
             <Icon name="arrow-right" size={16} />
           </a>
         </li>

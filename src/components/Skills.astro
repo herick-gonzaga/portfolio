@@ -32,7 +32,7 @@ const header = content.sections.skills;
     {
       content.skills.map((skill) => (
         <li class="flex" data-reveal>
-          <Card as="article" topAccent class="flex w-full flex-col gap-4">
+          <Card as="article" topAccent spotlight class="flex w-full flex-col gap-4">
             <Icon name={skill.icon} size={28} class="text-cobalt" />
             <h3 class="text-h3-sm font-semibold tracking-[-0.01em]">{skill.title}</h3>
             <p class="text-body-sm text-muted">{skill.description}</p>

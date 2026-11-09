@@ -3,6 +3,7 @@
  * Button primitive. Renders <a> when `href` is given, otherwise <button>.
  * Variants: primary (cobalt) · ghost (line border, on light) · ghost-dark (ink-border, on ink).
  * Sizes: md 48px · sm 40px. Optional trailing icon via the "icon" slot.
+ * `magnetic` pulls the button up to 8px toward a cursor within 80px (src/scripts/interactions.ts).
  */
 import type { HTMLAttributes } from 'astro/types';
 
@@ -13,11 +14,13 @@ type Props = {
   variant?: Variant;
   size?: Size;
   href?: string;
+  /** Drift toward a nearby cursor (fine pointers, motion allowed). */
+  magnetic?: boolean;
   class?: string;
 } & Omit<HTMLAttributes<'button'>, 'class'> &
   Omit<HTMLAttributes<'a'>, 'class' | 'type' | 'href'>;
 
-const { variant = 'primary', size = 'md', href, class: className, type = 'button', ...rest } = Astro.props;
+const { variant = 'primary', size = 'md', href, magnetic = false, class: className, type = 'button', ...rest } = Astro.props;
 
 const Tag = href ? 'a' : 'button';
 
@@ -41,8 +44,10 @@ const sizes: Record<Size, string> = {
     'transition-colors duration-hover ease-out',
     variants[variant],
     sizes[size],
+    magnetic && 'magnetic',
     className,
   ]}
+  data-magnetic={magnetic ? '' : undefined}
   {...rest}
 >
   <slot />

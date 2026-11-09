@@ -50,7 +50,7 @@ const details = [
         </h2>
         <p class="mt-6 max-w-[50ch] text-[17px] leading-[1.6] text-muted-dark">{profile.contactText}</p>
         <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Button href={`mailto:${contact.email}`} class="w-full sm:w-auto">
+          <Button href={`mailto:${contact.email}`} magnetic class="w-full sm:w-auto">
             {ui.emailMe}
             <Icon slot="icon" name="arrow-right" size={18} />
           </Button>
@@ -74,7 +74,7 @@ const details = [
                   class="inline-flex min-h-touch min-w-0 items-center rounded-chip font-mono text-[15px] leading-[1.4] break-words text-white transition-colors duration-hover ease-out hover:text-cobalt-soft sm:text-right"
                   {...attrs}
                 >
-                  {value}
+                  <span class="link-underline">{value}</span>
                 </a>
               ) : (
                 <span class="inline-flex min-h-touch min-w-0 items-center font-mono text-[15px] leading-[1.4] text-white sm:text-right">

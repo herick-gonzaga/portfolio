@@ -49,7 +49,7 @@ function readTexts() {
       period: text(featured.querySelector('span + p')) || undefined,
       name: text(featured.querySelector('h3')),
       description: text(featured.querySelector('h3 + p')),
-      metrics: [...featured.querySelectorAll('dl > div')].map((m) => ({ value: text(m.querySelector('dd')), label: text(m.querySelector('dt')) })),
+      metrics: [...featured.querySelectorAll('dl > div')].map((m) => ({ value: text(m.querySelector('dd .sr-only')), label: text(m.querySelector('dt')) })),
       stack: chips(featured.querySelector('dl + ul')),
       links: featuredLinks ? links(featuredLinks) : [],
       hasLinksRow: Boolean(featuredLinks),
@@ -116,7 +116,8 @@ function measureLayout() {
   const overflowing = [];
   for (const el of section.querySelectorAll('*')) {
     const r = box(el);
-    if (r.width === 0) continue;
+    // .sr-only is clipped to 1px on purpose (the static metric values for screen readers).
+    if (r.width === 0 || el.closest('.sr-only')) continue;
     const clipsText = style(el).display !== 'inline' && el.scrollWidth > el.clientWidth + 1 && el.tagName !== 'svg';
     if (r.left < -0.5 || r.right > vw + 0.5 || clipsText) {
       overflowing.push(`${el.tagName.toLowerCase()} "${(el.textContent ?? '').trim().slice(0, 30)}"`);
@@ -170,7 +171,7 @@ function measureLayout() {
         valueTops: metricItems.map((m) => box(m.querySelector('dd')).top),
         valueAboveLabel: metricItems.every((m) => box(m.querySelector('dd')).bottom <= box(m.querySelector('dt')).top + 0.5),
       },
-      chipBorders: [...featured.querySelectorAll('span')].map((c) => style(c).borderTopColor),
+      chipBorders: [...featured.querySelectorAll('ul > li > span')].map((c) => style(c).borderTopColor),
       linkFonts: [...featured.querySelectorAll('dl + ul + ul a')].map((a) => ({ ...font(a), height: box(a).height })),
     },
     secondary: cards(secondary).map((c, i) => ({
@@ -350,14 +351,16 @@ async function checkLinks(t, page, baseUrl, at) {
 async function checkHoverUnderline(t, browser, url, at) {
   const page = await browser.newPage({ width: 1440 });
   await page.goto(url);
-  const selector = '#projects header + div a';
-  const before = await page.eval((sel) => getComputedStyle(document.querySelector(sel)).textDecorationLine, selector);
-  await page.hover(selector);
-  const after = await page.waitFor((sel) => getComputedStyle(document.querySelector(sel)).textDecorationLine === 'underline', {
+  // The animated underline is a 1px background line on the label span (card-interactions.check.mjs).
+  const selector = '#projects header + div a .link-underline';
+  const width = (sel) => getComputedStyle(document.querySelector(sel)).backgroundSize;
+  const before = await page.eval(width, selector);
+  await page.hover('#projects header + div a');
+  const after = await page.waitFor((sel) => getComputedStyle(document.querySelector(sel)).backgroundSize === '100% 1px', {
     args: [selector],
     timeout: 1500,
   });
-  t.ok(before === 'none' && after, `${at}: repos link underlines on hover`, `before: ${before}`);
+  t.ok(before === '0% 1px' && after, `${at}: repos link underlines on hover`, `before: ${before}`);
   await page.close();
 }
 

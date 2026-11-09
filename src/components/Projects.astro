@@ -36,9 +36,9 @@ const small = content.projects.filter((project) => project.tier === 'small');
     href={content.profile.contact.github}
     target="_blank"
     rel="noopener"
-    class="inline-flex min-h-touch items-center gap-1.5 text-[14px] font-semibold text-cobalt underline-offset-4 hover:underline"
+    class="inline-flex min-h-touch items-center gap-1.5 text-[14px] font-semibold text-cobalt"
   >
-    {content.ui.allRepos}
+    <span class="link-underline">{content.ui.allRepos}</span>
     <Icon name="arrow-right" size={16} />
   </a>
 
