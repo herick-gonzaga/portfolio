@@ -6,11 +6,13 @@
  * kicker, H2 (48px, 32px below 900px, max 16ch), text and CTAs on the left; the contact details
  * list on the right (label left, mono value right; label above value below 600px). CTAs are full
  * width below 600px. The footer row closes the section: copyright, tagline and "back to top".
+ * Between the columns and the footer sits the interactive terminal (Terminal.astro).
  * It does not use the Section shell: the header and the details list share one grid row here.
  */
 import Button from './ui/Button.astro';
 import Icon from './ui/Icon.astro';
 import Kicker from './ui/Kicker.astro';
+import Terminal from './Terminal.astro';
 import { getContent, type Locale } from '../i18n';
 
 interface Props {
@@ -87,8 +89,10 @@ const details = [
       </ul>
     </div>
 
+    <Terminal locale={locale} />
+
     <footer
-      class="mt-16 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-ink-line pt-6 text-[13px] leading-[1.5] text-muted-dark md:mt-24"
+      class="mt-16 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-ink-line pt-6 text-[13px] leading-[1.5] text-muted-dark md:mt-20"
     >
       <p>© 2026 {profile.fullName}</p>
       <p class="font-mono">{profile.footerTagline}</p>

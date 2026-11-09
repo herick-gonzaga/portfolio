@@ -32,6 +32,16 @@
   /* Color — status (only the hero status dot) */
   --color-signal: #3ddc84;
 
+  /* Color — Contact terminal (src/components/Terminal.astro) */
+  --color-term-bg: #0a0e17;
+  --color-term-text: #e6e9ef;
+  --color-term-tag: #d3d8e2;
+  --color-term-cmd: #ffd479;
+  --color-term-link: #9fb3ff;
+  --color-term-red: #ff5f57;
+  --color-term-yellow: #febc2e;
+  --color-term-green: #28c840;
+
   /* Typography — families */
   --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;

@@ -26,6 +26,16 @@ export type SkillIcon = 'code' | 'spark' | 'shield' | 'globe';
 export type AchievementIcon = 'mic' | 'mentor' | 'council' | 'paper';
 export type ProjectTier = 'featured' | 'secondary' | 'small';
 export type JourneyType = 'work' | 'education';
+export type TerminalCommand =
+  | 'help'
+  | 'about'
+  | 'skills'
+  | 'projects'
+  | 'journey'
+  | 'contact'
+  | 'languages'
+  | 'sudo hire-me'
+  | 'clear';
 
 export interface Content {
   meta: {
@@ -109,6 +119,40 @@ export interface Content {
     /** aria-label of the dialog's close button. */
     close: string;
   };
+  /**
+   * Interactive terminal in the Contact section (src/components/Terminal.astro). Command names
+   * stay in English in every locale, like a real shell; everything printed is localized.
+   */
+  terminal: {
+    /** Accessible name of the terminal window. */
+    label: string;
+    /** Mono line above the window that invites visitors to try it. */
+    intro: string;
+    /** Visually hidden label of the command input. */
+    inputLabel: string;
+    /** Printed when the terminal first renders; `{help}` is replaced by the highlighted command. */
+    welcome: string;
+    /** Label before the quick-command buttons under the window. */
+    quick: string;
+    /** One-line description of each command, listed by `help`. */
+    commands: Record<TerminalCommand, string>;
+    /** Footer line of `help`: keyboard shortcuts. */
+    helpTip: string;
+    /** 2–3 lines printed by `about`. */
+    about: string[];
+    /** Printed by `languages`, one per line. */
+    languages: { name: string; level: string }[];
+    /** Playful lines printed by `sudo hire-me` before the mail client opens. */
+    hire: string[];
+    /** Last line of `sudo hire-me`, before the mailto link. */
+    hireOpening: string;
+    /** Subject of the email opened by `sudo hire-me`. */
+    hireSubject: string;
+    /** "command not found" (printed as "<input>: command not found"). */
+    notFound: string;
+    /** Hint after an unknown command; `{help}` is replaced by the highlighted command. */
+    notFoundHint: string;
+  };
   sections: {
     about: SectionHeader;
     skills: SectionHeader;
@@ -136,6 +180,8 @@ export interface Content {
     kind: string;
     period?: string;
     description: string;
+    /** One-line summary printed by the Contact terminal's `projects` command. */
+    tagline: string;
     stack: string[];
     /** Display-ready value, formatted for the locale (e.g. "9,000+" in EN, "9.000+" in PT/ES). */
     metrics?: { value: string; label: string }[];

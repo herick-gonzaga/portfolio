@@ -83,6 +83,41 @@ export const es: Content = {
     open: 'Herick Gonzaga — más allá del código',
     close: 'Cerrar',
   },
+  terminal: {
+    label: 'Terminal interactiva',
+    intro: '¿Prefieres la línea de comandos? Escribe un comando abajo.',
+    inputLabel: 'Comando de la terminal',
+    welcome: 'Bienvenido a herick@portfolio. Escribe {help} para ver los comandos disponibles.',
+    quick: 'Comandos rápidos',
+    commands: {
+      help: 'Lista los comandos disponibles',
+      about: 'Quién soy, en pocas líneas',
+      skills: 'Habilidades por categoría',
+      projects: 'Proyectos seleccionados',
+      journey: 'Trayectoria laboral y académica',
+      contact: 'Correo, LinkedIn y GitHub',
+      languages: 'Idiomas que hablo',
+      'sudo hire-me': 'Sabes que quieres',
+      clear: 'Limpia la pantalla',
+    },
+    helpTip: 'Tab autocompleta · ↑/↓ recorren el historial',
+    about: [
+      'Herick Gonzaga — Ingeniero de Software & IA en Brasil (UTC−3).',
+      'Construyo pipelines de LLM, los prompts que los guían y las pruebas que demuestran que funcionan, para una plataforma estadounidense de compras para la construcción.',
+      'También estudio Relaciones Internacionales, para no perder de vista los mercados a los que sirve el software.',
+    ],
+    languages: [
+      { name: 'Portugués', level: 'nativo' },
+      { name: 'Inglés', level: 'profesional' },
+      { name: 'Español', level: 'básico' },
+      { name: 'Francés', level: 'básico' },
+    ],
+    hire: ['[sudo] contraseña para reclutador: ••••••••', 'Permiso concedido. Excelente elección.'],
+    hireOpening: 'Abriendo tu cliente de correo →',
+    hireSubject: 'Trabajemos juntos',
+    notFound: 'comando no encontrado',
+    notFoundHint: 'Escribe {help} para ver los comandos disponibles.',
+  },
   sections: {
     about: { kicker: '02 / Sobre mí', title: 'Ingeniería, IA y una visión global, en la misma persona.' },
     skills: {
@@ -186,6 +221,7 @@ export const es: Content = {
       period: '2025 — actual',
       description:
         'Una plataforma de gestión de pruebas (suites, casos, planes, ejecuciones, bugs, requisitos) con un servidor MCP para que los agentes de código lean y escriban datos de prueba. Se integra con GitHub, Linear y Slack; el repositorio de automatización sigue siendo la fuente de verdad y MQ-Test se convierte en el panel que lo organiza y le da seguimiento.',
+      tagline: 'Gestión de pruebas con servidor MCP, para que agentes de código lean y escriban datos de prueba.',
       stack: ['Rails 8', 'PostgreSQL', 'Docker', 'MCP', 'GitHub API', 'Linear'],
       metrics: [
         { value: '500+', label: 'casos de prueba organizados' },
@@ -201,6 +237,7 @@ export const es: Content = {
       kind: 'Profesional · SubBase',
       description:
         'Reglas de prompt específicas por proveedor, una etapa de clasificación de páginas previa a la extracción para PDFs mixtos, migraciones de schema y reportes de bugs estructurados para un pipeline de extracción en producción.',
+      tagline: 'Sistemas de prompt por proveedor para un pipeline de extracción con LLM en producción.',
       stack: ['Prompt systems', 'LLM eval', 'Redash / SQL'],
       links: [],
       tier: 'secondary',
@@ -211,6 +248,7 @@ export const es: Content = {
       kind: 'Automatización',
       description:
         'Suite automatizada de pruebas E2E para la plataforma SubBase, organizada en MQ-Test y ejecutada en CI, para detectar regresiones antes de cada release.',
+      tagline: 'Suite end-to-end de SubBase, organizada en MQ-Test y ejecutada en CI.',
       stack: ['E2E', 'CI'],
       links: [],
       tier: 'secondary',
@@ -220,6 +258,7 @@ export const es: Content = {
       name: 'SUSAGENDAMENTO',
       kind: 'Diseño de producto',
       description: 'Concepto de app móvil para agendar citas en el sistema público de salud de Brasil (SUS), diseñado en Figma.',
+      tagline: 'Concepto en Figma para agendar citas en la salud pública brasileña (SUS).',
       stack: ['Figma', 'Mobile UX'],
       links: [],
       tier: 'small',
@@ -229,6 +268,7 @@ export const es: Content = {
       name: 'prompt-pattern-docs',
       kind: 'Flujos con agentes',
       description: 'Una skill que convierte problemas de extracción aún en bruto en prompts de LLM documentados y listos para producción.',
+      tagline: 'Una skill que convierte problemas de extracción en prompts documentados.',
       stack: ['Claude skills', 'Prompt patterns'],
       links: [],
       tier: 'small',
