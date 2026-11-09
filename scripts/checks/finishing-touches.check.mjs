@@ -286,6 +286,229 @@ async function checkFontGate(t, browser, url, at) {
   await page.close();
 }
 
+/**
+ * Hybrid device (fine primary pointer plus a touchscreen): the cursor exists for the mouse, but a
+ * touch hides it at once (no stuck "pressed" state) and the next mouse move brings it back.
+ */
+async function checkHybrid(t, browser, url, at) {
+  const page = await browser.newPage({ width: 1440, height: 900 });
+  await page.reducedMotion(false);
+  await page.goto(url);
+  await page.eval(() => {
+    window.__touchPointers = 0;
+    addEventListener('pointerdown', (e) => e.pointerType === 'touch' && window.__touchPointers++, true);
+  });
+  const p = await pointOn(page, H1);
+  await page.moveMouse(p.x, p.y);
+  await settleCursor(page, false, false);
+  const shown = await page.waitFor(() => ['.cursor-dot', '.cursor-ring'].every((s) => getComputedStyle(document.querySelector(s)).opacity === '1'), { timeout: 1000 });
+  t.ok(shown, `${at} hybrid: cursor shows for the mouse`);
+  const touch = { x: p.x + 120, y: p.y };
+  await page.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [touch] });
+  await sleep(50);
+  const during = await page.eval(readCursor);
+  await page.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await sleep(250);
+  const after = await page.eval(readCursor);
+  const touches = await page.eval(() => window.__touchPointers);
+  t.ok(touches > 0, `${at} hybrid: a real touch reached the page`, String(touches));
+  t.ok(!during.visible && !during.down, `${at} hybrid: touching hides the cursor without a pressed state`, JSON.stringify({ visible: during.visible, down: during.down }));
+  t.ok(!after.visible && !after.down, `${at} hybrid: cursor stays hidden after the touch ends`, JSON.stringify({ visible: after.visible, down: after.down }));
+  await page.moveMouse(p.x, p.y + 10);
+  const back = await page.waitFor(() => document.documentElement.classList.contains('cursor-visible'), { timeout: 1000 });
+  t.ok(back, `${at} hybrid: the next mouse move shows the cursor again`);
+  t.eq(page.errors, [], `${at} hybrid: no page errors`);
+  await page.close();
+}
+
+/** Turning reduced motion on mid-visit removes the cursor within a frame or two, with no fade. */
+async function checkLiveReducedMotion(t, browser, url, at) {
+  const page = await browser.newPage({ width: 1440, height: 900 });
+  await page.reducedMotion(false);
+  await page.goto(url);
+  const p = await pointOn(page, H1);
+  await page.moveMouse(p.x, p.y);
+  await settleCursor(page, false, false);
+  await page.eval(() => {
+    window.__cursorGone = null;
+    new MutationObserver((_, obs) => {
+      if (!document.querySelector('.cursor-dot, .cursor-ring')) {
+        window.__cursorGone = performance.now();
+        obs.disconnect();
+      }
+    }).observe(document.body, { childList: true });
+  });
+  const t0 = await page.eval(() => performance.now());
+  await page.reducedMotion(true);
+  const gone = await page.waitFor(() => window.__cursorGone, { timeout: 1500 });
+  const ms = gone ? gone - t0 : null;
+  t.ok(ms !== null && ms < 250, `${at}: reduced motion on mid-visit removes the cursor immediately`, `${ms}ms`);
+  const classes = await page.eval(() => ['cursor-visible', 'cursor-hover', 'cursor-down'].filter((c) => document.documentElement.classList.contains(c)));
+  t.eq(classes, [], `${at}: no cursor state classes left behind`);
+  await page.reducedMotion(false);
+  await page.moveMouse(p.x, p.y + 5);
+  const restored = await page.waitFor(() => document.querySelectorAll('.cursor-dot, .cursor-ring').length === 2, { timeout: 1000 });
+  t.ok(restored, `${at}: cursor returns when reduced motion is turned off again`);
+  await page.close();
+}
+
+/**
+ * The font gate must never block: with font requests failing, or taking 3s (past the 1s cap),
+ * setup finishes within ~1s of the DOM being ready, the hero copy is shown, the journey timeline
+ * arms, and scrolling the whole page leaves no element waiting to be revealed.
+ */
+async function checkFontFailure(t, browser, url, at) {
+  for (const mode of ['fail', 'slow']) {
+    const page = await browser.newPage({ width: 1440, height: 900 });
+    await page.reducedMotion(false);
+    await page.send('Page.addScriptToEvaluateOnNewDocument', {
+      source: `window.__gate = {};
+        new MutationObserver(() => {
+          const d = document.documentElement.dataset;
+          if (d.motion === 'ready' && !window.__gate.motion) window.__gate.motion = performance.now();
+          if (document.querySelector('[data-journey-armed]') && !window.__gate.journey) window.__gate.journey = performance.now();
+        }).observe(document, { subtree: true, attributes: true, attributeFilter: ['data-motion', 'data-journey-armed'] });`,
+    });
+    await page.send('Fetch.enable', { patterns: [{ urlPattern: '*.woff2', requestStage: 'Request' }] });
+    const off = page.connection.on((message) => {
+      if (message.sessionId !== page.sessionId || message.method !== 'Fetch.requestPaused') return;
+      const id = message.params.requestId;
+      if (mode === 'fail') page.send('Fetch.failRequest', { requestId: id, errorReason: 'Failed' }).catch(() => {});
+      else setTimeout(() => page.send('Fetch.continueRequest', { requestId: id }).catch(() => {}), 3000);
+    });
+    await page.goto(url);
+    const label = mode === 'fail' ? 'fonts fail' : 'fonts take 3s';
+    const m = await page.eval(() => {
+      const nav = performance.getEntriesByType('navigation')[0];
+      return { motion: window.__gate.motion - nav.domInteractive, journey: window.__gate.journey - nav.domInteractive, fonts: document.fonts.status };
+    });
+    t.ok(m.motion > 0 && m.motion < 1400, `${at} (${label}): reveal setup runs within the 1s cap`, JSON.stringify(m));
+    t.ok(m.journey > 0 && m.journey < 1400, `${at} (${label}): journey timeline arms within the 1s cap`, JSON.stringify(m));
+    const hero = await page.waitFor(() => {
+      const els = [...document.querySelectorAll('#top h1, #top .hero-status, #top .hero-ctas')];
+      return els.length > 0 && els.every((el) => getComputedStyle(el).opacity === '1');
+    }, { timeout: 4000 });
+    t.ok(hero, `${at} (${label}): hero copy is fully shown`);
+    // Scroll the whole page in steps; every reveal must fire.
+    await page.eval(async () => {
+      const step = innerHeight * 0.5;
+      for (let y = 0; y <= document.documentElement.scrollHeight; y += step) {
+        window.scrollTo(0, y);
+        await new Promise((r) => setTimeout(r, 80));
+      }
+    });
+    const stuck = await page.waitFor(() => document.querySelectorAll('.reveal-pending, .reveal-active').length === 0 && 'none', { timeout: 3000 });
+    const left = stuck === 'none' ? 0 : await page.eval(() => document.querySelectorAll('.reveal-pending, .reveal-active').length);
+    t.eq(left, 0, `${at} (${label}): no content left hidden after scrolling the page`);
+    t.eq(page.errors, [], `${at} (${label}): no page errors`);
+    off();
+    await page.send('Fetch.disable').catch(() => {});
+    await page.close();
+  }
+}
+
+/** The clock adds no layout shift and does not drift over several ticks. */
+async function checkClockStability(t, browser, url, at) {
+  const page = await browser.newPage({ width: 1440, height: 900 });
+  await page.goto(url);
+  await page.eval(() => document.querySelector('[data-contact-details]').scrollIntoView({ block: 'center' }));
+  await sleep(1200);
+  const widths = await page.eval(() => {
+    const time = document.querySelector('[data-clock]');
+    const row = time.closest('li');
+    const live = { w: time.getBoundingClientRect().width, h: row.getBoundingClientRect().height };
+    const text = time.textContent;
+    time.textContent = '--:--:--';
+    const placeholder = { w: time.getBoundingClientRect().width, h: row.getBoundingClientRect().height };
+    time.textContent = text;
+    return { live, placeholder };
+  });
+  t.ok(Math.abs(widths.live.w - widths.placeholder.w) < 0.5 && widths.live.h === widths.placeholder.h, `${at}: placeholder and live time have the same box (no shift when the script starts)`, JSON.stringify(widths));
+  await page.eval(() => {
+    window.__shifts = [];
+    new PerformanceObserver((list) => {
+      for (const e of list.getEntries()) {
+        if (e.sources?.some((s) => s.node && s.node.closest?.('[data-contact-details]'))) window.__shifts.push(e.value);
+      }
+    }).observe({ type: 'layout-shift' });
+  });
+  const brazil = () => {
+    const [h, m, s] = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).format(new Date()).split(':').map(Number);
+    return h * 3600 + m * 60 + s;
+  };
+  let worst = 0;
+  for (let i = 0; i < 4; i++) {
+    await sleep(1000);
+    const text = await page.eval(() => document.querySelector('[data-clock]').textContent);
+    const [h, m, s] = text.split(':').map(Number);
+    worst = Math.max(worst, Math.abs(((h * 3600 + m * 60 + s - brazil() + 43200) % 86400) - 43200));
+  }
+  t.ok(worst <= 1, `${at}: clock stays within 1s of Brazil time across ticks`, `${worst}s`);
+  const shifts = await page.eval(() => window.__shifts);
+  t.eq(shifts, [], `${at}: no layout shifts in the contact details while the clock ticks`);
+  await page.close();
+}
+
+/** The underline coexists with the language switcher and leaves the mobile sheet untouched. */
+async function checkNavIntegration(t, browser, url, at) {
+  const page = await browser.newPage({ width: 1440, height: 900 });
+  await page.reducedMotion(false);
+  await page.goto(url);
+  const toSkills = () =>
+    page.eval(() => window.scrollTo(0, document.getElementById('skills').getBoundingClientRect().top + scrollY - 72));
+  const active = () =>
+    page.waitFor(() => document.querySelector('header nav a[data-section="skills"]').getAttribute('aria-current') === 'location', { timeout: 3000 });
+  await toSkills();
+  await active();
+  await sleep(450);
+  const trigger = '[data-lang-switcher]:has(#lang-desktop-menu) [data-lang-trigger]';
+  // Click in place: the driver's click() scrolls the target into view, which on a sticky-header
+  // control scrolls the page and changes the active section.
+  await page.click(await page.center(trigger, { scroll: false }));
+  await sleep(200);
+  const open = await page.eval(() => !document.querySelector('#lang-desktop-menu').hidden);
+  let u = (await page.eval(readUnderlines)).find((x) => x.id === 'skills');
+  t.ok(open && u.scale === 1, `${at}: underline stays on the active link while the language menu is open`, JSON.stringify({ open, u }));
+  const y0 = await page.eval(() => scrollY);
+  await page.press('Escape');
+  await sleep(100);
+  const y1 = await page.eval(() => scrollY);
+  t.ok(Math.abs(y1 - y0) < 2, `${at}: closing the language menu with Escape does not scroll the page`, `${y0} → ${y1}`);
+  u = (await page.eval(readUnderlines)).find((x) => x.id === 'skills');
+  t.ok(u.scale === 1, `${at}: underline unaffected after closing the language menu`);
+
+  for (const width of [1200, 900]) {
+    await page.viewport(width);
+    await page.reload();
+    await toSkills();
+    await active();
+    await sleep(450);
+    const on = (await page.eval(readUnderlines)).find((x) => x.id === 'skills');
+    t.ok(on.scale === 1 && Math.abs(on.width - on.linkWidth) < 0.5, `${at} @${width}: underline matches the label width`, JSON.stringify(on));
+  }
+
+  await page.viewport(390);
+  await page.reload();
+  await toSkills();
+  await page.waitFor(() => document.querySelector('[data-sheet-link][data-section="skills"]').getAttribute('aria-current') === 'location', { timeout: 3000 });
+  await page.click(await page.center('[data-menu-open]', { scroll: false }));
+  await sleep(150);
+  const sheet = await page.eval(() => ({
+    open: !document.querySelector('[data-mobile-menu]').hidden,
+    current: document.querySelector('[data-sheet-link][aria-current="location"]')?.dataset.section,
+    pseudo: [...document.querySelectorAll('[data-sheet-link]')].map((a) => getComputedStyle(a, '::after').content),
+    desktopHidden: document.querySelector('header nav').offsetParent === null,
+    switcher: document.querySelector('#mobile-menu [data-lang-switcher]') !== null,
+  }));
+  t.ok(sheet.open && sheet.current === 'skills' && sheet.switcher, `${at} @390: mobile sheet opens with the active section marked and its language switcher`, JSON.stringify(sheet));
+  t.ok(sheet.pseudo.every((c) => c === 'none') && sheet.desktopHidden, `${at} @390: no underline pseudo-element in the sheet; desktop links hidden`, JSON.stringify(sheet));
+  await page.press('Escape');
+  const closed = await page.waitFor(() => document.querySelector('[data-mobile-menu]').hidden, { timeout: 1000 });
+  t.ok(closed, `${at} @390: Escape still closes the sheet`);
+  t.eq(page.errors, [], `${at}: no page errors (nav integration)`);
+  await page.close();
+}
+
 export default {
   name: 'Finishing touches: cursor, active nav underline, live clock, font-gated entrances',
   async run({ browser, baseUrl, routes, t }) {
@@ -297,6 +520,11 @@ export default {
       await checkNavUnderline(t, browser, url, at);
       await checkClock(t, browser, url, route, at);
       await checkFontGate(t, browser, url, at);
+      await checkHybrid(t, browser, url, at);
+      await checkLiveReducedMotion(t, browser, url, at);
+      await checkFontFailure(t, browser, url, at);
+      await checkClockStability(t, browser, url, at);
+      await checkNavIntegration(t, browser, url, at);
     }
   },
 };
