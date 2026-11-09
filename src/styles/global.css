@@ -92,3 +92,35 @@
   transform-origin: 0 50%;
   pointer-events: none;
 }
+
+/*
+ * Animated underline for inline text links: a 1px currentColor line under the label that draws
+ * left-to-right on hover or keyboard focus (and retracts the same way). Put the class on a span
+ * around the link's text so a trailing icon is not underlined. Instant under reduced motion.
+ */
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  padding-bottom: 2px;
+  transition: background-size 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+a:hover .link-underline,
+a:focus-visible .link-underline {
+  background-size: 100% 1px;
+}
+
+/* Magnetic buttons (src/scripts/interactions.ts): --magnet-x/--magnet-y follow a nearby cursor. */
+.magnetic {
+  translate: var(--magnet-x, 0px) var(--magnet-y, 0px);
+  transition-property: color, background-color, border-color, translate;
+  transition-duration: var(--duration-hover), var(--duration-hover), var(--duration-hover), 600ms;
+  transition-timing-function: ease-out, ease-out, ease-out, cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.magnetic.is-magnetized {
+  transition-duration: var(--duration-hover), var(--duration-hover), var(--duration-hover), 180ms;
+  transition-timing-function: ease-out;
+}

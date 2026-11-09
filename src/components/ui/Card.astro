@@ -6,6 +6,9 @@
  * `padding="featured"` uses 40px from 900px (24px below), for the featured project.
  * Hover lifts 2px with the spec's single shadow; no hover motion under prefers-reduced-motion.
  * `reveal` marks the card for the scroll reveal (data-reveal, see src/scripts/motion.ts).
+ * `spotlight` adds a soft cobalt glow that follows the cursor and lights the border near it;
+ * `tilt` (implies spotlight) also tilts the card up to 6deg toward the cursor. Both are driven
+ * by src/scripts/interactions.ts through --spot-x/--spot-y and --tilt-x/--tilt-y.
  */
 import type { HTMLTag } from 'astro/types';
 
@@ -16,21 +19,36 @@ interface Props {
   padding?: 'default' | 'list' | 'featured';
   /** Fade the card in when it scrolls into view (src/scripts/motion.ts). */
   reveal?: boolean;
+  /** Cursor-following glow and border light (src/scripts/interactions.ts). */
+  spotlight?: boolean;
+  /** 3D tilt toward the cursor, fine pointers only (src/scripts/interactions.ts). Implies spotlight. */
+  tilt?: boolean;
   class?: string;
 }
 
-const { as: Tag = 'div', dark = false, topAccent = false, padding = 'default', reveal = false, class: className } = Astro.props;
+const {
+  as: Tag = 'div',
+  dark = false,
+  topAccent = false,
+  padding = 'default',
+  reveal = false,
+  spotlight = false,
+  tilt = false,
+  class: className,
+} = Astro.props;
 ---
 
 <Tag
   class:list={[
     'card rounded-card border',
-    dark ? 'border-ink-line bg-ink text-white' : 'border-line bg-surface text-text',
+    dark ? 'card-dark border-ink-line bg-ink text-white' : 'border-line bg-surface text-text',
     topAccent && 'border-t-[3px] border-t-cobalt',
     { default: 'p-6 md:p-card', list: 'px-6 py-2 md:px-card', featured: 'p-6 md:p-10' }[padding],
     className,
   ]}
   data-reveal={reveal ? '' : undefined}
+  data-spotlight={spotlight || tilt ? '' : undefined}
+  data-tilt={tilt ? '' : undefined}
 >
   <slot />
 </Tag>
@@ -46,6 +64,84 @@ const { as: Tag = 'div', dark = false, topAccent = false, padding = 'default', r
     .card:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-card-hover);
+    }
+  }
+
+  /*
+   * Spotlight. ::before is the glow (under the content, thanks to isolation), ::after the 1px
+   * border light (a radial gradient masked to the border ring). Both fade in on hover and are
+   * centred on --spot-x/--spot-y, which the script sets in px from the card's top-left corner.
+   */
+  [data-spotlight] {
+    --spot-glow: rgb(43 91 255 / 0.07);
+    --spot-ring: rgb(43 91 255 / 0.65);
+    position: relative;
+    isolation: isolate;
+  }
+
+  [data-spotlight].card-dark {
+    --spot-glow: rgb(123 150 255 / 0.16);
+    --spot-ring: rgb(123 150 255 / 0.9);
+  }
+
+  [data-spotlight]::before,
+  [data-spotlight]::after {
+    content: '';
+    position: absolute;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--duration-hover) ease-out;
+  }
+
+  [data-spotlight]::before {
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(
+      circle 320px at var(--spot-x, 50%) var(--spot-y, 50%),
+      var(--spot-glow),
+      transparent 70%
+    );
+  }
+
+  [data-spotlight]::after {
+    inset: -1px;
+    padding: 1px;
+    background: radial-gradient(
+      circle 220px at calc(var(--spot-x, 50%) + 1px) calc(var(--spot-y, 50%) + 1px),
+      var(--spot-ring),
+      transparent 75%
+    );
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+  }
+
+  @media (hover: hover) {
+    [data-spotlight]:hover::before,
+    [data-spotlight]:hover::after {
+      opacity: 1;
+    }
+  }
+
+  /*
+   * Tilt: while hovered the card faces the cursor (perspective + --tilt-x/--tilt-y, set by the
+   * script) on top of the 2px lift, following it with a short ease. On leave it springs back to
+   * flat with a slight overshoot. Fine pointers only, never under reduced motion.
+   */
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    [data-tilt] {
+      transition:
+        transform 650ms cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow var(--duration-hover) ease-out;
+    }
+
+    [data-tilt]:hover {
+      transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) translateY(-2px);
+      transition:
+        transform 140ms ease-out,
+        box-shadow var(--duration-hover) ease-out;
     }
   }
 </style>
