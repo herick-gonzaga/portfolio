@@ -104,7 +104,7 @@ async function checkCursor(t, browser, url, at) {
   for (const [sel, name] of [
     ['header nav a[data-section="about"]', 'navbar link'],
     ['[data-personal-open]', 'button'],
-    ['#skills ul.grid > li:first-child article', 'card'],
+    ['#impact [data-achievements] > li:first-child article', 'card'],
   ]) {
     await page.hover(sel);
     c = await settleCursor(page, true, false);

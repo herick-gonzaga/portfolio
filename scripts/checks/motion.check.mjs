@@ -2,7 +2,7 @@
  * Motion foundation (src/scripts/motion.ts): Lenis smooth scroll, the [data-reveal] scroll reveal
  * and the 2px scroll-progress bar, in every locale.
  *
- * - The expected sections are tagged: section headers, the About facts panel, skill cards,
+ * - The expected sections are tagged: section headers, the About facts panel, the skills loop,
  *   project cards, impact cards and the contact block (groups for every card grid).
  * - With motion allowed: Lenis is on, elements below the fold start hidden 24px lower, elements
  *   already on screen are never hidden, reveals end in the untransformed final state and stay
@@ -22,14 +22,15 @@ const REVEALED = [
   '#journey header',
   '#impact header',
   '#about .card',
-  '#skills ul.grid > li',
+  '#skills [data-loop-ring]',
+  '#skills [data-loop-steps]',
   '#projects article',
   '#impact [data-metrics] > li',
   '#impact [data-achievements] > li',
   '#contact .grid > div',
   '#contact [data-contact-details]',
 ];
-const GROUPS = ['#skills ul.grid', '#projects .grid', '#impact [data-metrics]', '#impact [data-achievements]', '#contact .grid'];
+const GROUPS = ['#skills [data-loop]', '#projects .grid', '#impact [data-metrics]', '#impact [data-achievements]', '#contact .grid'];
 
 const readTags = (revealed, groups) => ({
   missing: revealed.filter((sel) => {
@@ -185,8 +186,8 @@ async function checkMotion(t, browser, url, at) {
   const distinct = new Set(steps.filter((y) => y > 0)).size;
   t.ok(distinct >= 5 && steps.at(-1) > 0, `${at}: the wheel scrolls smoothly (eased over frames)`, JSON.stringify(steps));
 
-  // Stagger: the second skill card starts after the first.
-  const skills = await page.eval(timeReveal, '#skills ul.grid');
+  // Stagger: the skills panel column starts after the ring.
+  const skills = await page.eval(timeReveal, '#skills [data-loop]');
   t.ok(skills[1] - skills[0] >= 50, `${at}: siblings in a group are staggered`, JSON.stringify(skills));
   // data-reveal-delay: the delayed contact details start ≥300ms after the contact text.
   const contact = await page.eval(timeReveal, '#contact .grid');

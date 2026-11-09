@@ -110,6 +110,8 @@ export interface Content {
     notFoundTitle: string;
     notFoundText: string;
     notFoundBack: string;
+    /** aria-label of the Skills loop's tablist (src/components/Skills.astro). */
+    skillsLoop: string;
   };
   /** "Beyond the code" dialog, opened by clicking the name in the navbar or the hero intro. */
   personal: {
@@ -174,6 +176,8 @@ export interface Content {
     title: string;
     description: string;
     chips: string[];
+    /** Stage verb of the pillar in the Skills loop (build, validate, automate, ship), as in the heading. */
+    stage: string;
     icon: SkillIcon;
   }[];
   projects: {

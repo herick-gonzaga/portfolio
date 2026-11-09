@@ -1,15 +1,27 @@
 ---
 /**
- * Skills: four accent cards — 2×2 from 900px, 1 column below.
- * No 4-column row: with 6–10 chips per card, the longest chips ("Agentes de código
- * (Claude Code)", ~280px) overflow a 4-column card even at the 1248px max container.
- * Cards in a row share the tallest height; chips sit at the bottom of each card.
+ * Skills (03), on ink: the four pillars as one loop — build → validate → automate → ship.
+ * Every pillar keeps its title, description, chips and icon; this file only decides how they read.
+ *
+ * One markup, three presentations (src/scripts/skills-loop.ts sets `data-mode` on [data-loop]):
+ *
+ * - No JS (no data-mode): the four pillars stacked in loop order on a static vertical line,
+ *   everything visible.
+ * - `data-mode="tabs"` (≥1200px): two columns. Left, an SVG ring with one node per pillar (stage
+ *   verb in mono + icon), a pulse orbiting it, and the arc leading into the active node lit up.
+ *   The nodes are a tablist (role="tab"); right, the active pillar as its tabpanel. The panels share
+ *   one grid cell, so the column is always as tall as the tallest pillar (no layout shift).
+ * - `data-mode="accordion"` (<1200px): a vertical stepper; each step's header is a button that opens
+ *   its pillar (one open at a time), with a pulse travelling down the line.
+ *
+ * `data-motion` (motion allowed) shows the pulses; `data-paused` (section offscreen or tab hidden)
+ * freezes the CSS animations. Under prefers-reduced-motion: no pulse, no auto-cycle, no transitions.
  */
-import Card from './ui/Card.astro';
 import Chip from './ui/Chip.astro';
 import Icon from './ui/Icon.astro';
 import Section from './ui/Section.astro';
 import { getContent, type Locale } from '../i18n';
+import type { SkillIcon } from '../i18n/types';
 
 interface Props {
   locale: Locale;
@@ -18,34 +30,566 @@ interface Props {
 const { locale } = Astro.props;
 const content = getContent(locale);
 const header = content.sections.skills;
+
+/** Loop order, as in the heading: build, validate, automate, ship. Keyed by the pillar's icon. */
+const LOOP: SkillIcon[] = ['code', 'shield', 'spark', 'globe'];
+const pillars = LOOP.map((icon) => content.skills.find((s) => s.icon === icon)!);
+const total = String(pillars.length).padStart(2, '0');
+const num = (i: number) => String(i + 1).padStart(2, '0');
+
+/* Ring geometry (SVG user units). Node centres sit on the ring at 0°, 90°, 180°, 270° from the top. */
+const SIZE = 480;
+const C = SIZE / 2;
+const R = 163;
+const TRAIL_DEG = 26;
+const trailStart = {
+  x: (C + R * Math.sin((-TRAIL_DEG * Math.PI) / 180)).toFixed(2),
+  y: (C - R * Math.cos((-TRAIL_DEG * Math.PI) / 180)).toFixed(2),
+};
 ---
 
-<Section
-  id="skills"
-  locale={locale}
-  kicker={header.kicker}
-  title={header.title}
-  intro={header.intro}
-  padding="bottom"
->
-  <ul class="grid gap-gutter md:grid-cols-2" data-reveal-group>
-    {
-      content.skills.map((skill) => (
-        <li class="flex" data-reveal>
-          <Card as="article" topAccent spotlight class="flex w-full flex-col gap-4">
-            <Icon name={skill.icon} size={28} class="text-cobalt" />
-            <h3 class="text-h3-sm font-semibold tracking-[-0.01em]">{skill.title}</h3>
-            <p class="text-body-sm text-muted">{skill.description}</p>
-            <ul class="mt-auto flex flex-wrap gap-[6px]">
-              {skill.chips.map((chip) => (
-                <li>
-                  <Chip>{chip}</Chip>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </li>
-      ))
-    }
-  </ul>
+<Section id="skills" locale={locale} kicker={header.kicker} title={header.title} intro={header.intro} dark>
+  <div class="loop" data-loop data-reveal-group>
+    <div class="loop-ring" data-loop-ring data-reveal>
+      <svg class="loop-svg" width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="skills-loop-trail" gradientUnits="userSpaceOnUse" x1={trailStart.x} y1="0" x2={C} y2="0">
+            <stop offset="0" stop-color="var(--color-cobalt)" stop-opacity="0"></stop>
+            <stop offset="1" stop-color="var(--color-cobalt-soft)" stop-opacity="1"></stop>
+          </linearGradient>
+        </defs>
+        <circle class="loop-track" cx={C} cy={C} r={R}></circle>
+        {
+          [45, 135, 225, 315].map((deg) => (
+            <path class="loop-chevron" d={`M${C - 4} ${C - R - 6} L${C + 2} ${C - R} L${C - 4} ${C - R + 6}`} transform={`rotate(${deg} ${C} ${C})`} />
+          ))
+        }
+        <circle
+          class="loop-arc"
+          data-loop-arc
+          cx={C}
+          cy={C}
+          r={R}
+          pathLength="400"
+          stroke-dasharray="100 300"
+          stroke-dashoffset="300"
+          transform={`rotate(-90 ${C} ${C})`}></circle>
+        <g class="loop-orbit" data-loop-orbit>
+          <path class="loop-trail" d={`M${trailStart.x} ${trailStart.y} A${R} ${R} 0 0 1 ${C} ${C - R}`}></path>
+          <circle class="loop-pulse" cx={C} cy={C - R} r="4.5"></circle>
+        </g>
+      </svg>
+
+      <p class="loop-center" aria-hidden="true">
+        <span class="loop-center-num" data-loop-count>01</span>
+        <span class="loop-center-total">/ {total}</span>
+      </p>
+
+      <div class="loop-tabs" role="tablist" aria-label={content.ui.skillsLoop} data-loop-tabs>
+        {
+          pillars.map((pillar, i) => (
+            <button
+              class="loop-node"
+              type="button"
+              role="tab"
+              id={`skills-tab-${i}`}
+              aria-selected={i === 0 ? 'true' : 'false'}
+              aria-controls={`skills-panel-${i}`}
+              tabindex={i === 0 ? '0' : '-1'}
+              data-pos={i}
+              data-loop-tab
+            >
+              <Icon name={pillar.icon} size={18} class="loop-node-icon" />
+              <span class="loop-node-verb">{pillar.stage}</span>
+              <span class="sr-only">: {pillar.title}</span>
+            </button>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="loop-steps" data-loop-steps data-reveal>
+      {
+        pillars.map((pillar, i) => (
+          <div class="loop-step" id={`skills-panel-${i}`} data-loop-step>
+            <span class="loop-step-node" aria-hidden="true">
+              <Icon name={pillar.icon} size={18} />
+            </span>
+            <span class="loop-step-line" aria-hidden="true" />
+            <h3 class="loop-step-head">
+              <button class="loop-step-trigger" type="button" id={`skills-trigger-${i}`} data-loop-trigger>
+                <span class="loop-step-meta">
+                  {num(i)} / {total} · {pillar.stage}
+                </span>
+                <span class="loop-step-title">{pillar.title}</span>
+                <Icon name="arrow-right" size={18} class="loop-step-chevron" />
+              </button>
+              <span class="loop-step-static">
+                <span class="loop-step-meta">
+                  {num(i)} / {total} · {pillar.stage}
+                </span>
+                <span class="loop-step-title">{pillar.title}</span>
+              </span>
+            </h3>
+            <div class="loop-step-body" id={`skills-body-${i}`} data-loop-body>
+              <p class="loop-step-desc">{pillar.description}</p>
+              <ul class="loop-step-chips" data-loop-chips>
+                {pillar.chips.map((chip) => (
+                  <li>
+                    <Chip variant="dark">{chip}</Chip>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
 </Section>
+
+<style>
+  /* ---------- Stepper (no JS and <1200px) ---------- */
+  .loop-steps {
+    --node: 36px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .loop-step {
+    position: relative;
+    padding-left: calc(var(--node) + 20px);
+    padding-bottom: 32px;
+  }
+
+  .loop-step:last-child {
+    padding-bottom: 0;
+  }
+
+  .loop-step-node {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: var(--node);
+    height: var(--node);
+    border: 1px solid var(--color-ink-border);
+    border-radius: 9999px;
+    background-color: var(--color-ink-surface);
+    color: var(--color-cobalt-soft);
+    transition:
+      border-color 200ms ease-out,
+      box-shadow 200ms ease-out,
+      color 200ms ease-out;
+  }
+
+  /* Connector from this node's centre to the next node's centre (it overruns into the next step). */
+  .loop-step-line {
+    position: absolute;
+    top: calc(var(--node) / 2);
+    bottom: calc(var(--node) / -2);
+    left: calc(var(--node) / 2 - 0.5px);
+    width: 1px;
+    overflow: hidden;
+    background-color: var(--color-ink-border);
+  }
+
+  .loop-step:last-child .loop-step-line {
+    display: none;
+  }
+
+  .loop-step-head {
+    margin: 0;
+    font: inherit;
+  }
+
+  .loop-step-static,
+  .loop-step-trigger {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+  }
+
+  /* The meta row is centred on the 36px node. */
+  .loop-step-meta {
+    display: block;
+    min-height: var(--node);
+    padding-top: calc((var(--node) - var(--text-mono) * 1.4) / 2);
+    margin-bottom: -6px;
+    font-family: var(--font-mono);
+    font-size: var(--text-mono);
+    line-height: 1.4;
+    color: var(--color-cobalt-soft);
+  }
+
+  .loop-step-title {
+    display: block;
+    font-size: var(--text-h3-sm);
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--color-surface);
+  }
+
+  .loop-step-body {
+    margin-top: 12px;
+  }
+
+  .loop-step-desc {
+    max-width: 52ch;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body);
+    color: var(--color-muted-dark);
+  }
+
+  .loop-step-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 16px;
+  }
+
+  .loop-step-trigger,
+  .loop-ring {
+    display: none;
+  }
+
+  /* ---------- Accordion (JS, <1200px) ---------- */
+  .loop[data-mode='accordion'] .loop-step-static {
+    display: none;
+  }
+
+  .loop[data-mode='accordion'] .loop-step-trigger {
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-height: var(--touch-target);
+    padding-right: 32px;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+  }
+
+  /* Extends the button over the node on the line, so tapping the node opens the step too. */
+  .loop[data-mode='accordion'] .loop-step-trigger::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: calc(-1 * (var(--node) + 20px));
+    width: calc(var(--node) + 20px);
+    height: var(--node);
+  }
+
+  .loop[data-mode='accordion'] .loop-step-node {
+    pointer-events: none;
+  }
+
+  .loop-step-trigger :global(.loop-step-chevron) {
+    position: absolute;
+    top: calc(var(--node) / 2 - 9px);
+    right: 4px;
+    color: var(--color-muted-dark);
+    transition: rotate 220ms var(--ease-out);
+  }
+
+  .loop-step-trigger[aria-expanded='true'] :global(.loop-step-chevron) {
+    rotate: 90deg;
+    color: var(--color-cobalt-soft);
+  }
+
+  .loop[data-mode='accordion'] .loop-step.is-active .loop-step-node {
+    border-color: var(--color-cobalt-soft);
+    color: var(--color-surface);
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--color-cobalt) 22%, transparent),
+      0 0 18px color-mix(in srgb, var(--color-cobalt) 55%, transparent);
+  }
+
+  /* Pulse travelling down the stepper: each connector carries it in turn (one 1.2s leg each). */
+  .loop-step-line::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    display: none;
+    background: linear-gradient(to bottom, transparent 0, transparent calc(100% - 28px), var(--color-cobalt-soft) 100%);
+    transform: translateY(-100%);
+    animation: loop-drop 4.8s linear infinite;
+  }
+
+  .loop[data-mode='accordion'][data-motion] .loop-step-line::after {
+    display: block;
+  }
+
+  .loop-step:nth-child(2) .loop-step-line::after {
+    animation-delay: 1.2s;
+  }
+
+  .loop-step:nth-child(3) .loop-step-line::after {
+    animation-delay: 2.4s;
+  }
+
+  @keyframes loop-drop {
+    0% {
+      transform: translateY(-100%);
+      opacity: 1;
+    }
+    25% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    25.01%,
+    100% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+  }
+
+  /* ---------- Ring + tabs (JS, ≥1200px) ---------- */
+  .loop[data-mode='tabs'] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 48px;
+    align-items: center;
+  }
+
+  .loop[data-mode='tabs'] .loop-ring {
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 480px;
+    aspect-ratio: 1;
+    justify-self: center;
+  }
+
+  /* Soft accent glow behind the ring. */
+  .loop-ring::before {
+    content: '';
+    position: absolute;
+    inset: 6%;
+    border-radius: 9999px;
+    background: radial-gradient(circle, color-mix(in srgb, var(--color-cobalt) 20%, transparent) 0%, transparent 66%);
+    pointer-events: none;
+  }
+
+  .loop-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .loop-track {
+    fill: none;
+    stroke: var(--color-ink-border);
+    stroke-width: 1.5;
+  }
+
+  .loop-chevron {
+    fill: none;
+    stroke: var(--color-ink-border);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .loop-arc {
+    fill: none;
+    stroke: var(--color-cobalt-soft);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-cobalt) 80%, transparent));
+  }
+
+  .loop-orbit {
+    display: none;
+  }
+
+  .loop[data-motion] .loop-orbit {
+    display: inline;
+  }
+
+  .loop-trail {
+    fill: none;
+    stroke: url(#skills-loop-trail);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  .loop-pulse {
+    fill: #fff;
+    filter: drop-shadow(0 0 4px var(--color-cobalt-soft)) drop-shadow(0 0 10px var(--color-cobalt));
+  }
+
+  .loop-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+    margin: auto;
+    height: fit-content;
+    font-family: var(--font-mono);
+    pointer-events: none;
+  }
+
+  .loop-center-num {
+    font-size: 44px;
+    line-height: 1;
+    font-weight: 600;
+    color: var(--color-surface);
+  }
+
+  .loop-center-total {
+    font-size: var(--text-mono);
+    color: var(--color-muted-dark);
+  }
+
+  .loop-tabs {
+    position: absolute;
+    inset: 0;
+  }
+
+  .loop-node {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: var(--touch-target);
+    padding: 0 16px 0 12px;
+    translate: -50% -50%;
+    border: 1px solid var(--color-ink-border);
+    border-radius: 9999px;
+    background-color: var(--color-ink-surface);
+    font-family: var(--font-mono);
+    font-size: var(--text-mono);
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--color-muted-dark);
+    cursor: pointer;
+    transition:
+      color 200ms ease-out,
+      border-color 200ms ease-out,
+      background-color 200ms ease-out,
+      box-shadow 260ms ease-out;
+  }
+
+  .loop-node :global(.loop-node-icon) {
+    color: var(--color-cobalt-soft);
+  }
+
+  .loop-node:hover {
+    border-color: color-mix(in srgb, var(--color-cobalt-soft) 60%, var(--color-ink-border));
+    color: var(--color-surface);
+  }
+
+  /* 163 / 480 = 33.96% radius: node centres on the ring, clockwise from the top. */
+  .loop-node[data-pos='0'] {
+    left: 50%;
+    top: 16.04%;
+  }
+
+  .loop-node[data-pos='1'] {
+    left: 83.96%;
+    top: 50%;
+  }
+
+  .loop-node[data-pos='2'] {
+    left: 50%;
+    top: 83.96%;
+  }
+
+  .loop-node[data-pos='3'] {
+    left: 16.04%;
+    top: 50%;
+  }
+
+  .loop-node[aria-selected='true'] {
+    border-color: var(--color-cobalt-soft);
+    background-color: color-mix(in srgb, var(--color-cobalt) 24%, var(--color-ink-surface));
+    color: var(--color-surface);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-cobalt) 60%, transparent),
+      0 0 28px color-mix(in srgb, var(--color-cobalt) 55%, transparent);
+  }
+
+  .loop[data-motion] .loop-node[aria-selected='true']::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    pointer-events: none;
+    animation: loop-node-pulse 2.2s var(--ease-out) infinite;
+  }
+
+  @keyframes loop-node-pulse {
+    from {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-cobalt-soft) 55%, transparent);
+    }
+    to {
+      box-shadow: 0 0 0 14px color-mix(in srgb, var(--color-cobalt-soft) 0%, transparent);
+    }
+  }
+
+  .loop[data-paused] *,
+  .loop[data-paused] *::after {
+    animation-play-state: paused !important;
+  }
+
+  /* Panels: all four in one grid cell, so the column takes the tallest one's height. */
+  .loop[data-mode='tabs'] .loop-steps {
+    display: grid;
+  }
+
+  .loop[data-mode='tabs'] .loop-step {
+    grid-area: 1 / 1;
+    padding: 0;
+    border-radius: var(--radius-card);
+  }
+
+  .loop[data-mode='tabs'] .loop-step:not(.is-active) {
+    visibility: hidden;
+  }
+
+  .loop[data-mode='tabs'] .loop-step-node,
+  .loop[data-mode='tabs'] .loop-step-line,
+  .loop[data-mode='tabs'] .loop-step-trigger {
+    display: none;
+  }
+
+  .loop[data-mode='tabs'] .loop-step-static {
+    gap: 12px;
+  }
+
+  .loop[data-mode='tabs'] .loop-step-meta {
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+  }
+
+  .loop[data-mode='tabs'] .loop-step-title {
+    font-size: var(--text-h3-lg);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .loop[data-mode='tabs'] .loop-step-body {
+    margin-top: 16px;
+  }
+
+  .loop[data-mode='tabs'] .loop-step-desc {
+    font-size: var(--text-body);
+  }
+
+  .loop[data-mode='tabs'] .loop-step-chips {
+    margin-top: 24px;
+  }
+</style>
+
+<script>
+  // Tabs/accordion, pulse and auto-cycle (src/scripts/skills-loop.ts).
+  import '../scripts/skills-loop';
+</script>

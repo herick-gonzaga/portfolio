@@ -194,9 +194,14 @@ function focusState() {
   };
 }
 
-/** Every visible focusable element outside the (closed) mobile sheet, in document order. */
+/**
+ * Every visible focusable element outside the (closed) mobile sheet, in document order. Controls
+ * taken out of the Tab order with tabindex="-1" (roving tabindex, e.g. the Skills loop's inactive
+ * tabs, reached with the arrow keys) are not Tab stops.
+ */
 function pageFocusables() {
-  return [...document.querySelectorAll('a[href], button, [tabindex]:not([tabindex="-1"])')]
+  return [...document.querySelectorAll('a[href], button, [tabindex]')]
+    .filter((el) => el.getAttribute('tabindex') !== '-1')
     .filter((el) => el.getClientRects().length > 0 && !el.closest('[hidden]'))
     .map((el) => [...document.querySelectorAll('*')].indexOf(el));
 }

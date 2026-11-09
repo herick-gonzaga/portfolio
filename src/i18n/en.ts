@@ -74,6 +74,7 @@ export const en: Content = {
     notFoundTitle: 'Page not found',
     notFoundText: 'This address doesn’t exist on this site.',
     notFoundBack: 'Go to the homepage',
+    skillsLoop: 'The loop: four stages',
   },
   personal: {
     title: 'Beyond the code',
@@ -159,6 +160,7 @@ export const en: Content = {
         'Astro & Tailwind CSS',
         'Networking fundamentals',
       ],
+      stage: 'build',
       icon: 'code',
     },
     {
@@ -175,6 +177,7 @@ export const en: Content = {
         'LLM evals',
         'Coding agents (Claude Code)',
       ],
+      stage: 'automate',
       icon: 'spark',
     },
     {
@@ -190,6 +193,7 @@ export const en: Content = {
         'E2E testing in CI',
         'Test management (MQ-Test)',
       ],
+      stage: 'validate',
       icon: 'shield',
     },
     {
@@ -204,6 +208,7 @@ export const en: Content = {
         'Spanish & French (basic)',
         'Mentoring',
       ],
+      stage: 'ship',
       icon: 'globe',
     },
   ],
