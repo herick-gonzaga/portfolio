@@ -2,8 +2,12 @@
  * Journey and Achievements & impact sections.
  * Journey: copy matches the locale files; 200px/1fr grid with a sticky header column only from
  * 900px; timeline line, item padding, dot style per item type (current / past work / education)
- * and dot position (centered on the line, aligned with the first text line); item typography;
- * fade-in once at 30% visibility, final state under prefers-reduced-motion and without JS.
+ * and dot position (centered on the line, aligned with the first text line); item typography.
+ * Scroll story (1440 and 390 wide): the cobalt line draws with its tip on the 60% viewport line;
+ * each item activates once when the tip reaches its dot (dot scales in with a pulse, period/title/
+ * description slide in staggered); items already passed are never hidden; no layout shift; the
+ * header column stays sticky while the story runs (desktop). Final state (line fully drawn, items
+ * static) under prefers-reduced-motion, after switching it on mid-visit, in print, and without JS.
  * Org notes ("through Codengage") render after the org as muted 15px regular text, and the work
  * history shows a single current engagement, with Codengage only as a note, never its own entry.
  * Achievements: copy and real metric values (no placeholders); bottom-only padding; 3 metric
@@ -351,54 +355,187 @@ async function checkStickyBehaviour(t, page, at, width) {
   else t.ok(result.headerTop < 0, `${at}: header column scrolls away below 900px`, JSON.stringify(result));
 }
 
-const readReveal = () => {
+/** Fraction of the viewport height where the drawn line's tip sits and items activate. */
+const TIP = 0.6;
+const DOT_HIDDEN = 'matrix(0, 0, 0, 0, 0, 0)';
+const PART_HIDDEN = 'matrix(1, 0, 0, 1, -12, 0)';
+
+const readStory = (tip) => {
   const list = document.querySelector('#journey ol');
+  const lb = list.getBoundingClientRect();
+  const line = getComputedStyle(list, '::before');
+  const m = line.transform.match(/^matrix\(([^)]+)\)$/);
+  const scaleY = line.transform === 'none' ? 1 : m ? Number(m[1].split(',')[3]) : NaN;
+  const look = (el, pseudo) => {
+    const s = getComputedStyle(el, pseudo);
+    return { opacity: s.opacity, transform: s.transform, delay: s.transitionDelay, duration: s.transitionDuration, animation: s.animationName };
+  };
+  // Layout boxes ignore transforms: offset* only, so any difference is a real layout shift.
+  const layout = (el) => [el.offsetLeft, el.offsetTop, el.offsetWidth, el.offsetHeight];
   return {
     armed: list.hasAttribute('data-journey-armed'),
+    tipY: innerHeight * tip,
+    line: { content: line.content, color: line.backgroundColor, width: line.width, origin: line.transformOrigin, transform: line.transform, scaleY, top: lb.top, height: lb.height },
+    headerTop: document.querySelector('#journey .container').firstElementChild.getBoundingClientRect().top,
     items: [...list.children].map((li) => {
-      const s = getComputedStyle(li);
-      return { opacity: s.opacity, transform: s.transform, duration: s.transitionDuration, visible: li.classList.contains('is-visible') };
+      const dot = li.querySelector('.journey-dot');
+      const r = dot.getBoundingClientRect();
+      const parts = [...li.children].filter((el) => el !== dot);
+      return {
+        pending: li.hasAttribute('data-journey-pending'),
+        active: li.classList.contains('is-active'),
+        dotCenter: r.top + r.height / 2,
+        dot: look(dot),
+        pulse: look(dot, '::after'),
+        parts: parts.map((el) => look(el)),
+        layout: [layout(li), layout(dot), ...parts.map(layout)],
+      };
     }),
   };
 };
 
-async function checkFadeIn(t, browser, url, at) {
+/** Scrolls so item `n`'s dot centre sits `offset` px below (positive) or above the tip line. */
+const scrollDotTo = (n, offset, tip) => {
+  const dot = document.querySelectorAll('#journey ol > li .journey-dot')[n];
+  const r = dot.getBoundingClientRect();
+  window.scrollTo(0, scrollY + r.top + r.height / 2 - (innerHeight * tip + offset));
+};
+
+const isFinal = (item) =>
+  item.dot.transform === 'none' && item.parts.every((p) => p.opacity === '1' && p.transform === 'none');
+
+/** Sum of layout shifts caused by nodes inside #journey since load. */
+const journeyShift = () =>
+  new Promise((resolve) => {
+    const journey = document.getElementById('journey');
+    const observer = new PerformanceObserver(() => {});
+    observer.observe({ type: 'layout-shift', buffered: true });
+    requestAnimationFrame(() => {
+      const entries = observer.takeRecords();
+      observer.disconnect();
+      resolve(
+        entries
+          .filter((e) => e.sources?.some((src) => src.node && journey.contains(src.node)))
+          .reduce((sum, e) => sum + e.value, 0),
+      );
+    });
+  });
+
+async function checkScrollStory(t, browser, url, route, width) {
+  const at = `${route} @${width}`;
+  const page = await browser.newPage({ width, height: 900 });
+  await page.reducedMotion(false);
+  await page.goto(url);
+  const read = () => page.eval(readStory, TIP);
+  const settle = () => sleep(250);
+  const tipError = (s) => {
+    const expected = Math.min(Math.max(s.tipY, s.line.top), s.line.top + s.line.height);
+    return s.line.top + s.line.scaleY * s.line.height - expected;
+  };
+
+  const start = await read();
+  t.ok(start.armed, `${at}: scroll story is armed when JS runs and motion is allowed`);
+  t.ok(
+    start.line.content === '""' && start.line.color === TOKENS.cobalt && start.line.width === '1px' && start.line.origin.endsWith(' 0px'),
+    `${at}: drawn line is a 1px cobalt ::before growing from the top`,
+    JSON.stringify(start.line),
+  );
+  t.near(start.line.scaleY, 0, 0.001, `${at}: line is undrawn while the timeline is below the tip line`);
+  t.ok(start.items.every((i) => i.pending === i.dotCenter > start.tipY), `${at}: exactly the items below the tip line are pending`);
+  t.ok(start.items.some((i) => i.pending), `${at}: some items start pending`);
+  t.ok(start.items.filter((i) => !i.pending).every(isFinal), `${at}: items already reached are never hidden`);
+  const hidden = start.items.filter((i) => i.pending);
+  t.ok(
+    hidden.every((i) => i.dot.transform === DOT_HIDDEN && i.parts.every((p) => p.opacity === '0' && p.transform === PART_HIDDEN)),
+    `${at}: pending items start with the dot at scale 0 and the text hidden 12px left`,
+    JSON.stringify(hidden[0]),
+  );
+  t.ok(hidden.every((i) => i.dot.duration === '0s' && i.parts.every((p) => p.duration === '0s')), `${at}: arming hides pending items instantly`);
+
+  // Item 2's dot just short of the tip: item 1 has activated, item 2 waits.
+  await page.eval(scrollDotTo, 1, 30, TIP);
+  await settle();
+  const before = await read();
+  t.near(tipError(before), 0, 2, `${at}: line tip sits on the 60% viewport line`);
+  t.ok(before.items[0].active || !before.items[0].pending, `${at}: item 1 is active once the line has passed it`);
+  t.ok(!before.items[1].active && before.items[1].parts[0].opacity === '0', `${at}: item 2 stays hidden until the line reaches its dot`);
+
+  // Just past it: item 2 activates with the pulse and the staggered slide-in.
+  await page.eval(scrollDotTo, 1, -30, TIP);
+  const fired = await page.waitFor(() => document.querySelectorAll('#journey ol > li')[1].classList.contains('is-active'), { timeout: 2000 });
+  t.ok(fired, `${at}: item 2 activates when the line reaches its dot`);
+  const during = await read();
+  const two = during.items[1];
+  t.eq(two.pulse.animation, 'journey-pulse', `${at}: activated dot plays the accent pulse`);
+  t.eq(two.parts.map((p) => p.delay), ['0.08s, 0.08s', '0.16s, 0.16s', '0.24s, 0.24s'], `${at}: period, title, description are staggered 80ms apart`);
+  t.near(tipError(during), 0, 2, `${at}: line tip still on the 60% line after scrolling`);
+  const done = await page.waitFor(
+    () => {
+      const li = document.querySelectorAll('#journey ol > li')[1];
+      return [...li.children].every((el) => getComputedStyle(el).transform === 'none' && getComputedStyle(el).opacity === '1');
+    },
+    { timeout: 3000 },
+  );
+  t.ok(done, `${at}: item 2 ends in its final state`);
+
+  // Mid-story: the last item's dot reaching the tip; on desktop the header column is pinned.
+  await page.eval(scrollDotTo, during.items.length - 1, 0, TIP);
+  await settle();
+  const mid = await read();
+  t.near(tipError(mid), 0, 2, `${at}: line tip on the 60% line at the last item`);
+  if (width >= 900) t.near(mid.headerTop, 96, 1, `${at}: header column stays sticky at 96px while the entries scroll past`);
+  else t.ok(mid.headerTop < 0, `${at}: header column scrolls away in normal flow below 900px`, String(mid.headerTop));
+
+  // Through to the end: line fully drawn, every item active.
+  await page.eval(() => {
+    const list = document.querySelector('#journey ol');
+    window.scrollTo(0, scrollY + list.getBoundingClientRect().bottom - innerHeight * 0.3);
+  });
+  await sleep(1200);
+  const end = await read();
+  t.near(end.line.scaleY, 1, 0.001, `${at}: line is fully drawn past the end of the timeline`);
+  t.ok(end.items.every(isFinal), `${at}: every item has activated by the end`, JSON.stringify(end.items.map(isFinal)));
+
+  // No layout shift: transform-free boxes are identical before arming takes effect and after.
+  t.eq(end.items.map((i) => i.layout), start.items.map((i) => i.layout), `${at}: item layout boxes never change (no layout shift)`);
+  t.near(await page.eval(journeyShift), 0, 0.0001, `${at}: no layout-shift entries from Journey`);
+
+  // Back to the top: the line retracts with the scroll, items stay revealed (activate once).
+  await page.eval(() => window.scrollTo(0, 0));
+  await settle();
+  const back = await read();
+  t.near(back.line.scaleY, 0, 0.001, `${at}: line retracts when scrolling back up`);
+  t.ok(back.items.every(isFinal), `${at}: activated items stay revealed after scrolling away`);
+
+  // Static layout matches the reduced-motion render.
+  const still = await browser.newPage({ width, height: 900 });
+  await still.reducedMotion(true);
+  await still.goto(url);
+  const reduced = await still.eval(readStory, TIP);
+  t.eq(reduced.items.map((i) => i.layout), start.items.map((i) => i.layout), `${at}: layout is identical with and without motion`);
+  await still.close();
+
+  t.eq(page.errors, [], `${at}: no page errors during the scroll story`);
+  await page.close();
+}
+
+async function checkLiveSwitches(t, browser, url, at) {
   const page = await browser.newPage({ width: 1440, height: 900 });
   await page.reducedMotion(false);
   await page.goto(url);
-  const before = await page.eval(readReveal);
-  t.ok(before.armed, `${at}: reveal is armed when JS runs and motion is allowed`);
+  const armed = await page.eval(readStory, TIP);
+  t.ok(armed.items.some((i) => i.pending && !i.active), `${at}: items pending before switching media`);
+
+  await page.send('Emulation.setEmulatedMedia', { media: 'print', features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] });
+  const print = await page.eval(readStory, TIP);
+  t.ok(print.items.every(isFinal) && print.line.transform === 'none', `${at}: print shows every item and the full line`, JSON.stringify(print.items.find((i) => !isFinal(i))));
+
+  await page.send('Emulation.setEmulatedMedia', { media: '', features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+  const reduced = await page.eval(readStory, TIP);
   t.ok(
-    before.items.every((i) => i.opacity === '0' && i.transform === 'matrix(1, 0, 0, 1, 0, 12)'),
-    `${at}: off-screen items start hidden, 12px lower`,
-    JSON.stringify(before.items[0]),
+    reduced.items.every(isFinal) && reduced.line.transform === 'none',
+    `${at}: switching on reduced motion mid-visit draws the line and shows every item`,
   );
-  t.ok(before.items.every((i) => i.duration === '0s'), `${at}: hiding pending items is instant (no fade-out)`, JSON.stringify(before.items[0]));
-
-  // Only ~10% of the first item visible: it must stay hidden (threshold 0.3).
-  await page.eval(() => {
-    const li = document.querySelector('#journey ol > li');
-    const r = li.getBoundingClientRect();
-    window.scrollTo(0, scrollY + r.top - innerHeight + r.height * 0.1);
-  });
-  await sleep(400);
-  const partial = await page.eval(readReveal);
-  t.ok(!partial.items[0].visible && partial.items[0].opacity === '0', `${at}: an item 10% in view stays hidden`, JSON.stringify(partial.items[0]));
-
-  await page.eval(() => document.querySelector('#journey ol > li').scrollIntoView({ block: 'center' }));
-  const shown = await page.waitFor(() => getComputedStyle(document.querySelector('#journey ol > li')).opacity === '1', { timeout: 2000 });
-  t.ok(shown, `${at}: item fades in once 30% visible`);
-  const revealed = await page.eval(readReveal);
-  t.eq(revealed.items[0].duration, '0.32s, 0.32s', `${at}: reveal transitions over 320ms`);
-  const settled = await page.waitFor(() => getComputedStyle(document.querySelector('#journey ol > li')).transform === 'none', { timeout: 2000 });
-  t.ok(settled, `${at}: revealed item ends untranslated`);
-
-  // Scrolling away and back does not hide it again (fades in once).
-  await page.eval(() => window.scrollTo(0, 0));
-  await sleep(400);
-  const after = await page.eval(readReveal);
-  t.ok(after.items[0].visible && after.items[0].opacity === '1', `${at}: revealed item stays visible after scrolling away`);
-  t.eq(page.errors, [], `${at}: no page errors during fade-in`);
   await page.close();
 }
 
@@ -406,7 +543,7 @@ async function checkFadeIn(t, browser, url, at) {
  * Loads `url` with JavaScript disabled and reads the timeline items' styles over the DOM/CSS
  * protocol domains (Runtime.evaluate is unavailable while script execution is disabled).
  */
-async function readRevealWithoutJs(page, url) {
+async function readStoryWithoutJs(page, url) {
   await page.send('Emulation.setScriptExecutionDisabled', { value: true });
   const before = page.loads;
   await page.send('Page.navigate', { url });
@@ -420,41 +557,47 @@ async function readRevealWithoutJs(page, url) {
   const { root } = await page.send('DOM.getDocument', { depth: -1 });
   const { nodeId: listId } = await page.send('DOM.querySelector', { nodeId: root.nodeId, selector: '#journey ol' });
   const { attributes } = await page.send('DOM.getAttributes', { nodeId: listId });
-  const { nodeIds } = await page.send('DOM.querySelectorAll', { nodeId: listId, selector: ':scope > li' });
-  const items = [];
+  const { nodeIds } = await page.send('DOM.querySelectorAll', { nodeId: listId, selector: ':scope > li > *' });
+  const parts = [];
   for (const nodeId of nodeIds) {
     const { computedStyle } = await page.send('CSS.getComputedStyleForNode', { nodeId });
     const get = (name) => computedStyle.find((p) => p.name === name)?.value;
-    items.push({ opacity: get('opacity'), transform: get('transform') });
+    parts.push({ opacity: get('opacity'), transform: get('transform') });
   }
-  return { armed: attributes.includes('data-journey-armed'), items };
+  return { armed: attributes.includes('data-journey-armed'), parts };
 }
 
 async function checkFinalState(t, browser, url, at, mode) {
   const page = await browser.newPage({ width: 1440, height: 900 });
-  let state;
+  const label = mode === 'reduced-motion' ? 'under prefers-reduced-motion' : 'without JS';
   if (mode === 'reduced-motion') {
     await page.reducedMotion(true);
     await page.goto(url);
-    state = await page.eval(readReveal);
+    const state = await page.eval(readStory, TIP);
+    t.ok(!state.armed, `${at}: scroll story is not armed under prefers-reduced-motion`);
+    t.ok(state.line.transform === 'none' && state.line.color === TOKENS.cobalt, `${at}: line is fully drawn ${label}`, JSON.stringify(state.line));
+    t.ok(state.items.every(isFinal), `${at}: every timeline item renders in its final state ${label}`, JSON.stringify(state.items[0]));
+    t.near(await page.eval(journeyShift), 0, 0.0001, `${at}: no layout-shift entries from Journey ${label}`);
   } else {
-    state = await readRevealWithoutJs(page, url);
-    t.ok(!state.armed && state.items.length > 0, `${at}: reveal is not armed without JS`, JSON.stringify(state));
+    // The line's scaleY only applies to an armed list, so an unarmed list has it fully drawn.
+    const state = await readStoryWithoutJs(page, url);
+    t.ok(!state.armed && state.parts.length > 0, `${at}: scroll story is not armed without JS (line fully drawn)`, JSON.stringify(state));
+    t.ok(
+      state.parts.every((p) => p.opacity === '1' && p.transform === 'none'),
+      `${at}: every timeline item renders in its final state ${label}`,
+      JSON.stringify(state.parts.find((p) => p.opacity !== '1' || p.transform !== 'none')),
+    );
   }
-  const label = mode === 'reduced-motion' ? 'under prefers-reduced-motion' : 'without JS';
-  t.ok(
-    state.items.every((i) => i.opacity === '1' && i.transform === 'none'),
-    `${at}: every timeline item renders in its final state ${label}`,
-    JSON.stringify(state),
-  );
-  if (mode === 'reduced-motion') t.ok(!state.armed, `${at}: reveal is not armed under prefers-reduced-motion`);
   await page.close();
 }
 
 export default {
   name: 'Journey & Achievements sections',
   async run({ browser, baseUrl, routes, t }) {
+    // Static layout is measured in its final state (reduced motion); checkScrollStory covers the
+    // motion path, including that its layout boxes are identical.
     const page = await browser.newPage();
+    await page.reducedMotion(true);
     for (const route of routes) {
       const url = baseUrl + route.path;
       const at = route.path;
@@ -523,7 +666,8 @@ export default {
         await checkStickyBehaviour(t, page, `${at} @${width}`, width);
       }
 
-      await checkFadeIn(t, browser, url, at);
+      for (const width of [1440, 390]) await checkScrollStory(t, browser, url, at, width);
+      await checkLiveSwitches(t, browser, url, at);
       await checkFinalState(t, browser, url, at, 'reduced-motion');
       await checkFinalState(t, browser, url, at, 'no-js');
     }

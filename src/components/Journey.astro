@@ -9,9 +9,16 @@
  *   education      → white fill, 3px text border
  * An optional `orgNote` (e.g. the contracting company) follows the org in the H3 as muted 15px
  * regular-weight text, so the entry still reads as one engagement.
- * Items fade in once (320ms, 12px rise) when 30% visible. The hidden start state only applies once
- * the script has run and motion is allowed, so without JS or under prefers-reduced-motion every
- * item renders in its final state.
+ *
+ * Scroll story (screen, motion allowed, JS): a cobalt line (the <ol>'s ::before) draws down over the
+ * gray track as the page scrolls, scrubbed by ScrollTrigger so its tip stays 60% down the viewport.
+ * When the tip reaches an item's dot, the item activates once: the dot scales in with a cobalt
+ * pulse, then the period, the H3 and the description slide in 12px from the line, 80ms apart.
+ * Items whose dot is already above that line when the script runs stay as rendered.
+ * Everything is opacity/transform, so nothing moves layout. The start states only apply once the
+ * script has armed the list, on screen, with motion allowed: without JS, in print, or under
+ * prefers-reduced-motion (even if switched on mid-visit) the line is fully drawn and every item is
+ * static in its final state.
  */
 import Section from './ui/Section.astro';
 import { getContent, type Locale } from '../i18n';
@@ -36,7 +43,7 @@ const dotKind = (item: (typeof content.journey)[number]) =>
   intro={header.intro}
   layout="aside"
 >
-  <ol class="journey border-l border-line" data-journey>
+  <ol class="journey relative border-l border-line" data-journey>
     {
       content.journey.map((item) => (
         <li class="journey-item relative pb-10 pl-10 last:pb-0" data-dot={dotKind(item)}>
@@ -60,6 +67,7 @@ const dotKind = (item: (typeof content.journey)[number]) =>
     }
   </ol>
 </Section>
+
 
 <style>
   .journey-dot {
@@ -85,40 +93,125 @@ const dotKind = (item: (typeof content.journey)[number]) =>
     border-color: var(--color-text);
   }
 
-  /* Only the reveal is animated: arming hides pending items instantly, so items painted before the
-     script ran never visibly fade out. */
-  @media (prefers-reduced-motion: no-preference) {
-    .journey[data-journey-armed] .journey-item.is-visible {
-      transition:
-        opacity 320ms var(--ease-out),
-        transform 320ms var(--ease-out);
+  /* The drawn line, laid over the <ol>'s 1px gray border (the track). Fully drawn by default. */
+  .journey::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -1px;
+    width: 1px;
+    background-color: var(--color-cobalt);
+    transform-origin: top;
+    pointer-events: none;
+  }
+
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .journey[data-journey-armed]::before {
+      transform: scaleY(var(--journey-progress, 1));
     }
 
-    .journey[data-journey-armed] .journey-item:not(.is-visible) {
+    /* Start states. Arming hides pending items instantly (no transition until .is-active), and
+       only items below the line are ever pending, so nothing on screen disappears. */
+    [data-journey-pending]:not(.is-active) > .journey-dot {
+      transform: scale(0);
+    }
+
+    [data-journey-pending]:not(.is-active) > :not(.journey-dot) {
       opacity: 0;
-      transform: translateY(12px);
+      transform: translateX(-12px);
+    }
+
+    [data-journey-pending].is-active > * {
+      transition:
+        opacity 480ms var(--ease-out) var(--journey-delay, 0ms),
+        transform 480ms var(--ease-out) var(--journey-delay, 0ms);
+    }
+
+    [data-journey-pending].is-active > .journey-dot {
+      transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    [data-journey-pending].is-active > :nth-child(2) {
+      --journey-delay: 80ms;
+    }
+
+    [data-journey-pending].is-active > :nth-child(3) {
+      --journey-delay: 160ms;
+    }
+
+    [data-journey-pending].is-active > :nth-child(4) {
+      --journey-delay: 240ms;
+    }
+
+    /* Accent pulse: a ring that expands from the dot's outer edge and fades. */
+    [data-journey-pending].is-active > .journey-dot::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 13px;
+      height: 13px;
+      translate: -50% -50%;
+      border-radius: 9999px;
+      pointer-events: none;
+      animation: journey-pulse 760ms var(--ease-out) 140ms both;
+    }
+
+    @keyframes journey-pulse {
+      from {
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-cobalt) 55%, transparent);
+      }
+      to {
+        box-shadow: 0 0 0 12px color-mix(in srgb, var(--color-cobalt) 0%, transparent);
+      }
     }
   }
 </style>
 
 <script>
-  const lists = document.querySelectorAll<HTMLOListElement>('[data-journey]');
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  /** The line's tip, and the point where an item activates, as % of the viewport height. */
+  const TIP = 60;
+
   const motionOk = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
 
-  if (motionOk && 'IntersectionObserver' in window) {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          entry.target.classList.add('is-visible');
-          observer.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.3 },
-    );
-    for (const list of lists) {
+  if (motionOk) {
+    gsap.registerPlugin(ScrollTrigger);
+    const tipY = (window.innerHeight * TIP) / 100;
+
+    for (const list of document.querySelectorAll<HTMLOListElement>('[data-journey]')) {
+      // Decide which items are still ahead of the line before arming, so the list never repaints
+      // with an item that was already in place.
+      const pending = [...list.querySelectorAll<HTMLElement>('.journey-item')].filter((item) => {
+        const dot = item.querySelector('.journey-dot')!.getBoundingClientRect();
+        return dot.top + dot.height / 2 > tipY;
+      });
+
       list.dataset.journeyArmed = '';
-      for (const item of list.querySelectorAll('.journey-item')) observer.observe(item);
+      // Start == end offset, so the tip of the drawn line sits exactly on the TIP line.
+      gsap.fromTo(
+        list,
+        { '--journey-progress': 0 },
+        {
+          '--journey-progress': 1,
+          ease: 'none',
+          scrollTrigger: { trigger: list, start: `top ${TIP}%`, end: `bottom ${TIP}%`, scrub: true },
+        },
+      );
+
+      for (const item of pending) {
+        item.dataset.journeyPending = '';
+        ScrollTrigger.create({
+          // The dot scales around its centre, so its centre is the same in both states.
+          trigger: item.querySelector('.journey-dot'),
+          start: `center ${TIP}%`,
+          once: true,
+          onEnter: () => item.classList.add('is-active'),
+        });
+      }
     }
   }
 </script>
