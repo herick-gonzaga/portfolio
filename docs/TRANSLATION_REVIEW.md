@@ -67,6 +67,38 @@ change the locale files and regenerate.
 | `personal.photoAlt` | Photo of Herick Gonzaga | Foto de Herick Gonzaga | Foto de Herick Gonzaga |
 | `personal.open` | Herick Gonzaga — beyond the code | Herick Gonzaga — além do código | Herick Gonzaga — más allá del código |
 | `personal.close` | Close | Fechar | Cerrar |
+| `terminal.label` | Interactive terminal | Terminal interativo | Terminal interactiva |
+| `terminal.intro` | Prefer the command line? Type a command below. | Prefere a linha de comando? Digite um comando abaixo. | ¿Prefieres la línea de comandos? Escribe un comando abajo. |
+| `terminal.inputLabel` | Terminal command | Comando do terminal | Comando de la terminal |
+| `terminal.welcome` | Welcome to herick@portfolio. Type {help} to list the available commands. | Bem-vindo ao herick@portfolio. Digite {help} para listar os comandos disponíveis. | Bienvenido a herick@portfolio. Escribe {help} para ver los comandos disponibles. |
+| `terminal.quick` | Quick commands | Comandos rápidos | Comandos rápidos |
+| `terminal.commands.help` | List the available commands | Lista os comandos disponíveis | Lista los comandos disponibles |
+| `terminal.commands.about` | Who I am, in a few lines | Quem sou eu, em poucas linhas | Quién soy, en pocas líneas |
+| `terminal.commands.skills` | Skills by category | Habilidades por categoria | Habilidades por categoría |
+| `terminal.commands.projects` | Selected projects | Projetos selecionados | Proyectos seleccionados |
+| `terminal.commands.journey` | Work and education timeline | Trajetória profissional e acadêmica | Trayectoria laboral y académica |
+| `terminal.commands.contact` | Email, LinkedIn and GitHub | E-mail, LinkedIn e GitHub | Correo, LinkedIn y GitHub |
+| `terminal.commands.languages` | Languages I speak | Idiomas que falo | Idiomas que hablo |
+| `terminal.commands.sudo hire-me` | You know you want to | Você sabe que quer | Sabes que quieres |
+| `terminal.commands.clear` | Clear the screen | Limpa a tela | Limpia la pantalla |
+| `terminal.helpTip` | Tab autocompletes · ↑/↓ browse history | Tab completa · ↑/↓ percorrem o histórico | Tab autocompleta · ↑/↓ recorren el historial |
+| `terminal.about[0]` | Herick Gonzaga — Software & AI Engineer based in Brazil (UTC−3). | Herick Gonzaga — Engenheiro de Software & IA no Brasil (UTC−3). | Herick Gonzaga — Ingeniero de Software & IA en Brasil (UTC−3). |
+| `terminal.about[1]` | I build LLM pipelines, the prompts that drive them and the tests that prove they work, for a U.S. construction-procurement platform. | Construo pipelines de LLM, os prompts que os guiam e os testes que provam que funcionam, para uma plataforma norte-americana de compras para a construção civil. | Construyo pipelines de LLM, los prompts que los guían y las pruebas que demuestran que funcionan, para una plataforma estadounidense de compras para la construcción. |
+| `terminal.about[2]` | I also study International Relations, to keep the markets software serves in view. | Também curso Relações Internacionais, para manter à vista os mercados que o software atende. | También estudio Relaciones Internacionales, para no perder de vista los mercados a los que sirve el software. |
+| `terminal.languages[0].name` | Portuguese | Português | Portugués |
+| `terminal.languages[0].level` | native | nativo | nativo |
+| `terminal.languages[1].name` | English | Inglês | Inglés |
+| `terminal.languages[1].level` | professional | profissional | profesional |
+| `terminal.languages[2].name` | Spanish | Espanhol | Español |
+| `terminal.languages[2].level` | basic | básico | básico |
+| `terminal.languages[3].name` | French | Francês | Francés |
+| `terminal.languages[3].level` | basic | básico | básico |
+| `terminal.hire[0]` | [sudo] password for recruiter: •••••••• | [sudo] senha para recrutador: •••••••• | [sudo] contraseña para reclutador: •••••••• |
+| `terminal.hire[1]` | Permission granted. Excellent judgment. | Permissão concedida. Excelente escolha. | Permiso concedido. Excelente elección. |
+| `terminal.hireOpening` | Opening your mail client → | Abrindo seu cliente de e-mail → | Abriendo tu cliente de correo → |
+| `terminal.hireSubject` | Let’s work together | Vamos trabalhar juntos | Trabajemos juntos |
+| `terminal.notFound` | command not found | comando não encontrado | comando no encontrado |
+| `terminal.notFoundHint` | Type {help} to see the available commands. | Digite {help} para ver os comandos disponíveis. | Escribe {help} para ver los comandos disponibles. |
 | `sections.about.kicker` | 02 / About | 02 / Sobre | 02 / Sobre mí |
 | `sections.about.title` | Engineering, AI and a global point of view, in the same person. | Engenharia, IA e uma visão global, na mesma pessoa. | Ingeniería, IA y una visión global, en la misma persona. |
 | `sections.skills.kicker` | 03 / Skills & expertise | 03 / Habilidades & expertise | 03 / Habilidades & experiencia |
@@ -116,6 +148,7 @@ change the locale files and regenerate.
 | `projects[mq-test].kind` | Featured · Open source | Destaque · Open source | Destacado · Open source |
 | `projects[mq-test].period` | 2025 — now | 2025 — atual | 2025 — actual |
 | `projects[mq-test].description` | A test-management platform (suites, cases, plans, runs, bugs, requirements) with an MCP server so coding agents can read and write test data. Integrates with GitHub, Linear and Slack; the automation repo stays the source of truth and MQ-Test becomes the dashboard that organizes and tracks it. | Uma plataforma de gestão de testes (suítes, casos, planos, execuções, bugs, requisitos) com um servidor MCP para que agentes de código leiam e escrevam dados de teste. Integra com GitHub, Linear e Slack; o repositório de automação continua sendo a fonte da verdade e o MQ-Test vira o painel que o organiza e acompanha. | Una plataforma de gestión de pruebas (suites, casos, planes, ejecuciones, bugs, requisitos) con un servidor MCP para que los agentes de código lean y escriban datos de prueba. Se integra con GitHub, Linear y Slack; el repositorio de automatización sigue siendo la fuente de verdad y MQ-Test se convierte en el panel que lo organiza y le da seguimiento. |
+| `projects[mq-test].tagline` | Test management with an MCP server, so coding agents can read and write test data. | Gestão de testes com servidor MCP, para agentes de código lerem e gravarem dados de teste. | Gestión de pruebas con servidor MCP, para que agentes de código lean y escriban datos de prueba. |
 | `projects[mq-test].metrics[0].label` | test cases organized | casos de teste organizados | casos de prueba organizados |
 | `projects[mq-test].metrics[1].value` | 9,000+ | 9.000+ | 9.000+ |
 | `projects[mq-test].metrics[1].label` | runs tracked via MCP | execuções acompanhadas via MCP | ejecuciones registradas vía MCP |
@@ -123,12 +156,16 @@ change the locale files and regenerate.
 | `projects[invoice-extraction].name` | LLM invoice extraction, vendor by vendor | Extração de notas fiscais com LLM, fornecedor por fornecedor | Extracción de facturas con LLM, proveedor por proveedor |
 | `projects[invoice-extraction].kind` | Professional · SubBase | Profissional · SubBase | Profesional · SubBase |
 | `projects[invoice-extraction].description` | Vendor-specific prompt rules, a pre-extraction page-classification gate for mixed PDFs, schema migrations and structured bug reports for an extraction pipeline used in production. | Regras de prompt específicas por fornecedor, uma etapa de classificação de páginas antes da extração para PDFs mistos, migrações de schema e reports de bugs estruturados para um pipeline de extração em produção. | Reglas de prompt específicas por proveedor, una etapa de clasificación de páginas previa a la extracción para PDFs mixtos, migraciones de schema y reportes de bugs estructurados para un pipeline de extracción en producción. |
+| `projects[invoice-extraction].tagline` | Vendor-specific prompt systems for a production LLM extraction pipeline. | Sistemas de prompt por fornecedor para um pipeline de extração com LLM em produção. | Sistemas de prompt por proveedor para un pipeline de extracción con LLM en producción. |
 | `projects[subbase-qa-tests].kind` | Automation | Automação | Automatización |
 | `projects[subbase-qa-tests].description` | Automated end-to-end suite for the SubBase platform, organized in MQ-Test and run on CI, so regressions are caught before release. | Suíte automatizada de testes E2E para a plataforma SubBase, organizada no MQ-Test e executada no CI, para que regressões sejam detectadas antes do release. | Suite automatizada de pruebas E2E para la plataforma SubBase, organizada en MQ-Test y ejecutada en CI, para detectar regresiones antes de cada release. |
+| `projects[subbase-qa-tests].tagline` | End-to-end suite for SubBase, tracked in MQ-Test and run on CI. | Suíte end-to-end da SubBase, organizada no MQ-Test e executada no CI. | Suite end-to-end de SubBase, organizada en MQ-Test y ejecutada en CI. |
 | `projects[susagendamento].kind` | Product design | Design de produto | Diseño de producto |
 | `projects[susagendamento].description` | Mobile app concept for scheduling public-health (SUS) appointments, designed in Figma. | Conceito de app mobile para agendamento de consultas no SUS, desenhado no Figma. | Concepto de app móvil para agendar citas en el sistema público de salud de Brasil (SUS), diseñado en Figma. |
+| `projects[susagendamento].tagline` | Figma concept for booking public-health (SUS) appointments. | Conceito em Figma para agendar consultas do SUS. | Concepto en Figma para agendar citas en la salud pública brasileña (SUS). |
 | `projects[prompt-pattern-docs].kind` | Agent workflows | Fluxos com agentes | Flujos con agentes |
 | `projects[prompt-pattern-docs].description` | A skill that turns rough extraction problems into production-ready, documented LLM prompts. | Uma skill que transforma problemas de extração ainda crus em prompts de LLM documentados e prontos para produção. | Una skill que convierte problemas de extracción aún en bruto en prompts de LLM documentados y listos para producción. |
+| `projects[prompt-pattern-docs].tagline` | A skill that turns rough extraction problems into documented prompts. | Uma skill que transforma problemas de extração em prompts documentados. | Una skill que convierte problemas de extracción en prompts documentados. |
 | `journey[0].period` | Sep 2024 — now | set 2024 — atual | sep 2024 — actual |
 | `journey[0].place` | Remote (Fort Lauderdale, USA) | Remoto (Fort Lauderdale, EUA) | Remoto (Fort Lauderdale, EE. UU.) |
 | `journey[0].orgNote` | through Codengage | via Codengage | vía Codengage |

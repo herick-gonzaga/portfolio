@@ -83,6 +83,41 @@ export const pt: Content = {
     open: 'Herick Gonzaga — além do código',
     close: 'Fechar',
   },
+  terminal: {
+    label: 'Terminal interativo',
+    intro: 'Prefere a linha de comando? Digite um comando abaixo.',
+    inputLabel: 'Comando do terminal',
+    welcome: 'Bem-vindo ao herick@portfolio. Digite {help} para listar os comandos disponíveis.',
+    quick: 'Comandos rápidos',
+    commands: {
+      help: 'Lista os comandos disponíveis',
+      about: 'Quem sou eu, em poucas linhas',
+      skills: 'Habilidades por categoria',
+      projects: 'Projetos selecionados',
+      journey: 'Trajetória profissional e acadêmica',
+      contact: 'E-mail, LinkedIn e GitHub',
+      languages: 'Idiomas que falo',
+      'sudo hire-me': 'Você sabe que quer',
+      clear: 'Limpa a tela',
+    },
+    helpTip: 'Tab completa · ↑/↓ percorrem o histórico',
+    about: [
+      'Herick Gonzaga — Engenheiro de Software & IA no Brasil (UTC−3).',
+      'Construo pipelines de LLM, os prompts que os guiam e os testes que provam que funcionam, para uma plataforma norte-americana de compras para a construção civil.',
+      'Também curso Relações Internacionais, para manter à vista os mercados que o software atende.',
+    ],
+    languages: [
+      { name: 'Português', level: 'nativo' },
+      { name: 'Inglês', level: 'profissional' },
+      { name: 'Espanhol', level: 'básico' },
+      { name: 'Francês', level: 'básico' },
+    ],
+    hire: ['[sudo] senha para recrutador: ••••••••', 'Permissão concedida. Excelente escolha.'],
+    hireOpening: 'Abrindo seu cliente de e-mail →',
+    hireSubject: 'Vamos trabalhar juntos',
+    notFound: 'comando não encontrado',
+    notFoundHint: 'Digite {help} para ver os comandos disponíveis.',
+  },
   sections: {
     about: { kicker: '02 / Sobre', title: 'Engenharia, IA e uma visão global, na mesma pessoa.' },
     skills: {
@@ -183,6 +218,7 @@ export const pt: Content = {
       period: '2025 — atual',
       description:
         'Uma plataforma de gestão de testes (suítes, casos, planos, execuções, bugs, requisitos) com um servidor MCP para que agentes de código leiam e escrevam dados de teste. Integra com GitHub, Linear e Slack; o repositório de automação continua sendo a fonte da verdade e o MQ-Test vira o painel que o organiza e acompanha.',
+      tagline: 'Gestão de testes com servidor MCP, para agentes de código lerem e gravarem dados de teste.',
       stack: ['Rails 8', 'PostgreSQL', 'Docker', 'MCP', 'GitHub API', 'Linear'],
       metrics: [
         { value: '500+', label: 'casos de teste organizados' },
@@ -198,6 +234,7 @@ export const pt: Content = {
       kind: 'Profissional · SubBase',
       description:
         'Regras de prompt específicas por fornecedor, uma etapa de classificação de páginas antes da extração para PDFs mistos, migrações de schema e reports de bugs estruturados para um pipeline de extração em produção.',
+      tagline: 'Sistemas de prompt por fornecedor para um pipeline de extração com LLM em produção.',
       stack: ['Prompt systems', 'LLM eval', 'Redash / SQL'],
       links: [],
       tier: 'secondary',
@@ -208,6 +245,7 @@ export const pt: Content = {
       kind: 'Automação',
       description:
         'Suíte automatizada de testes E2E para a plataforma SubBase, organizada no MQ-Test e executada no CI, para que regressões sejam detectadas antes do release.',
+      tagline: 'Suíte end-to-end da SubBase, organizada no MQ-Test e executada no CI.',
       stack: ['E2E', 'CI'],
       links: [],
       tier: 'secondary',
@@ -217,6 +255,7 @@ export const pt: Content = {
       name: 'SUSAGENDAMENTO',
       kind: 'Design de produto',
       description: 'Conceito de app mobile para agendamento de consultas no SUS, desenhado no Figma.',
+      tagline: 'Conceito em Figma para agendar consultas do SUS.',
       stack: ['Figma', 'Mobile UX'],
       links: [],
       tier: 'small',
@@ -226,6 +265,7 @@ export const pt: Content = {
       name: 'prompt-pattern-docs',
       kind: 'Fluxos com agentes',
       description: 'Uma skill que transforma problemas de extração ainda crus em prompts de LLM documentados e prontos para produção.',
+      tagline: 'Uma skill que transforma problemas de extração em prompts documentados.',
       stack: ['Claude skills', 'Prompt patterns'],
       links: [],
       tier: 'small',

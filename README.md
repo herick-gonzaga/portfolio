@@ -44,13 +44,15 @@ src/
 │   ├── ProjectFeatured.astro / ProjectCard.astro / ProjectCardSmall.astro
 │   ├── ProjectLinks.astro  # Project links row (external links open in a new tab)
 │   ├── Journey.astro / Achievements.astro
-│   ├── Contact.astro       # Contact details, CTAs and the site footer
+│   ├── Contact.astro       # Contact details, CTAs, the terminal and the site footer
+│   ├── Terminal.astro      # Interactive terminal easter egg (lazy: src/scripts/terminal.ts)
 │   ├── ui/                 # Button, Card, Chip, Icon, Kicker, Section primitives
 │   └── flags/              # Simplified US / BR / ES flags (inline SVG)
 ├── layouts/Base.astro      # <head>: SEO, hreflang, Open Graph, Twitter card, JSON-LD
 ├── i18n/                   # Typed content: en.ts, pt.ts, es.ts
 ├── pages/                  # /, /pt/, /es/ and robots.txt
 ├── scripts/motion.ts       # Lenis smooth scroll, [data-reveal] scroll reveal, progress bar
+├── scripts/terminal.ts     # Contact terminal: commands, typewriter output, history, Tab completion
 └── styles/                 # Design tokens and global styles
 docs/
 ├── DESIGN_SPEC.md          # Visual system and section spec

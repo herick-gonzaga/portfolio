@@ -88,7 +88,8 @@ function measure() {
   const overflowing = [];
   for (const el of section.querySelectorAll('*')) {
     const r = box(el);
-    if (r.width === 0) continue;
+    // .sr-only text (the terminal input's label) is clipped to 1px on purpose, as in qa-audit.
+    if (r.width === 0 || el.closest('.sr-only')) continue;
     const clips = style(el).display !== 'inline' && el.scrollWidth > el.clientWidth + 1 && el.tagName !== 'svg';
     if (r.left < -0.5 || r.right > vw + 0.5 || clips) overflowing.push(`${el.tagName.toLowerCase()} "${(el.textContent ?? '').trim().slice(0, 30)}"`);
   }
