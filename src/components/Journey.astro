@@ -88,13 +88,13 @@ const dotKind = (item: (typeof content.journey)[number]) =>
   /* Only the reveal is animated: arming hides pending items instantly, so items painted before the
      script ran never visibly fade out. */
   @media (prefers-reduced-motion: no-preference) {
-    .journey[data-reveal] .journey-item.is-visible {
+    .journey[data-journey-armed] .journey-item.is-visible {
       transition:
         opacity 320ms var(--ease-out),
         transform 320ms var(--ease-out);
     }
 
-    .journey[data-reveal] .journey-item:not(.is-visible) {
+    .journey[data-journey-armed] .journey-item:not(.is-visible) {
       opacity: 0;
       transform: translateY(12px);
     }
@@ -117,7 +117,7 @@ const dotKind = (item: (typeof content.journey)[number]) =>
       { threshold: 0.3 },
     );
     for (const list of lists) {
-      list.dataset.reveal = '';
+      list.dataset.journeyArmed = '';
       for (const item of list.querySelectorAll('.journey-item')) observer.observe(item);
     }
   }

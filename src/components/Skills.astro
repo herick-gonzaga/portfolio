@@ -28,10 +28,10 @@ const header = content.sections.skills;
   intro={header.intro}
   padding="bottom"
 >
-  <ul class="grid gap-gutter md:grid-cols-2">
+  <ul class="grid gap-gutter md:grid-cols-2" data-reveal-group>
     {
       content.skills.map((skill) => (
-        <li class="flex">
+        <li class="flex" data-reveal>
           <Card as="article" topAccent class="flex w-full flex-col gap-4">
             <Icon name={skill.icon} size={28} class="text-cobalt" />
             <h3 class="text-h3-sm font-semibold tracking-[-0.01em]">{skill.title}</h3>

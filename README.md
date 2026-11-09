@@ -50,6 +50,7 @@ src/
 ├── layouts/Base.astro      # <head>: SEO, hreflang, Open Graph, Twitter card, JSON-LD
 ├── i18n/                   # Typed content: en.ts, pt.ts, es.ts
 ├── pages/                  # /, /pt/, /es/ and robots.txt
+├── scripts/motion.ts       # Lenis smooth scroll, [data-reveal] scroll reveal, progress bar
 └── styles/                 # Design tokens and global styles
 docs/
 ├── DESIGN_SPEC.md          # Visual system and section spec

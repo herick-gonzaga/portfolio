@@ -22,7 +22,7 @@ const header = content.sections.about;
       {content.profile.about.map((paragraph) => <p>{paragraph}</p>)}
     </div>
 
-    <Card padding="list">
+    <Card padding="list" reveal>
       <dl>
         {
           content.profile.facts.map(({ label, value }) => (

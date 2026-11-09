@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "./tokens.css";
+/* Lenis base styles (smooth scrolling, src/scripts/motion.ts); bundled here to keep one stylesheet. */
+@import "lenis/dist/lenis.css";
 
 @config "../../tailwind.config.mjs";
 
@@ -53,4 +55,40 @@
       scroll-behavior: auto !important;
     }
   }
+}
+
+/*
+ * Motion (src/scripts/motion.ts). Both classes are added by the script only, so without JS
+ * every [data-reveal] element renders in its final state.
+ * .reveal-pending: below the fold, waiting for its scroll reveal.
+ * .reveal-active:  being animated by GSAP; transitions off so CSS (e.g. the card hover lift)
+ *                  never smooths GSAP's per-frame transform.
+ */
+.reveal-pending {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.reveal-pending,
+.reveal-active {
+  transition: none !important;
+}
+
+@media print {
+  .reveal-pending {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 2px cobalt bar at the very top, scaled by scroll progress. Above the navbar (z-50). */
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 60;
+  height: 2px;
+  background-color: var(--color-cobalt);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  pointer-events: none;
 }

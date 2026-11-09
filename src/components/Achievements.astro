@@ -31,10 +31,10 @@ const { metrics, items } = content.achievements;
   intro={header.intro}
   padding="bottom"
 >
-  <ul class="grid gap-gutter sm:grid-cols-3" data-metrics>
+  <ul class="grid gap-gutter sm:grid-cols-3" data-metrics data-reveal-group>
     {
       metrics.map((metric) => (
-        <li class="flex">
+        <li class="flex" data-reveal>
           <Card class="flex w-full flex-col">
             <p class="text-metric font-semibold sm:max-md:text-[36px] tracking-[-0.03em] text-cobalt">{metric.value}</p>
             <p class="mt-3 text-[15px] leading-[1.4] font-semibold">{metric.label}</p>
@@ -45,10 +45,10 @@ const { metrics, items } = content.achievements;
     }
   </ul>
 
-  <ul class="mt-gutter grid gap-gutter md:grid-cols-2" data-achievements>
+  <ul class="mt-gutter grid gap-gutter md:grid-cols-2" data-achievements data-reveal-group>
     {
       items.map((item) => (
-        <li class="flex">
+        <li class="flex" data-reveal>
           <Card as="article" class="flex w-full gap-5">
             <Icon name={item.icon} size={24} class="mt-[2px] shrink-0 text-cobalt" />
             <div>
