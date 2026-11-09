@@ -39,8 +39,8 @@ const details = [
   </div>
 
   <div class="container">
-    <div class="grid gap-12 md:grid-cols-2 md:items-end">
-      <div class="min-w-0">
+    <div class="grid gap-12 md:grid-cols-2 md:items-end" data-reveal-group>
+      <div class="min-w-0" data-reveal>
         <Kicker id="contact-kicker" tone="dark">{sections.contact.kicker}</Kicker>
         <h2
           id="contact-title"
@@ -60,7 +60,7 @@ const details = [
         </div>
       </div>
 
-      <ul class="min-w-0 border-t border-ink-line" data-contact-details>
+      <ul class="min-w-0 border-t border-ink-line" data-contact-details data-reveal>
         {
           details.map(({ key, label, value, href, ...attrs }) => (
             <li

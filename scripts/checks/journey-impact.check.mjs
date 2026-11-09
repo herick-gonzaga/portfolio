@@ -354,7 +354,7 @@ async function checkStickyBehaviour(t, page, at, width) {
 const readReveal = () => {
   const list = document.querySelector('#journey ol');
   return {
-    armed: list.hasAttribute('data-reveal'),
+    armed: list.hasAttribute('data-journey-armed'),
     items: [...list.children].map((li) => {
       const s = getComputedStyle(li);
       return { opacity: s.opacity, transform: s.transform, duration: s.transitionDuration, visible: li.classList.contains('is-visible') };
@@ -427,7 +427,7 @@ async function readRevealWithoutJs(page, url) {
     const get = (name) => computedStyle.find((p) => p.name === name)?.value;
     items.push({ opacity: get('opacity'), transform: get('transform') });
   }
-  return { armed: attributes.includes('data-reveal'), items };
+  return { armed: attributes.includes('data-journey-armed'), items };
 }
 
 async function checkFinalState(t, browser, url, at, mode) {

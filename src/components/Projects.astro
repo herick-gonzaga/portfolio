@@ -42,7 +42,7 @@ const small = content.projects.filter((project) => project.tier === 'small');
     <Icon name="arrow-right" size={16} />
   </a>
 
-  <div class="grid gap-gutter lg:grid-cols-[2fr_1fr]">
+  <div class="grid gap-gutter lg:grid-cols-[2fr_1fr]" data-reveal-group>
     {featured && <ProjectFeatured project={featured} />}
     <div class="flex flex-col gap-gutter lg:grid lg:auto-rows-fr">
       {secondary.map((project) => <ProjectCard project={project} />)}
@@ -51,7 +51,7 @@ const small = content.projects.filter((project) => project.tier === 'small');
 
   {
     small.length > 0 && (
-      <div class="mt-gutter grid gap-gutter sm:grid-cols-2">
+      <div class="mt-gutter grid gap-gutter sm:grid-cols-2" data-reveal-group>
         {small.map((project) => (
           <ProjectCardSmall project={project} />
         ))}

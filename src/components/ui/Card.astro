@@ -5,6 +5,7 @@
  * `padding="list"` keeps the horizontal padding but uses 8px vertical padding (row lists).
  * `padding="featured"` uses 40px from 900px (24px below), for the featured project.
  * Hover lifts 2px with the spec's single shadow; no hover motion under prefers-reduced-motion.
+ * `reveal` marks the card for the scroll reveal (data-reveal, see src/scripts/motion.ts).
  */
 import type { HTMLTag } from 'astro/types';
 
@@ -13,10 +14,12 @@ interface Props {
   dark?: boolean;
   topAccent?: boolean;
   padding?: 'default' | 'list' | 'featured';
+  /** Fade the card in when it scrolls into view (src/scripts/motion.ts). */
+  reveal?: boolean;
   class?: string;
 }
 
-const { as: Tag = 'div', dark = false, topAccent = false, padding = 'default', class: className } = Astro.props;
+const { as: Tag = 'div', dark = false, topAccent = false, padding = 'default', reveal = false, class: className } = Astro.props;
 ---
 
 <Tag
@@ -27,6 +30,7 @@ const { as: Tag = 'div', dark = false, topAccent = false, padding = 'default', c
     { default: 'p-6 md:p-card', list: 'px-6 py-2 md:px-card', featured: 'p-6 md:p-10' }[padding],
     className,
   ]}
+  data-reveal={reveal ? '' : undefined}
 >
   <slot />
 </Tag>
