@@ -41,6 +41,11 @@ export interface Content {
     headline: string;
     intro: string;
     status: string;
+    /**
+     * Roles cycled by the typewriter after the hero status line. The first one is rendered
+     * statically without JS and under prefers-reduced-motion.
+     */
+    roles: string[];
     heroChips: string[];
     about: [string, string];
     facts: LabeledValue[];

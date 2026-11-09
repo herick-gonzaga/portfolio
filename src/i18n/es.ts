@@ -16,6 +16,7 @@ export const es: Content = {
     intro:
       'Soy Herick Gonzaga, Ingeniero de Software e IA y estudiante de Relaciones Internacionales. Trabajo con sistemas basados en LLM, automatización con agentes y QA para una plataforma estadounidense de compras para la construcción. Construyo el pipeline, los prompts y las pruebas que demuestran que todo funciona — con la mirada puesta en los mercados donde opera el software.',
     status: 'Ingeniería de Software e IA + Relaciones Internacionales · Brasil (UTC−3)',
+    roles: ['Ingeniería de Software', 'IA y HITL', 'Automatización de QA', 'Mentalidad internacional'],
     heroChips: ['Ingeniería de Software', 'Ingeniería de IA', 'Prompt Engineering', 'QA & Automatización', 'MCP', 'Relaciones Internacionales'],
     about: [
       'Trabajo como prestador de servicios en SubBase — una plataforma SaaS estadounidense de compras para la construcción — a través de Codengage. Me encargo del trabajo de datos human-in-the-loop, del prompt engineering y del QA de un pipeline de extracción de facturas basado en LLM, del prompt a la prueba que lo valida.',

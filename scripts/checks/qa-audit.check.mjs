@@ -29,7 +29,8 @@ function measureLayout(width) {
   const lines = Math.round(h1.getBoundingClientRect().height / parseFloat(getComputedStyle(h1).lineHeight));
   const describe = (el) => `${el.tagName.toLowerCase()} "${(el.getAttribute('aria-label') || el.textContent).trim().replace(/\s+/g, ' ').slice(0, 30)}"`;
   const clipped = [...document.querySelectorAll('body *')]
-    .filter((el) => visible(el) && !el.closest('svg') && el.textContent.trim())
+    // .sr-only text is clipped to 1px on purpose (screen-reader only).
+    .filter((el) => visible(el) && !el.closest('svg, .sr-only') && el.textContent.trim())
     .filter((el) => /hidden|clip|auto|scroll/.test(getComputedStyle(el).overflowX) && el.scrollWidth > el.clientWidth + 1)
     .map(describe);
   const small =

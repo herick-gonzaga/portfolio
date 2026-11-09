@@ -173,6 +173,17 @@ const d = (e: { x1: number; y1: number; x2: number; y2: number }) => `M${e.x1} $
     }
   }
 
+  /*
+   * Constellation running (src/scripts/constellation.ts): its particles draw the spokes and rails,
+   * so the static edges fade out. Nodes and hub stay above the canvas.
+   */
+  :global(.is-constellation) .sd-edge,
+  :global(.is-constellation) .sd-dash {
+    animation: none;
+    opacity: 0;
+    transition: opacity 1.2s ease-out;
+  }
+
   @keyframes sd-draw {
     from {
       stroke-dashoffset: 1;

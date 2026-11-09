@@ -260,7 +260,7 @@ function measureHero() {
     });
   });
   return {
-    status: hero.querySelector('.hero-status').textContent.replace(/\s+/g, ' ').trim(),
+    status: hero.querySelector('[data-hero-status-text]').textContent.replace(/\s+/g, ' ').trim(),
     h1: h1.textContent.replace(/\s+/g, ' ').trim(),
     h1Lines: Math.round(h1.getBoundingClientRect().height / parseFloat(h1Style.lineHeight)),
     h1Size: parseFloat(h1Style.fontSize),
@@ -300,7 +300,7 @@ async function checkHeroMotion(t, browser, url, at) {
   const read = (page) => page.eval(() => [...document.querySelectorAll('.hero-status, .hero-title, .hero-ctas')].map((el) => getComputedStyle(el).opacity));
   const page = await browser.newPage();
   await page.goto(url);
-  const done = await page.waitFor(() => [...document.querySelectorAll('.hero-status, .hero-title, .hero-ctas')].every((el) => getComputedStyle(el).opacity === '1'), { timeout: 2000 });
+  const done = await page.waitFor(() => [...document.querySelectorAll('.hero-status, .hero-title, .hero-ctas')].every((el) => getComputedStyle(el).opacity === '1'), { timeout: 3000 });
   t.ok(done, `${at}: hero load sequence ends fully visible`);
   t.ok(await page.eval(() => document.body.classList.contains('hero-ready')), `${at}: hero sequence is armed`);
   await page.reducedMotion(true);

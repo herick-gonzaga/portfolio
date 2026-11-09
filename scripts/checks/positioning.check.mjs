@@ -54,7 +54,7 @@ function read() {
   const text = (el) => (el?.textContent ?? '').replace(/\s+/g, ' ').trim();
   const metas = [...document.querySelectorAll('head meta[content]')].map((m) => m.getAttribute('content'));
   return {
-    status: text(document.querySelector('.hero-status')),
+    status: text(document.querySelector('[data-hero-status-text]')),
     intro: text(document.querySelector('#top p.hero-title')),
     chips: [...document.querySelectorAll('.hero-ctas li')].map(text),
     facts: [...document.querySelectorAll('#about dl > div')].map((row) => ({ label: text(row.querySelector('dt')), value: text(row.querySelector('dd')) })),

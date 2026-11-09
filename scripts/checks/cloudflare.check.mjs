@@ -103,11 +103,12 @@ async function checkPagesUnderCsp(t, browser, baseUrl, routes) {
       await page.goto(baseUrl + route.path);
       const state = await page.eval(() => ({
         heroReady: document.body.classList.contains('hero-ready'),
-        bundled: performance.getEntriesByType('resource').filter((e) => /\/_astro\/.*\.js$/.test(e.name) && e.responseStatus === 200).length,
-        modules: document.querySelectorAll('script[type="module"][src^="/_astro/"]').length,
+        // Every module <script> loaded (they may also import shared chunks, which load too).
+        loaded: performance.getEntriesByType('resource').filter((e) => /\/_astro\/.*\.js$/.test(e.name) && e.responseStatus === 200).map((e) => new URL(e.name).pathname),
+        sources: [...document.querySelectorAll('script[type="module"][src^="/_astro/"]')].map((s) => s.getAttribute('src')),
       }));
       t.ok(state.heroReady, `${route.path}: inline hero script runs under the CSP`);
-      t.ok(state.modules > 0 && state.bundled === state.modules, `${route.path}: bundled scripts load from /_astro/`, JSON.stringify(state));
+      t.ok(state.sources.length > 0 && state.sources.every((src) => state.loaded.includes(src)), `${route.path}: bundled scripts load from /_astro/`, JSON.stringify(state));
       t.eq(page.errors, [], `${route.path}: no uncaught script errors under the CSP`);
     } finally {
       await page.close();
