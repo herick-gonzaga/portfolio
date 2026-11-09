@@ -98,6 +98,8 @@ export interface Content {
       github: string;
       instagram: string;
       timezone: string;
+      /** Row with the live Brazil (UTC−3) clock, after the time zone. */
+      localTime: string;
     };
     menuOpen: string;
     menuClose: string;

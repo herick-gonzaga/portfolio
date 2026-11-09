@@ -53,6 +53,8 @@ src/
 ├── pages/                  # /, /pt/, /es/ and robots.txt
 ├── scripts/motion.ts       # Lenis smooth scroll, [data-reveal] scroll reveal, progress bar
 ├── scripts/terminal.ts     # Contact terminal: commands, typewriter output, history, Tab completion
+├── scripts/cursor.ts       # Dot + trailing ring cursor (fine pointers, motion allowed only)
+├── scripts/fonts.ts        # Font gate: entrance animations wait for the web fonts (max 1s)
 └── styles/                 # Design tokens and global styles
 docs/
 ├── DESIGN_SPEC.md          # Visual system and section spec

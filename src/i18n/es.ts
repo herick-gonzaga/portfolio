@@ -66,6 +66,7 @@ export const es: Content = {
       github: 'GitHub',
       instagram: 'Instagram',
       timezone: 'Zona horaria',
+      localTime: 'Hora local',
     },
     menuOpen: 'Abrir menú',
     menuClose: 'Cerrar menú',

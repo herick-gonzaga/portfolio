@@ -66,6 +66,7 @@ export const pt: Content = {
       github: 'GitHub',
       instagram: 'Instagram',
       timezone: 'Fuso horário',
+      localTime: 'Hora local',
     },
     menuOpen: 'Abrir menu',
     menuClose: 'Fechar menu',

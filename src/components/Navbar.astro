@@ -4,7 +4,8 @@
  * panel (PersonalPanel.astro).
  * Sticky 72px navbar overlaying the hero. Transparent until 40px of scroll, then ink at 86%
  * with backdrop blur and a 1px ink-line border. Section anchors (≥900px) highlight the section
- * in view; below 900px a menu button opens a full-screen sheet with the switcher and 6 links.
+ * in view (aria-current="location", with a 2px underline that grows from the centre and
+ * slides out when the section changes); below 900px a menu button opens a full-screen sheet with the switcher and 6 links.
  */
 import LanguageSwitcher from './LanguageSwitcher.astro';
 import Button from './ui/Button.astro';
@@ -70,7 +71,7 @@ const sheetLinks = [...anchors, { id: 'contact', label: nav.cta }];
                 <a
                   href={`#${id}`}
                   data-section={id}
-                  class="whitespace-nowrap rounded-[4px] text-[14px] font-medium text-muted-dark transition-colors duration-hover ease-out hover:text-white aria-[current=location]:text-cobalt-soft"
+                  class="nav-link relative whitespace-nowrap rounded-[4px] text-[14px] font-medium text-muted-dark transition-colors duration-hover ease-out hover:text-white aria-[current=location]:text-cobalt-soft"
                 >
                   {label}
                 </a>
@@ -139,6 +140,28 @@ const sheetLinks = [...anchors, { id: 'contact', label: nav.cta }];
 </div>
 
 <style>
+  /* Active-section underline: 2px cobalt-soft, 6px under the label, scaled in on aria-current. */
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 -6px;
+    height: 2px;
+    border-radius: 1px;
+    background-color: var(--color-cobalt-soft);
+    transform: scaleX(0);
+    transform-origin: 50% 50%;
+    opacity: 0;
+    transition:
+      transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 200ms ease-out;
+    pointer-events: none;
+  }
+
+  .nav-link[aria-current='location']::after {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
   .navbar {
     transition:
       background-color var(--duration-hover) ease-out,
