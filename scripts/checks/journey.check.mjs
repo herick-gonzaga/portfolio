@@ -1,5 +1,5 @@
 /**
- * Journey and Achievements & impact sections.
+ * Journey section (Achievements & impact has its own check: impact.check.mjs).
  * Journey: copy matches the locale files; 200px/1fr grid with a sticky header column only from
  * 900px; timeline line, item padding, dot style per item type (current / past work / education)
  * and dot position (centered on the line, aligned with the first text line); item typography.
@@ -10,39 +10,21 @@
  * static) under prefers-reduced-motion, after switching it on mid-visit, in print, and without JS.
  * Org notes ("through Codengage") render after the org as muted 15px regular text, and the work
  * history shows a single current engagement, with Codengage only as a note, never its own entry.
- * Achievements: copy and real metric values (no placeholders); bottom-only padding; 3 metric
- * cards (1 column below 600px; values 36px between 600px and 900px, 44px elsewhere) whose values
- * share one baseline; 2-column achievement grid (1 column below 900px) with
- * the icon left of the text. Both: nothing overflows and no horizontal scroll in any locale.
+ * Journey: nothing overflows and no horizontal scroll in any locale.
  */
 import { TOKENS, normalize } from './lib/context.mjs';
 import { sleep } from './lib/browser.mjs';
-import { icons } from '../../src/components/ui/icons.ts';
 
 const WIDTHS = [1440, 1200, 900, 600, 390];
 
-/** Real metric values per locale: same numbers, locale-specific separators. */
-const IMPACT_VALUES = {
-  en: ['10+', '500+', '98.85%'],
-  pt: ['10+', '500+', '98,85%'],
-  es: ['10+', '500+', '98,85%'],
-};
-
-function readTexts(expectedIcons) {
+function readTexts() {
   const text = (el) => (el?.textContent ?? '').replace(/\s+/g, ' ').trim();
   const journey = document.getElementById('journey');
-  const impact = document.getElementById('impact');
   const headerOf = (section) => ({
     kicker: text(section.querySelector('header > p:first-child')),
     title: text(section.querySelector('header h2')),
     intro: text(section.querySelector('header h2 + p')) || undefined,
   });
-  // Normalizes an icon's markup the same way for the rendered SVG and the expected icon source.
-  const iconMarkup = (html) => {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.innerHTML = html;
-    return svg.innerHTML;
-  };
   const items = [...journey.querySelectorAll('ol > li')].map((li) => {
     const [period, description] = li.querySelectorAll(':scope > p');
     const note = li.querySelector('h3 [data-org-note]');
@@ -56,19 +38,6 @@ function readTexts(expectedIcons) {
   });
   return {
     journey: { header: headerOf(journey), items, listTag: journey.querySelector('ol')?.tagName },
-    impact: {
-      header: headerOf(impact),
-      metrics: [...impact.querySelectorAll('[data-metrics] > li')].map((li) => {
-        const [value, label, note] = li.querySelectorAll('p');
-        return { value: text(value), label: text(label), note: text(note) };
-      }),
-      items: [...impact.querySelectorAll('[data-achievements] > li')].map((li) => ({
-        title: text(li.querySelector('h3')),
-        description: text(li.querySelector('h3 + p')),
-        icon: iconMarkup(li.querySelector('svg').innerHTML),
-      })),
-      expectedIcons: expectedIcons.map(iconMarkup),
-    },
   };
 }
 
@@ -88,15 +57,6 @@ function measureLayout() {
       tracking: Math.round((px(s.letterSpacing) / px(s.fontSize)) * 1000) / 1000 || 0,
     };
   };
-  const baseline = (el) => {
-    const probe = document.createElement('span');
-    probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
-    el.appendChild(probe);
-    const y = box(probe).top;
-    probe.remove();
-    return y;
-  };
-  const lineCount = (el) => Math.round(box(el).height / px(style(el).lineHeight));
   const overflowIn = (section) => {
     const found = [];
     for (const el of section.querySelectorAll('*')) {
@@ -155,13 +115,6 @@ function measureLayout() {
   const hs = style(headerCol);
   const containerStyle = style(container);
 
-  // Achievements.
-  const impact = document.getElementById('impact');
-  const metricLis = [...impact.querySelectorAll('[data-metrics] > li')];
-  const metricCards = metricLis.map((li) => li.firstElementChild);
-  const achievementCards = [...impact.querySelectorAll('[data-achievements] > li > article')];
-  const is = style(impact);
-
   return {
     vw,
     hscroll: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -181,39 +134,8 @@ function measureLayout() {
       items,
       overflowing: overflowIn(journey),
     },
-    impact: {
-      background: is.backgroundColor,
-      padding: [px(is.paddingTop), px(is.paddingBottom)],
-      metricColumns: new Set(metricCards.map((c) => Math.round(box(c).left))).size,
-      metricRows: new Set(metricCards.map((c) => Math.round(box(c).top))).size,
-      metricHeights: metricCards.map((c) => box(c).height),
-      metricGap: metricCards.length > 1 ? px(style(metricLis[0].parentElement).columnGap) : 0,
-      metricValues: metricCards.map((c) => font(c.querySelector('p'))),
-      metricLabels: metricCards.map((c) => ({ ...font(c.querySelectorAll('p')[1]), lines: lineCount(c.querySelectorAll('p')[1]) })),
-      metricNotes: metricCards.map((c) => font(c.querySelectorAll('p')[2])),
-      valueBaselines: metricCards.map((c) => baseline(c.querySelector('p'))),
-      valueFirst: metricCards.every((c) => c.querySelector('p') === c.firstElementChild),
-      achievementColumns: new Set(achievementCards.map((c) => Math.round(box(c).left))).size,
-      achievementGap: px(style(impact.querySelector('[data-achievements]')).columnGap),
-      rowSpacing: box(impact.querySelector('[data-achievements]')).top - box(impact.querySelector('[data-metrics]')).bottom,
-      achievements: achievementCards.map((card) => {
-        const icon = card.querySelector('svg');
-        const textCol = icon.nextElementSibling;
-        return {
-          icon: { width: box(icon).width, height: box(icon).height, color: style(icon).color, shrink: style(icon).flexShrink },
-          iconLeftOfText: box(icon).right <= box(textCol).left,
-          gap: box(textCol).left - box(icon).right,
-          iconTopOffset: box(icon).top - box(textCol).top,
-          title: font(textCol.querySelector('h3')),
-          description: font(textCol.querySelector('p')),
-        };
-      }),
-      overflowing: overflowIn(impact),
-    },
   };
 }
-
-const spread = (values) => Math.max(...values) - Math.min(...values);
 
 function checkJourneyLayout(t, j, at, width) {
   const desktop = width >= 900;
@@ -280,64 +202,6 @@ function checkJourneyLayout(t, j, at, width) {
     t.ok(Math.abs(desc.maxWidth - desc.ch62) <= 0.5 && desc.width <= desc.ch62 + 0.5, `${at}: item ${n + 1} description max 62ch`, JSON.stringify(desc));
   }
   t.eq(j.overflowing, [], `${at}: nothing in Journey overflows`);
-}
-
-function checkImpactLayout(t, m, at, width) {
-  const pad = width >= 900 ? 112 : 72;
-  t.eq(m.background, TOKENS.transparent, `${at}: Impact sits on the mist page background`);
-  t.eq(m.padding, [0, pad], `${at}: Impact has bottom padding only (${pad}px)`);
-
-  const metricCols = width >= 600 ? 3 : 1;
-  t.eq(m.metricColumns, metricCols, `${at}: ${metricCols} metric column(s)`);
-  if (metricCols === 3) {
-    t.eq(m.metricRows, 1, `${at}: metrics share one row`);
-    t.eq(m.metricGap, 24, `${at}: metric gap is 24px`);
-    t.ok(spread(m.metricHeights) <= 1, `${at}: metric cards have equal height`, JSON.stringify(m.metricHeights));
-    t.ok(spread(m.valueBaselines) <= 0.5, `${at}: metric values share one baseline`, JSON.stringify(m.valueBaselines));
-    const wraps = m.metricLabels.map((l) => l.lines);
-    if (spread(wraps) > 0) t.note(`${at}: metric labels wrap unevenly (${wraps.join('/')} lines), baselines still aligned`);
-  }
-  t.ok(m.valueFirst, `${at}: each metric value is the first line of its card`);
-  // 36px in the narrow 3-column band (600-899px) so values like "98.85%" fit on one line; 44px elsewhere.
-  const valueSize = width >= 600 && width < 900 ? 36 : 44;
-  t.ok(
-    m.metricValues.every((v) => v.size === valueSize && v.weight === '600' && v.color === TOKENS.cobalt && v.tracking === -0.03),
-    `${at}: metric values are ${valueSize}px/600 cobalt, -0.03em`,
-    JSON.stringify(m.metricValues[0]),
-  );
-  t.ok(
-    m.metricLabels.every((l) => l.size === 15 && l.weight === '600' && l.color === TOKENS.text),
-    `${at}: metric labels are 15px/600`,
-    JSON.stringify(m.metricLabels[0]),
-  );
-  t.ok(
-    m.metricNotes.every((n) => n.size === 14 && n.lineHeight === 1.5 && n.color === TOKENS.muted),
-    `${at}: metric notes are 14px/1.5 muted`,
-    JSON.stringify(m.metricNotes[0]),
-  );
-
-  const achievementCols = width >= 900 ? 2 : 1;
-  t.eq(m.achievementColumns, achievementCols, `${at}: ${achievementCols} achievement column(s)`);
-  if (achievementCols === 2) t.eq(m.achievementGap, 24, `${at}: achievement column gap is 24px`);
-  t.near(m.rowSpacing, 24, 0.5, `${at}: 24px between metrics and achievements`);
-  for (const [n, a] of m.achievements.entries()) {
-    const label = `${at}: achievement ${n + 1}`;
-    t.ok(
-      a.icon.width === 24 && a.icon.height === 24 && a.icon.color === TOKENS.cobalt && a.icon.shrink === '0',
-      `${label} icon is 24px cobalt, flex-shrink 0`,
-      JSON.stringify(a.icon),
-    );
-    t.ok(a.iconLeftOfText, `${label} icon sits left of the text`);
-    t.near(a.gap, 20, 0.5, `${label} icon-text gap is 20px`);
-    t.near(a.iconTopOffset, 2, 0.5, `${label} icon is offset 2px from the top`);
-    t.ok(a.title.size === 17 && a.title.weight === '600', `${label} H3 is 17px/600`, JSON.stringify(a.title));
-    t.ok(
-      a.description.size === 14 && a.description.lineHeight === 1.55 && a.description.color === TOKENS.muted,
-      `${label} description is 14px/1.55 muted`,
-      JSON.stringify(a.description),
-    );
-  }
-  t.eq(m.overflowing, [], `${at}: nothing in Impact overflows`);
 }
 
 /** Scrolls so the header column would have scrolled past 96px; a sticky header stays at 96px. */
@@ -592,7 +456,7 @@ async function checkFinalState(t, browser, url, at, mode) {
 }
 
 export default {
-  name: 'Journey & Achievements sections',
+  name: 'Journey section',
   async run({ browser, baseUrl, routes, t }) {
     // Static layout is measured in its final state (reduced motion); checkScrollStory covers the
     // motion path, including that its layout boxes are identical.
@@ -605,8 +469,7 @@ export default {
 
       await page.viewport(1440);
       await page.goto(url);
-      const iconNames = content.achievements.items.map((item) => item.icon);
-      const texts = await page.eval(readTexts, iconNames.map((name) => icons[name]));
+      const texts = await page.eval(readTexts);
 
       const header = (h) => ({ kicker: h.kicker, title: h.title, intro: h.intro });
       t.eq(texts.journey.header, header(content.sections.journey), `${at}: Journey header matches locale`);
@@ -634,35 +497,12 @@ export default {
         `${at}: every org note is rendered`,
       );
 
-      t.eq(texts.impact.header, header(content.sections.impact), `${at}: Impact header matches locale`);
-      t.eq(
-        texts.impact.metrics,
-        content.achievements.metrics.map((m) => ({ value: m.value, label: normalize(m.label), note: normalize(m.note) })),
-        `${at}: metrics match locale`,
-      );
-      t.eq(
-        texts.impact.metrics.map((m) => m.value),
-        IMPACT_VALUES[route.locale],
-        `${at}: metric values are the real numbers in the locale's number format`,
-      );
-      t.ok(
-        texts.impact.metrics.every((m) => !/\[(N|Replace)/.test(m.value + m.label + m.note)),
-        `${at}: no "[N]" or bracketed "[Replace" placeholders remain`,
-      );
-      t.eq(
-        texts.impact.items.map(({ title, description }) => ({ title, description })),
-        content.achievements.items.map((i) => ({ title: normalize(i.title), description: normalize(i.description) })),
-        `${at}: achievements match locale`,
-      );
-      t.eq(texts.impact.items.map((i) => i.icon), texts.impact.expectedIcons, `${at}: achievement icons match locale`);
-
       for (const width of WIDTHS) {
         await page.viewport(width);
         await page.goto(url);
         const m = await page.eval(measureLayout);
         t.ok(m.hscroll <= 0, `${at} @${width}: no horizontal scroll`, `${m.hscroll}px`);
         checkJourneyLayout(t, m.journey, `${at} @${width}`, width);
-        checkImpactLayout(t, m.impact, `${at} @${width}`, width);
         await checkStickyBehaviour(t, page, `${at} @${width}`, width);
       }
 

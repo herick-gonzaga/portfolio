@@ -1,14 +1,23 @@
 ---
 /**
- * Achievements & impact (id "impact"): shares the mist background with Journey above, so only the
- * bottom padding is kept.
- * Row 1: three metric cards (one column below 600px). Each value is the first line of its card at
- * a fixed 44px/1 line box (36px/1 between 600px and 900px, where three columns are too narrow for a
- * value like "98.85%"), so the values share one baseline whatever the label wrapping below.
- * Metric values are rendered as-is from the locale files, which own the per-locale number format.
- * Row 2: the achievement cards in two columns from 900px (one below), icon left of the text.
+ * Achievements & impact (id "impact"): an "evidence board". Shares the mist background with Journey
+ * above, so only the bottom padding is kept.
+ *
+ * Metrics: three oversized JetBrains Mono figures in cobalt straight on the background, each above
+ * its label and note. Three columns split by 1px hairlines from 900px; stacked below, split by
+ * horizontal hairlines. Values render as-is from the locale files (which own the number format). With
+ * motion allowed they count up once with a "decode" flicker, staggered (src/scripts/interactions.ts);
+ * the animated copy is aria-hidden and screen readers read the static sr-only value. Each value is a
+ * single nowrap line with a fixed line box, so the changing digits never move layout.
+ *
+ * Exhibit ledger: one row per achievement, split by hairlines, no boxes. A row head is a <button>
+ * (inside the H3) holding the mono "EXH-0N" code, the localized category tag, the icon, the title and
+ * a "+" that turns into "×" when open; the description below is a region. One row open at a time,
+ * the first by default (src/scripts/impact-ledger.ts). Rows 2-4 are collapsed from the first paint
+ * via body.hero-ready (set by Hero.astro's inline script), so the script never shifts layout; without
+ * JS no row collapses. A cobalt rail on the left draws down with the scroll (fully drawn without
+ * motion). Hover tints the row around the cursor (data-spotlight, src/scripts/interactions.ts).
  */
-import Card from './ui/Card.astro';
 import Icon from './ui/Icon.astro';
 import Section from './ui/Section.astro';
 import { getContent, type Locale } from '../i18n';
@@ -20,7 +29,10 @@ interface Props {
 const { locale } = Astro.props;
 const content = getContent(locale);
 const header = content.sections.impact;
-const { metrics, items } = content.achievements;
+const { metrics, items, exhibitPrefix } = content.achievements;
+/** ms between the three metric count-ups. */
+const METRIC_STAGGER = 180;
+const num = (i: number) => String(i + 1).padStart(2, '0');
 ---
 
 <Section
@@ -31,33 +43,433 @@ const { metrics, items } = content.achievements;
   intro={header.intro}
   padding="bottom"
 >
-  <ul class="grid gap-gutter sm:grid-cols-3" data-metrics data-reveal-group>
+  <ul class="metrics" data-metrics data-reveal-group>
     {
-      metrics.map((metric) => (
-        <li class="flex" data-reveal>
-          <Card spotlight class="flex w-full flex-col">
-            <p class="text-metric font-semibold sm:max-md:text-[36px] tracking-[-0.03em] text-cobalt">{metric.value}</p>
-            <p class="mt-3 text-[15px] leading-[1.4] font-semibold">{metric.label}</p>
-            <p class="mt-2 text-[14px] leading-[1.5] text-muted">{metric.note}</p>
-          </Card>
+      metrics.map((metric, i) => (
+        <li class="metric" data-reveal>
+          <p class="metric-value">
+            <span class="sr-only">{metric.value}</span>
+            <span aria-hidden="true" data-countup data-countup-decode data-countup-delay={i * METRIC_STAGGER}>
+              {metric.value}
+            </span>
+          </p>
+          <p class="metric-label">{metric.label}</p>
+          <p class="metric-note">{metric.note}</p>
         </li>
       ))
     }
   </ul>
 
-  <ul class="mt-gutter grid gap-gutter md:grid-cols-2" data-achievements data-reveal-group>
-    {
-      items.map((item) => (
-        <li class="flex" data-reveal>
-          <Card as="article" spotlight class="flex w-full gap-5">
-            <Icon name={item.icon} size={24} class="mt-[2px] shrink-0 text-cobalt" />
-            <div>
-              <h3 class="text-[17px] leading-[1.35] font-semibold">{item.title}</h3>
-              <p class="mt-1.5 text-[14px] leading-[1.55] text-muted">{item.description}</p>
+  <div class="ledger" data-ledger>
+    <ol class="ledger-list" data-achievements data-reveal-group>
+      {
+        items.map((item, i) => (
+          <li class="ledger-row" data-ledger-row data-open={i === 0 ? '' : undefined} data-spotlight data-reveal>
+            <h3 class="ledger-heading">
+              <button class="ledger-trigger" type="button" id={`impact-exh-${num(i)}`} data-ledger-trigger>
+                <span class="ledger-meta">
+                  <span class="ledger-index" aria-hidden="true" data-ledger-index>
+                    {exhibitPrefix}-{num(i)}
+                  </span>
+                  <span class="ledger-tag">{item.tag}</span>
+                </span>
+                <Icon name={item.icon} size={24} class="ledger-icon" />
+                <span class="ledger-title">{item.title}</span>
+                <span class="ledger-toggle" aria-hidden="true" />
+              </button>
+            </h3>
+            <div
+              class="ledger-body"
+              id={`impact-exh-${num(i)}-body`}
+              role="region"
+              aria-labelledby={`impact-exh-${num(i)}`}
+              data-ledger-body
+            >
+              <div class="ledger-body-inner">
+                <p class="ledger-desc">{item.description}</p>
+              </div>
             </div>
-          </Card>
-        </li>
-      ))
-    }
-  </ul>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
 </Section>
+
+<style>
+  /* ---------- Metrics ---------- */
+  .metrics {
+    display: grid;
+  }
+
+  .metric {
+    min-width: 0;
+    padding-block: 28px;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .metric:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .metric:last-child {
+    padding-bottom: 0;
+  }
+
+  /* Fixed 1em line box, one line: the count-up and decode change glyphs, never the box. */
+  .metric-value {
+    font-family: var(--font-mono);
+    font-size: 64px;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    white-space: nowrap;
+    color: var(--color-cobalt);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .metric-label {
+    margin-top: 20px;
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .metric-note {
+    margin-top: 6px;
+    max-width: 36ch;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-muted);
+  }
+
+  @media (min-width: 900px) {
+    .metrics {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .metric,
+    .metric:first-child,
+    .metric:last-child {
+      padding: 0 32px;
+      border-top: 0;
+      border-left: 1px solid var(--color-line);
+    }
+
+    .metric:first-child {
+      padding-left: 0;
+      border-left: 0;
+    }
+
+    .metric:last-child {
+      padding-right: 0;
+    }
+
+    /* 56px at 900 to 88px at 1440 (max 96): "98.85%" always fits the narrowest column. */
+    .metric-value {
+      font-size: clamp(56px, 5.9vw + 3px, 96px);
+    }
+  }
+
+  /* ---------- Exhibit ledger ---------- */
+  .ledger {
+    --rail: 20px;
+    --meta: 0px;
+    --gap: 16px;
+    position: relative;
+    margin-top: 64px;
+    padding-left: var(--rail);
+  }
+
+  /* Rail: a 1px gray track with the cobalt line drawn over it (fully drawn by default). */
+  .ledger::before,
+  .ledger::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+  }
+
+  .ledger::before {
+    width: 1px;
+    background-color: var(--color-line);
+  }
+
+  .ledger::after {
+    left: -0.5px;
+    width: 2px;
+    background-color: var(--color-cobalt);
+    transform-origin: top;
+  }
+
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .ledger[data-ledger-armed]::after {
+      transform: scaleY(var(--ledger-progress, 1));
+    }
+  }
+
+  /*
+   * --pull tucks an open description up under the head's bottom padding; the row's own bottom
+   * padding gives the same space back, so a collapsed row is exactly as tall as its head.
+   */
+  .ledger-row {
+    --pull: 10px;
+    position: relative;
+    isolation: isolate;
+    padding-bottom: var(--pull);
+    border-top: 1px solid var(--color-line);
+  }
+
+  .ledger-row:last-child {
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  /* Hover tint: a soft cobalt glow centred on the cursor over a faint flat wash. */
+  .ledger-row::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(circle 360px at var(--spot-x, 50%) var(--spot-y, 50%), rgb(43 91 255 / 0.07), transparent 70%),
+      rgb(43 91 255 / 0.025);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-hover) ease-out;
+  }
+
+  @media (hover: hover) {
+    .ledger-row:hover::before {
+      opacity: 1;
+    }
+  }
+
+  .ledger-row:has(.ledger-trigger:focus-visible)::before {
+    opacity: 1;
+  }
+
+  .ledger-heading {
+    font: inherit;
+  }
+
+  /* Head grid: below 900px the code + tag sit on their own line above icon + title. */
+  .ledger-trigger {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) 24px;
+    grid-template-areas:
+      'meta meta toggle'
+      'icon title title';
+    column-gap: var(--gap);
+    row-gap: 10px;
+    align-items: start;
+    width: 100%;
+    min-height: var(--touch-target);
+    padding: 22px 12px 22px 12px;
+    border-radius: var(--radius-button);
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .ledger-meta {
+    grid-area: meta;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    min-height: 24px;
+    padding-top: 4px;
+    font-family: var(--font-mono);
+    font-size: var(--text-mono-sm);
+    line-height: 1.4;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* Darker cobalt for the 12px code: AA on the mist and on the hover tint. */
+  .ledger-index {
+    min-width: 6ch;
+    color: var(--color-text-2);
+    white-space: nowrap;
+    transition: color var(--duration-hover) ease-out;
+  }
+
+  .ledger-tag {
+    color: var(--color-muted);
+  }
+
+  .ledger-trigger :global(.ledger-icon) {
+    grid-area: icon;
+    margin-top: 1px;
+    color: var(--color-cobalt);
+  }
+
+  .ledger-title {
+    grid-area: title;
+    font-size: var(--text-body);
+    line-height: 1.4;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+  }
+
+  /* "+" drawn with two bars; it turns 45deg into "×" when the row is open. */
+  .ledger-toggle {
+    grid-area: toggle;
+    position: relative;
+    width: 24px;
+    height: 24px;
+    color: var(--color-text-2);
+    transition:
+      transform 360ms var(--ease-out),
+      color var(--duration-hover) ease-out;
+  }
+
+  .ledger-toggle::before,
+  .ledger-toggle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 1.5px;
+    border-radius: 1px;
+    background-color: currentColor;
+    translate: -50% -50%;
+  }
+
+  .ledger-toggle::after {
+    rotate: 90deg;
+  }
+
+  .ledger-row[data-open] .ledger-toggle {
+    transform: rotate(45deg);
+    color: var(--color-cobalt-hover);
+  }
+
+  .ledger-row[data-open] .ledger-index {
+    color: var(--color-cobalt-hover);
+  }
+
+  @media (hover: hover) {
+    .ledger-row:hover .ledger-toggle,
+    .ledger-row:hover .ledger-index {
+      color: var(--color-cobalt-hover);
+    }
+  }
+
+  /* Without JS (no body.hero-ready) the head is plain text: no affordance, nothing to toggle. */
+  :global(body:not(.hero-ready)) .ledger-toggle {
+    visibility: hidden;
+  }
+
+  :global(body:not(.hero-ready)) .ledger-trigger {
+    cursor: default;
+  }
+
+  /*
+   * Description: animates its height with grid-template-rows (0fr ↔ 1fr). A collapsed body is
+   * visibility: hidden (out of the accessibility tree), switched only after the close transition.
+   */
+  .ledger-body {
+    display: grid;
+    grid-template-rows: 1fr;
+    padding-left: calc(12px + 24px + var(--gap));
+    padding-right: 12px;
+    margin-top: calc(-1 * var(--pull));
+    transition:
+      grid-template-rows 420ms var(--ease-out),
+      visibility 0s linear 0s;
+  }
+
+  .ledger-body-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .ledger-desc {
+    max-width: 62ch;
+    padding-bottom: 14px;
+    font-size: var(--text-body-sm);
+    line-height: 1.6;
+    color: var(--color-muted);
+    transition: opacity 320ms var(--ease-out);
+  }
+
+  :global(body.hero-ready) .ledger-row:not([data-open]) .ledger-body {
+    grid-template-rows: 0fr;
+    visibility: hidden;
+    transition:
+      grid-template-rows 420ms var(--ease-out),
+      visibility 0s linear 420ms;
+  }
+
+  :global(body.hero-ready) .ledger-row:not([data-open]) .ledger-desc {
+    opacity: 0;
+  }
+
+  /* Reduced motion: instant toggles (the global rule zeroes durations, not the visibility delay). */
+  @media (prefers-reduced-motion: reduce) {
+    .ledger-body,
+    .ledger-desc,
+    :global(body.hero-ready) .ledger-row:not([data-open]) .ledger-body,
+    :global(body.hero-ready) .ledger-row:not([data-open]) .ledger-desc {
+      transition: none;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .ledger {
+      --rail: 32px;
+      --meta: 12.5rem;
+      --gap: 20px;
+      margin-top: 96px;
+    }
+
+    .ledger-trigger {
+      grid-template-columns: var(--meta) 24px minmax(0, 1fr) 24px;
+      grid-template-areas: 'meta icon title toggle';
+      padding: 26px 16px;
+    }
+
+    .ledger-title {
+      font-size: var(--text-body-lg);
+      line-height: 1.35;
+    }
+
+    .ledger-body {
+      padding-left: calc(16px + var(--meta) + 2 * var(--gap) + 24px);
+      padding-right: calc(16px + 24px + var(--gap));
+    }
+
+    .ledger-desc {
+      padding-bottom: 18px;
+    }
+  }
+
+  @media print {
+    .ledger-body,
+    :global(body.hero-ready) .ledger-row:not([data-open]) .ledger-body {
+      grid-template-rows: 1fr;
+      visibility: visible;
+      transition: none;
+    }
+
+    :global(body.hero-ready) .ledger-row:not([data-open]) .ledger-desc {
+      opacity: 1;
+      transition: none;
+    }
+
+    .ledger-toggle {
+      visibility: hidden;
+    }
+  }
+</style>
+
+<script>
+  // Disclosure, index scramble and the scrubbed rail (src/scripts/impact-ledger.ts).
+  import '../scripts/impact-ledger';
+</script>

@@ -1,9 +1,10 @@
 /**
  * Card and CTA interactions (src/scripts/interactions.ts, Card.astro, global.css), in every locale.
  *
- * - Spotlight: every project and impact card is tagged; on hover the glow and the border
- *   light fade in, centred on the cursor (--spot-x/--spot-y), cobalt on light cards and
- *   cobalt-soft on the dark featured card, and fade out on leave. The spec hover shadow is kept.
+ * - Spotlight: every project card and every achievements ledger row is tagged; on a project card's
+ *   hover the glow and the border light fade in, centred on the cursor (--spot-x/--spot-y), cobalt
+ *   on light cards and cobalt-soft on the dark featured card, and fade out on leave. The spec hover
+ *   shadow is kept. (The ledger row's own tint is covered by impact.check.mjs.)
  * - Tilt: project cards only; they lean toward the cursor (at most 6deg per axis), return to
  *   `transform: none` after the cursor leaves, and never tilt on touch or under reduced motion.
  * - Count-up: the featured metrics start at 0 below the fold, count up once in the locale's number
@@ -19,7 +20,7 @@
 import { sleep } from './lib/browser.mjs';
 import { TOKENS } from './lib/context.mjs';
 
-const SPOTLIGHT = ['#projects article', '#impact [data-metrics] .card', '#impact [data-achievements] article'];
+const SPOTLIGHT = ['#projects article', '#impact [data-achievements] > li'];
 const TILT = '#projects article';
 const MAGNETIC = ['#top [href="#projects"]', 'header [href="#contact"]', '#contact a[href^="mailto:"]'];
 const FEATURED = { en: ['500+', '9,000+', '10+'], pt: ['500+', '9.000+', '10+'], es: ['500+', '9.000+', '10+'] };
@@ -73,12 +74,11 @@ async function checkSpotlight(t, page, at) {
     SPOTLIGHT,
     TILT,
   );
-  t.eq(tags.missing, [], `${at}: project and impact cards have the spotlight`);
+  t.eq(tags.missing, [], `${at}: project cards and ledger rows have the spotlight`);
   t.ok(tags.tilted && tags.tiltCount, `${at}: every project card, and only project cards, tilts`);
 
   const cases = [
-    { sel: '#impact [data-metrics] > li:first-child .card', ring: TOKENS.cobalt, name: 'impact metric card' },
-    { sel: '#impact [data-achievements] > li:first-child article', ring: TOKENS.cobalt, name: 'achievement card' },
+    { sel: '#projects .grid article:not(.card-dark)', ring: TOKENS.cobalt, name: 'light project card' },
     { sel: '#projects article.card-dark', ring: TOKENS.cobaltSoft, name: 'dark featured card' },
   ];
   for (const c of cases) {

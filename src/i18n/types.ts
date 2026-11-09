@@ -209,8 +209,12 @@ export interface Content {
   achievements: {
     /** Display-ready value, formatted for the locale (e.g. "9,000+" in EN, "9.000+" in PT/ES). */
     metrics: { value: string; label: string; note: string }[];
+    /** Mono code before each ledger row's number, e.g. "EXH" → "EXH-01" (src/components/Achievements.astro). */
+    exhibitPrefix: string;
     items: {
       icon: AchievementIcon;
+      /** Short mono category tag on the ledger row, e.g. "Speaking". */
+      tag: string;
       title: string;
       description: string;
     }[];

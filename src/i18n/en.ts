@@ -330,25 +330,30 @@ export const en: Content = {
         note: 'Measured across vendor prompt revisions in SubBase’s extraction pipeline.',
       },
     ],
+    exhibitPrefix: 'EXH',
     items: [
       {
         icon: 'mic',
+        tag: 'Speaking',
         title: 'Speaker, DevParaná na Estrada 2026 & Anhembi Morumbi (São Paulo)',
         description:
           'Talks on “From student to international developer” and “Paths and technology”: how early-career engineers reach global teams.',
       },
       {
         icon: 'mentor',
+        tag: 'Mentoring',
         title: 'Mentor, IAthon (Sudotec / SENAI)',
         description: 'Guided teams building AI prototypes under hackathon constraints.',
       },
       {
         icon: 'council',
+        tag: 'Leadership',
         title: 'Led the Software Engineering student council (CAES Alan Turing)',
         description: 'President in 2025, secretary in 2026; organized the Semana Acadêmica and its sponsorships.',
       },
       {
         icon: 'paper',
+        tag: 'Research',
         title: 'Research: LLMs for test-smell detection',
         description: 'Comparative study of language models identifying test smells, written in SBC format at UTFPR.',
       },

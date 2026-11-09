@@ -334,25 +334,30 @@ export const pt: Content = {
         note: 'Medido em revisões de prompts por fornecedor no pipeline de extração da SubBase.',
       },
     ],
+    exhibitPrefix: 'EXH',
     items: [
       {
         icon: 'mic',
+        tag: 'Palestras',
         title: 'Palestrante, DevParaná na Estrada 2026 & Anhembi Morumbi (São Paulo)',
         description:
           'Palestras “De estudante a desenvolvedor internacional” e “Caminhos e tecnologia”: como engenheiros em início de carreira chegam a times globais.',
       },
       {
         icon: 'mentor',
+        tag: 'Mentoria',
         title: 'Mentor, IAthon (Sudotec / SENAI)',
         description: 'Orientei equipes construindo protótipos de IA dentro das restrições de um hackathon.',
       },
       {
         icon: 'council',
+        tag: 'Liderança',
         title: 'Liderei o centro acadêmico de Engenharia de Software (CAES Alan Turing)',
         description: 'Presidente em 2025, secretário em 2026; organizei a Semana Acadêmica e seus patrocínios.',
       },
       {
         icon: 'paper',
+        tag: 'Pesquisa',
         title: 'Pesquisa: LLMs para detecção de test smells',
         description: 'Estudo comparativo de modelos de linguagem na identificação de test smells, escrito no formato SBC na UTFPR.',
       },
