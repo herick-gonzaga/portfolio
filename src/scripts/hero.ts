@@ -18,8 +18,8 @@
  */
 import { gsap } from 'gsap';
 import { SplitText } from 'gsap/SplitText';
+import { fontsReady } from './fonts';
 
-const FONT_WAIT_MS = 1000;
 const TYPE_MS = 65;
 const DELETE_MS = 32;
 const HOLD_MS = 1900;
@@ -110,7 +110,7 @@ async function init() {
   if (hidden) {
     gsap.registerPlugin(SplitText);
     hero.classList.add('hero-js');
-    await Promise.race([document.fonts.ready, wait(FONT_WAIT_MS)]);
+    await fontsReady();
     await entrance(hero);
   }
   if (typing) void typewriter(typing);

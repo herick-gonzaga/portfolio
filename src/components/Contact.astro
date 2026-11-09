@@ -6,6 +6,8 @@
  * kicker, H2 (48px, 32px below 900px, max 16ch), text and CTAs on the left; the contact details
  * list on the right (label left, mono value right; label above value below 600px). CTAs are full
  * width below 600px. The footer row closes the section: copyright, tagline and "back to top".
+ * After the time zone row, a live Brazil clock (America/Sao_Paulo, UTC−3 year-round) ticks every
+ * second in mono; it renders "--:--:--" until the script runs, at the same width, so no shift.
  * Between the columns and the footer sits the interactive terminal (Terminal.astro).
  * It does not use the Section shell: the header and the details list share one grid row here.
  */
@@ -30,6 +32,7 @@ const details = [
   { key: 'github', label: ui.contact.github, value: contact.githubLabel, href: contact.github, ...external },
   { key: 'instagram', label: ui.contact.instagram, value: contact.instagramLabel, href: contact.instagram, ...external },
   { key: 'timezone', label: ui.contact.timezone, value: contact.timezone },
+  { key: 'localtime', label: ui.contact.localTime, clock: true },
 ];
 ---
 
@@ -64,13 +67,18 @@ const details = [
 
       <ul class="min-w-0 border-t border-ink-line" data-contact-details data-reveal>
         {
-          details.map(({ key, label, value, href, ...attrs }) => (
+          details.map(({ key, label, value, href, clock, ...attrs }) => (
             <li
               data-row={key}
               class="flex flex-col border-b border-ink-line pt-3 pb-1 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:py-1"
             >
               <span class="shrink-0 text-[14px] leading-[1.4] text-muted-dark">{label}</span>
-              {href ? (
+              {clock ? (
+                <span class="inline-flex min-h-touch min-w-0 items-center gap-2 font-mono text-[15px] leading-[1.4] text-white sm:text-right">
+                  <time data-clock class="tabular-nums">--:--:--</time>
+                  <span class="text-muted-dark">BRT</span>
+                </span>
+              ) : href ? (
                 <a
                   href={href}
                   class="inline-flex min-h-touch min-w-0 items-center rounded-chip font-mono text-[15px] leading-[1.4] break-words text-white transition-colors duration-hover ease-out hover:text-cobalt-soft sm:text-right"
@@ -106,6 +114,36 @@ const details = [
     </footer>
   </div>
 </section>
+
+<script>
+  // Live Brazil clock. Re-armed on each second boundary so it never drifts; browsers throttle
+  // timers in background tabs, so it also catches up the moment the tab is shown again.
+  const TIME_ZONE = 'America/Sao_Paulo';
+  const clocks = document.querySelectorAll<HTMLTimeElement>('[data-clock]');
+
+  if (clocks.length) {
+    const format = new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+      timeZone: TIME_ZONE,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23',
+    });
+    let timer = 0;
+    const tick = () => {
+      clearTimeout(timer);
+      const now = new Date();
+      const text = format.format(now);
+      for (const clock of clocks) {
+        clock.textContent = text;
+        clock.dateTime = text;
+      }
+      timer = window.setTimeout(tick, 1000 - now.getMilliseconds() + 5);
+    };
+    tick();
+    document.addEventListener('visibilitychange', () => document.hidden || tick());
+  }
+</script>
 
 <style>
   .contact {

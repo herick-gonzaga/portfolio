@@ -172,13 +172,17 @@ const dotKind = (item: (typeof content.journey)[number]) =>
 <script>
   import { gsap } from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { fontsReady } from '../scripts/fonts';
 
   /** The line's tip, and the point where an item activates, as % of the viewport height. */
   const TIP = 60;
 
   const motionOk = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
 
-  if (motionOk) {
+  // Item positions depend on the final text layout: measure once the web fonts are in.
+  if (motionOk) void fontsReady().then(arm);
+
+  function arm() {
     gsap.registerPlugin(ScrollTrigger);
     const tipY = (window.innerHeight * TIP) / 100;
 

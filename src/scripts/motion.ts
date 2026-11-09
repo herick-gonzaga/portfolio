@@ -13,11 +13,16 @@
  * already on screen disappears and nothing stays hidden without JS. Opacity and transform never
  * move layout, so there is no layout shift.
  *
+ * Reveals are set up only once the web fonts are in (src/scripts/fonts.ts, capped at 1s): which
+ * elements sit below the fold, and where their triggers fall, depend on the final text layout.
+ * Smooth scrolling starts right away. <html data-motion="ready"> marks the end of setup.
+ *
  * Under prefers-reduced-motion none of this runs: native scrolling, every element static, no bar.
  */
 import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { fontsReady } from './fonts';
 
 const REVEAL_OFFSET_Y = 24;
 const REVEAL_DURATION = 0.7;
@@ -104,6 +109,9 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matc
 if (!reducedMotion) {
   gsap.registerPlugin(ScrollTrigger);
   initSmoothScroll();
-  initReveal();
-  initProgressBar();
+  void fontsReady().then(() => {
+    initReveal();
+    initProgressBar();
+    document.documentElement.dataset.motion = 'ready';
+  });
 }

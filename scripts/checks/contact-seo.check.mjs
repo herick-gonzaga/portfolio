@@ -3,8 +3,8 @@
  * Contact (1440, 900, 600, 390px): copy matches the locale files; mailto and external links
  * (new tab, rel noopener); ink background, 120/56 padding (72/40 below 900px) and the 1px
  * transparent → cobalt → transparent top line; 2 bottom-aligned columns with a 48px gap from 900px;
- * typography; CTAs full width below 600px; 5 details rows (email, LinkedIn, GitHub, Instagram,
- * time zone) with dividers and label/value stacking below
+ * typography; CTAs full width below 600px; 6 details rows (email, LinkedIn, GitHub, Instagram,
+ * time zone, local time; the live clock itself is checked in finishing-touches.check.mjs) with dividers and label/value stacking below
  * 600px; footer row (13px, 24px top padding, ink-line border) that wraps on mobile; no overflow.
  * Head: title, description, canonical, 4 hreflang, Open Graph, Twitter card, valid JSON-LD Person
  * and theme-color per route; og.png is a 1200×630 PNG; favicons, robots.txt and sitemap reachable.
@@ -34,6 +34,8 @@ function readTexts() {
     buttons: [...left.querySelectorAll('a')].map(link),
     rows: [...section.querySelectorAll('[data-contact-details] > li')].map((li) => {
       const [label, value] = li.children;
+      // The live clock's value changes every second: compare its label only.
+      if (value.querySelector('[data-clock]')) return { label: text(label), clock: true };
       return { label: text(label), value: text(value), ...(value.tagName === 'A' ? { link: link(value) } : {}) };
     }),
     footer: {
@@ -204,6 +206,7 @@ function checkTexts(t, texts, content, at) {
       { label: ui.contact.github, value: contact.githubLabel, link: { label: contact.githubLabel, href: contact.github, target: '_blank', rel: 'noopener' } },
       { label: ui.contact.instagram, value: contact.instagramLabel, link: { label: contact.instagramLabel, href: contact.instagram, target: '_blank', rel: 'noopener' } },
       { label: ui.contact.timezone, value: normalize(contact.timezone) },
+      { label: ui.contact.localTime, clock: true },
     ],
     `${at}: detail rows (labels, values, links) match locale`,
   );
@@ -263,7 +266,7 @@ function checkLayout(t, m, at, width) {
 
   t.eq(m.list.tag, 'UL', `${at}: details are a <ul>`);
   t.eq(m.list.borderTop, [1, TOKENS.inkLine], `${at}: list has a 1px ink-line top border`);
-  t.eq(m.rows.length, 5, `${at}: 5 detail rows`);
+  t.eq(m.rows.length, 6, `${at}: 6 detail rows`);
   for (const [n, row] of m.rows.entries()) {
     const label = `${at}: row ${n + 1}`;
     t.eq(row.borderBottom, [1, TOKENS.inkLine], `${label} has a 1px ink-line bottom border`);
