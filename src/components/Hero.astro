@@ -38,7 +38,28 @@ const introParts =
     <div class="min-w-0">
       <p class="hero-status flex items-start gap-3 font-mono text-mono text-muted-dark">
         <span class="mt-[5px] size-2 shrink-0 rounded-full bg-signal shadow-[0_0_0_4px_rgb(61_220_132/0.18)]"></span>
-        <span>{profile.status}</span>
+        <span>
+          <span data-hero-status-text>{profile.status}</span>
+          {
+            /*
+             * Typewriter (src/scripts/hero.ts) cycling profile.roles. The live text is aria-hidden;
+             * screen readers get the full list once. The invisible sizers reserve the longest
+             * role's width so typing never reflows the line. The first role renders statically.
+             */
+          }
+          <span class="hero-typewriter whitespace-nowrap" data-typewriter data-roles={profile.roles.join('|')}>
+            <span class="sr-only">{profile.roles.join(', ')}</span>
+            <span class="inline-flex items-baseline" aria-hidden="true">
+              <span class="mr-[0.6em] text-cobalt-soft">&gt;</span>
+              <span class="inline-grid">
+                {profile.roles.map((role) => <span class="hero-type-sizer">{role}</span>)}
+                <span class="hero-type-live text-white">
+                  <span data-typewriter-text>{profile.roles[0]}</span><span class="hero-cursor"></span>
+                </span>
+              </span>
+            </span>
+          </span>
+        </span>
       </p>
       <h1 class="hero-title mt-6 max-w-h1 text-h1 font-semibold text-white">{profile.headline}</h1>
       <p class="hero-title mt-6 max-w-[56ch] text-body-lg text-muted-dark">
@@ -82,10 +103,19 @@ const introParts =
     </div>
 
     <div class="flex justify-center md:justify-end">
-      <SystemDiagram locale={locale} />
+      <!-- The constellation canvas (src/scripts/constellation.ts) is inserted here, behind the diagram. -->
+      <div class="hero-diagram relative w-full max-w-[320px] md:max-w-[460px]" data-hero-diagram>
+        <SystemDiagram locale={locale} />
+      </div>
     </div>
   </div>
 </section>
+
+<script>
+  // Entrance + typewriter, and the constellation canvas (both skipped under reduced motion).
+  import '../scripts/hero';
+  import '../scripts/constellation';
+</script>
 
 <style>
   .hero {
@@ -111,18 +141,32 @@ const introParts =
     mask-image: radial-gradient(ellipse 70% 60% at 65% 45%, #000 0%, transparent 100%);
   }
 
-  /* Load sequence: status 0ms → H1 + intro 120ms → CTAs + chips 240ms (320ms, 12px rise). */
+  /*
+   * Entrance (src/scripts/hero.ts). body.hero-ready is set before first paint, so the copy starts
+   * hidden; the failsafe rise at 1.6s only plays if the script never takes over. .hero-js (script
+   * running) cancels it and holds the copy for GSAP until .hero-entered.
+   */
   @media (prefers-reduced-motion: no-preference) {
-    :global(.hero-ready) .hero-status {
-      animation: hero-rise 320ms ease-out 0ms both;
-    }
-
-    :global(.hero-ready) .hero-title {
-      animation: hero-rise 320ms ease-out 120ms both;
-    }
-
+    :global(.hero-ready) .hero-status,
+    :global(.hero-ready) .hero-title,
     :global(.hero-ready) .hero-ctas {
-      animation: hero-rise 320ms ease-out 240ms both;
+      animation: hero-rise 400ms ease-out 1600ms both;
+    }
+
+    .hero.hero-js .hero-status,
+    .hero.hero-js .hero-title,
+    .hero.hero-js .hero-ctas {
+      animation: none;
+    }
+
+    .hero.hero-js:not(.hero-entered) .hero-status,
+    .hero.hero-js:not(.hero-entered) .hero-title,
+    .hero.hero-js:not(.hero-entered) .hero-ctas {
+      opacity: 0;
+    }
+
+    .hero-typewriter.is-typing .hero-cursor {
+      animation: hero-blink 1.06s steps(1, end) infinite;
     }
   }
 
@@ -135,5 +179,57 @@ const introParts =
       opacity: 1;
       transform: none;
     }
+  }
+
+  @keyframes hero-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  .hero-typewriter {
+    margin-left: 0.6em;
+  }
+
+  /* Every role and the live text share one grid cell; the cell takes the longest role's width. */
+  .hero-type-sizer,
+  .hero-type-live {
+    grid-area: 1 / 1;
+  }
+
+  .hero-type-sizer {
+    visibility: hidden;
+    padding-right: 0.75em;
+  }
+
+  /* Block cursor, JetBrains Mono cell-sized (the status line is already mono). */
+  .hero-cursor {
+    display: inline-block;
+    width: 0.6em;
+    height: 1.15em;
+    margin-left: 0.12em;
+    vertical-align: -0.22em;
+    background-color: var(--color-cobalt-soft);
+  }
+
+  /* The diagram paints above the constellation canvas (inserted before it by the script). */
+  .hero-diagram > :global(svg) {
+    position: relative;
+    display: block;
+  }
+
+  .hero-diagram :global(.constellation) {
+    position: absolute;
+    /* left (the sideways bleed) is set by the script. */
+    top: -56px;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transition: opacity 1.4s ease-out;
+    will-change: transform;
+  }
+
+  .hero-diagram :global(.constellation.is-visible) {
+    opacity: 1;
   }
 </style>

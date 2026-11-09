@@ -17,6 +17,10 @@ change the locale files and regenerate.
 | `profile.headline` | Software that ships, AI that holds up in production. | Software que vai para produção, IA que se sustenta nela. | Software que llega a producción, IA que resiste en ella. |
 | `profile.intro` | I’m Herick Gonzaga, a Software & AI Engineer and International Relations undergraduate. I work on LLM-based systems, agent automation and QA for a US construction-procurement platform. I build the pipeline, the prompts and the tests that prove it all works — with an eye on the markets where software operates. | Sou Herick Gonzaga, Engenheiro de Software & IA e estudante de Relações Internacionais. Trabalho com sistemas baseados em LLM, automação com agentes e QA para uma plataforma norte-americana de compras para a construção civil. Construo o pipeline, os prompts e os testes que provam que tudo funciona — de olho nos mercados onde o software opera. | Soy Herick Gonzaga, Ingeniero de Software e IA y estudiante de Relaciones Internacionales. Trabajo con sistemas basados en LLM, automatización con agentes y QA para una plataforma estadounidense de compras para la construcción. Construyo el pipeline, los prompts y las pruebas que demuestran que todo funciona — con la mirada puesta en los mercados donde opera el software. |
 | `profile.status` | Software & AI Engineering + International Relations · Brazil (UTC−3) | Engenharia de Software & IA + Relações Internacionais · Brasil (UTC−3) | Ingeniería de Software e IA + Relaciones Internacionales · Brasil (UTC−3) |
+| `profile.roles[0]` | Software Engineering | Engenharia de Software | Ingeniería de Software |
+| `profile.roles[1]` | AI & HITL | IA & HITL | IA y HITL |
+| `profile.roles[2]` | QA Automation | Automação de QA | Automatización de QA |
+| `profile.roles[3]` | International mindset | Mentalidade internacional | Mentalidad internacional |
 | `profile.heroChips[0]` | Software Engineering | Engenharia de Software | Ingeniería de Software |
 | `profile.heroChips[1]` | AI Engineering | Engenharia de IA | Ingeniería de IA |
 | `profile.heroChips[3]` | QA & Automation | QA & Automação | QA & Automatización |
