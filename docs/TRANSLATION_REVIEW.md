@@ -7,7 +7,7 @@ change the locale files and regenerate.
 - Proper nouns, company and product names, stack names and technical terms (LLM, MCP, QA, CI/CD,
   prompt engineering, HITL, Rails, E2E, MLOps) stay in English.
 - "[N]" and every bracketed placeholder are identical in all three locales and must be replaced in all three.
-- 84 strings that are identical in all three locales (names, URLs, stack names, placeholders) are omitted.
+- 85 strings that are identical in all three locales (names, URLs, stack names, placeholders) are omitted.
 
 | Key | EN | PT | ES |
 | --- | --- | --- | --- |
@@ -192,10 +192,14 @@ change the locale files and regenerate.
 | `achievements.metrics[2].value` | 98.85% | 98,85% | 98,85% |
 | `achievements.metrics[2].label` | extraction accuracy gain | ganho de precisão na extração | mejora en la precisión de extracción |
 | `achievements.metrics[2].note` | Measured across vendor prompt revisions in SubBase’s extraction pipeline. | Medido em revisões de prompts por fornecedor no pipeline de extração da SubBase. | Medido en revisiones de prompts por proveedor en el pipeline de extracción de SubBase. |
+| `achievements.items[0].tag` | Speaking | Palestras | Charlas |
 | `achievements.items[0].title` | Speaker, DevParaná na Estrada 2026 & Anhembi Morumbi (São Paulo) | Palestrante, DevParaná na Estrada 2026 & Anhembi Morumbi (São Paulo) | Ponente, DevParaná na Estrada 2026 & Anhembi Morumbi (São Paulo) |
 | `achievements.items[0].description` | Talks on “From student to international developer” and “Paths and technology”: how early-career engineers reach global teams. | Palestras “De estudante a desenvolvedor internacional” e “Caminhos e tecnologia”: como engenheiros em início de carreira chegam a times globais. | Charlas “De estudiante a desarrollador internacional” y “Caminos y tecnología”: cómo los ingenieros que inician su carrera llegan a equipos globales. |
+| `achievements.items[1].tag` | Mentoring | Mentoria | Mentoría |
 | `achievements.items[1].description` | Guided teams building AI prototypes under hackathon constraints. | Orientei equipes construindo protótipos de IA dentro das restrições de um hackathon. | Guié a equipos que construían prototipos de IA bajo las restricciones de un hackathon. |
+| `achievements.items[2].tag` | Leadership | Liderança | Liderazgo |
 | `achievements.items[2].title` | Led the Software Engineering student council (CAES Alan Turing) | Liderei o centro acadêmico de Engenharia de Software (CAES Alan Turing) | Lideré el centro de estudiantes de Ingeniería de Software (CAES Alan Turing) |
 | `achievements.items[2].description` | President in 2025, secretary in 2026; organized the Semana Acadêmica and its sponsorships. | Presidente em 2025, secretário em 2026; organizei a Semana Acadêmica e seus patrocínios. | Presidente en 2025, secretario en 2026; organicé la Semana Acadêmica y sus patrocinios. |
+| `achievements.items[3].tag` | Research | Pesquisa | Investigación |
 | `achievements.items[3].title` | Research: LLMs for test-smell detection | Pesquisa: LLMs para detecção de test smells | Investigación: LLMs para la detección de test smells |
 | `achievements.items[3].description` | Comparative study of language models identifying test smells, written in SBC format at UTFPR. | Estudo comparativo de modelos de linguagem na identificação de test smells, escrito no formato SBC na UTFPR. | Estudio comparativo de modelos de lenguaje en la identificación de test smells, escrito en formato SBC en la UTFPR. |

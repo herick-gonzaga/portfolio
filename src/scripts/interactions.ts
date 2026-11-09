@@ -10,8 +10,11 @@
  *   up to MAGNET_MAX toward the cursor (--magnet-x/--magnet-y), springing back once it leaves.
  *   Fine pointers, motion allowed.
  * - Count-up ([data-countup]): each value counts from 0 the first time it scrolls into view, in the
- *   page's number format, and ends on the exact text from the locale file. Values already on screen
- *   (or scrolled past) when the script starts stay as rendered. Motion allowed only.
+ *   page's number format (decimals included: "98.85%" / "98,85%"), and ends on the exact text from
+ *   the locale file. Values already on screen (or scrolled past) when the script starts stay as
+ *   rendered. `data-countup-delay="180"` holds the start by that many ms (to stagger a row);
+ *   `data-countup-decode` adds a decode: each digit flickers through random mono glyphs and settles
+ *   left to right while the number counts. Motion allowed only.
  *
  * Nothing here is needed for first paint, so setup waits for an idle moment after load and never
  * reads layout: the count-up decides from its IntersectionObserver's first report. Pointer work is
@@ -26,6 +29,11 @@ const MAGNET_MAX = 8;
 /** Fraction of the cursor's offset from the button centre that the button follows. */
 const MAGNET_PULL = 0.3;
 const COUNT_MS = 1600;
+/** Decode: glyphs a digit flickers through, how often they change, and when digits settle (0-1 of the count). */
+const DECODE_GLYPHS = '0123456789#$%&*+/<=>?@';
+const DECODE_STEP_MS = 55;
+const DECODE_FIRST = 0.3;
+const DECODE_LAST = 0.78;
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
@@ -113,15 +121,48 @@ function initMagnetic() {
   reducedMotion.addEventListener('change', () => update());
 }
 
-/** Splits "9,000+" into its number (9000), the text after it ("+") and its grouping separator. */
+/**
+ * Splits "9,000+" into its number (9000), the text after it ("+") and whether it is grouped, and
+ * "98,85%" into 98.85 with 2 decimals. A separator followed by exactly 3 digits groups thousands;
+ * one followed by 1-2 digits at the end of the number is the decimal mark.
+ */
 function parseValue(text: string) {
-  const match = /^(\D*)(\d{1,3}(?:([.,   ])\d{3})*|\d+)(\D*)$/.exec(text.trim());
+  const match = /^(\D*)(\d{1,3}(?:([.,\u00a0\u202f ])\d{3})*|\d+)(?:[.,](\d{1,2}))?(\D*)$/.exec(text.trim());
   if (!match) return null;
-  const [, prefix, digits, separator, suffix] = match;
-  return { prefix, value: Number.parseInt(digits.replace(/\D/g, ''), 10), grouped: Boolean(separator), suffix };
+  const [, prefix, digits, separator, fraction = '', suffix] = match;
+  const whole = Number.parseInt(digits.replace(/\D/g, ''), 10);
+  const value = fraction ? whole + Number.parseInt(fraction, 10) / 10 ** fraction.length : whole;
+  return { prefix, value, decimals: fraction.length, grouped: Boolean(separator), suffix };
 }
 
-type Counter = { final: string; prefix: string; value: number; suffix: string; format: Intl.NumberFormat; frame: number };
+/** Swaps every digit not yet settled at progress `t` for a random glyph; settling runs left to right. */
+function decode(text: string, t: number, now: number) {
+  const digits = [...text].filter((ch) => ch >= '0' && ch <= '9').length;
+  const tick = Math.floor(now / DECODE_STEP_MS);
+  let seen = 0;
+  return [...text]
+    .map((ch, i) => {
+      if (ch < '0' || ch > '9') return ch;
+      const settleAt = DECODE_FIRST + (DECODE_LAST - DECODE_FIRST) * (digits > 1 ? seen++ / (digits - 1) : 1);
+      if (t >= settleAt) return ch;
+      // Pseudo-random per step and position, so a glyph holds for DECODE_STEP_MS instead of one frame.
+      const n = Math.abs(Math.sin((tick + 1) * 12.9898 + i * 78.233) * 43758.5453);
+      return DECODE_GLYPHS[Math.floor((n - Math.floor(n)) * DECODE_GLYPHS.length)];
+    })
+    .join('');
+}
+
+type Counter = {
+  final: string;
+  prefix: string;
+  value: number;
+  decimals: number;
+  suffix: string;
+  format: Intl.NumberFormat;
+  delay: number;
+  decode: boolean;
+  frame: number;
+};
 
 function initCountUp() {
   const items = [...document.querySelectorAll<HTMLElement>('[data-countup]')];
@@ -143,12 +184,19 @@ function initCountUp() {
   const run = (el: HTMLElement) => {
     const c = counters.get(el);
     if (!c) return;
-    const start = performance.now();
+    const start = performance.now() + c.delay;
+    const scale = 10 ** c.decimals;
     const tick = (now: number) => {
+      if (reducedMotion.matches) return finish(el);
+      if (now < start) {
+        c.frame = requestAnimationFrame(tick);
+        return;
+      }
       const t = Math.min(1, (now - start) / COUNT_MS);
-      if (t >= 1 || reducedMotion.matches) return finish(el);
+      if (t >= 1) return finish(el);
       const eased = 1 - Math.pow(1 - t, 3);
-      el.textContent = `${c.prefix}${c.format.format(Math.round(c.value * eased))}${c.suffix}`;
+      const text = `${c.prefix}${c.format.format(Math.round(c.value * eased * scale) / scale)}${c.suffix}`;
+      el.textContent = c.decode ? decode(text, t, now) : text;
       c.frame = requestAnimationFrame(tick);
     };
     c.frame = requestAnimationFrame(tick);
@@ -159,8 +207,23 @@ function initCountUp() {
     const parsed = parseValue(final);
     if (!parsed) return false;
     // useGrouping "always" keeps "9.000" in Spanish, matching the locale files (es groups 4+ digits).
-    const format = new Intl.NumberFormat(locale, { useGrouping: parsed.grouped ? 'always' : false } as Intl.NumberFormatOptions);
-    counters.set(el, { final, prefix: parsed.prefix, value: parsed.value, suffix: parsed.suffix, format, frame: 0 });
+    const format = new Intl.NumberFormat(locale, {
+      useGrouping: parsed.grouped ? 'always' : false,
+      minimumFractionDigits: parsed.decimals,
+      maximumFractionDigits: parsed.decimals,
+    } as Intl.NumberFormatOptions);
+    const delay = Number.parseFloat(el.dataset.countupDelay ?? '');
+    counters.set(el, {
+      final,
+      prefix: parsed.prefix,
+      value: parsed.value,
+      decimals: parsed.decimals,
+      suffix: parsed.suffix,
+      format,
+      delay: Number.isFinite(delay) ? delay : 0,
+      decode: el.hasAttribute('data-countup-decode'),
+      frame: 0,
+    });
     el.textContent = `${parsed.prefix}${format.format(0)}${parsed.suffix}`;
     return true;
   };
