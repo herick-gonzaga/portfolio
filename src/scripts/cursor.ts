@@ -82,11 +82,16 @@ function createCursor() {
     const target = event.target instanceof Element ? event.target : null;
     root.classList.toggle('cursor-hover', Boolean(target?.closest(INTERACTIVE)));
   };
-  const onDown = (event: PointerEvent) => event.pointerType !== 'touch' && root.classList.add('cursor-down');
   const onUp = () => root.classList.remove('cursor-down');
   const onLeave = () => {
     setVisible(false);
     onUp();
+  };
+  const onDown = (event: PointerEvent) => {
+    // Hybrid devices: a finger on the screen hides the cursor at once (it reappears on the next
+    // mouse move) instead of leaving it parked at the last mouse position.
+    if (event.pointerType === 'touch') return onLeave();
+    root.classList.add('cursor-down');
   };
 
   window.addEventListener('pointermove', onMove, { passive: true });

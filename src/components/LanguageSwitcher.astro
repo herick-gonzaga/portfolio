@@ -96,7 +96,9 @@ const menuId = `${id}-menu`;
       if (!isOpen()) return;
       menu.hidden = true;
       trigger.setAttribute('aria-expanded', 'false');
-      if (returnFocus) trigger.focus();
+      // preventScroll: the switcher lives in the sticky navbar; a plain focus() scrolls the page
+      // toward the bar's in-flow position (and with it the active-section underline).
+      if (returnFocus) trigger.focus({ preventScroll: true });
     }
 
     trigger.addEventListener('click', () => (isOpen() ? close() : open()));
