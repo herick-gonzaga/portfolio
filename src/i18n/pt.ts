@@ -75,6 +75,7 @@ export const pt: Content = {
     notFoundTitle: 'Página não encontrada',
     notFoundText: 'Este endereço não existe neste site.',
     notFoundBack: 'Ir para a página inicial',
+    skillsLoop: 'O ciclo: quatro etapas',
   },
   personal: {
     title: 'Além do código',
@@ -163,6 +164,7 @@ export const pt: Content = {
         'Astro & Tailwind CSS',
         'Fundamentos de redes',
       ],
+      stage: 'construir',
       icon: 'code',
     },
     {
@@ -179,6 +181,7 @@ export const pt: Content = {
         'Avaliação de LLMs',
         'Agentes de código (Claude Code)',
       ],
+      stage: 'automatizar',
       icon: 'spark',
     },
     {
@@ -194,6 +197,7 @@ export const pt: Content = {
         'Testes E2E no CI',
         'Gestão de testes (MQ-Test)',
       ],
+      stage: 'validar',
       icon: 'shield',
     },
     {
@@ -208,6 +212,7 @@ export const pt: Content = {
         'Espanhol e Francês (básico)',
         'Mentoria',
       ],
+      stage: 'entregar',
       icon: 'globe',
     },
   ],

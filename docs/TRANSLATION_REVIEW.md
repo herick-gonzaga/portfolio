@@ -55,6 +55,7 @@ change the locale files and regenerate.
 | `ui.logoLabel` | HG — Herick Gonzaga, back to top | HG — Herick Gonzaga, voltar ao topo | HG — Herick Gonzaga, volver arriba |
 | `ui.contact.email` | Email | E-mail | Correo |
 | `ui.contact.timezone` | Time zone | Fuso horário | Zona horaria |
+| `ui.contact.localTime` | Local time | Hora local | Hora local |
 | `ui.menuOpen` | Open menu | Abrir menu | Abrir menú |
 | `ui.menuClose` | Close menu | Fechar menu | Cerrar menú |
 | `ui.language` | Language | Idioma | Idioma |
@@ -62,6 +63,7 @@ change the locale files and regenerate.
 | `ui.notFoundTitle` | Page not found | Página não encontrada | Página no encontrada |
 | `ui.notFoundText` | This address doesn’t exist on this site. | Este endereço não existe neste site. | Esta dirección no existe en este sitio. |
 | `ui.notFoundBack` | Go to the homepage | Ir para a página inicial | Ir a la página de inicio |
+| `ui.skillsLoop` | The loop: four stages | O ciclo: quatro etapas | El ciclo: cuatro etapas |
 | `personal.title` | Beyond the code | Além do código | Más allá del código |
 | `personal.body` | Outside of work, I’m a big sports fan, a lover of Brazilian music in all its forms, and every now and then, someone who turns thoughts about life into words. I enjoy taking the stage to share ideas about technology and careers, helping people who are just starting their journey, and getting involved in volunteer projects with young people in my town. After all, I believe knowledge, experiences, and good stories are even better when shared. If you want to get to know me beyond GitHub, Instagram is the place. | Fora do trabalho, sou um grande fã de esportes, um apaixonado pela música brasileira em suas mais diversas formas e, de vez em quando, alguém que transforma pensamentos sobre a vida em palavras. Gosto de subir no palco para compartilhar ideias sobre tecnologia e carreira, de ajudar quem está começando sua jornada e de participar de projetos voluntários com jovens da minha cidade. Afinal, acredito que conhecimento, experiências e boas histórias ficam ainda melhores quando compartilhados. Se quiser me conhecer além do GitHub, o Instagram é o lugar. | Fuera del trabajo, soy un gran aficionado al deporte, un apasionado de la música brasileña en todas sus formas y, de vez en cuando, alguien que transforma pensamientos sobre la vida en palabras. Me gusta subir al escenario para compartir ideas sobre tecnología y carrera profesional, ayudar a quienes están comenzando su camino y participar en proyectos de voluntariado con jóvenes de mi ciudad. Al fin y al cabo, creo que el conocimiento, las experiencias y las buenas historias son aún mejores cuando se comparten. Si quieres conocerme más allá de GitHub, Instagram es el lugar. |
 | `personal.photoAlt` | Photo of Herick Gonzaga | Foto de Herick Gonzaga | Foto de Herick Gonzaga |
@@ -122,6 +124,7 @@ change the locale files and regenerate.
 | `skills[0].title` | Software Engineering | Engenharia de Software | Ingeniería de Software |
 | `skills[0].description` | Backend-leaning full-stack work, from data model to API to deploy. | Full-stack com foco em backend, do modelo de dados à API e ao deploy. | Full-stack con enfoque en backend, del modelo de datos a la API y al deploy. |
 | `skills[0].chips[9]` | Networking fundamentals | Fundamentos de redes | Fundamentos de redes |
+| `skills[0].stage` | build | construir | construir |
 | `skills[1].title` | AI Engineering | Engenharia de IA | Ingeniería de IA |
 | `skills[1].description` | LLM pipelines that extract structured data, agents that act, and the prompt systems that keep them precise. | Pipelines de LLM que extraem dados estruturados, agentes que agem e os sistemas de prompts que os mantêm precisos. | Pipelines de LLM que extraen datos estructurados, agentes que actúan y los sistemas de prompts que los mantienen precisos. |
 | `skills[1].chips[0]` | LLM pipelines | Pipelines de LLM | Pipelines de LLM |
@@ -129,6 +132,7 @@ change the locale files and regenerate.
 | `skills[1].chips[4]` | Model integration | Integração de modelos | Integración de modelos |
 | `skills[1].chips[6]` | LLM evals | Avaliação de LLMs | Evaluación de LLMs |
 | `skills[1].chips[7]` | Coding agents (Claude Code) | Agentes de código (Claude Code) | Agentes de código (Claude Code) |
+| `skills[1].stage` | automate | automatizar | automatizar |
 | `skills[2].title` | Quality & Automation | Qualidade & Automação | Calidad & Automatización |
 | `skills[2].description` | Test plans, automated suites and system validation, treated as part of the product, not an afterthought. | Planos de teste, suítes automatizadas e validação de sistemas, tratados como parte do produto, não como detalhe. | Planes de prueba, suites automatizadas y validación de sistemas, tratados como parte del producto, no como un añadido. |
 | `skills[2].chips[0]` | Test strategy | Estratégia de testes | Estrategia de pruebas |
@@ -138,6 +142,7 @@ change the locale files and regenerate.
 | `skills[2].chips[4]` | Bug reporting | Report de bugs | Reporte de bugs |
 | `skills[2].chips[5]` | E2E testing in CI | Testes E2E no CI | Pruebas E2E en CI |
 | `skills[2].chips[6]` | Test management (MQ-Test) | Gestão de testes (MQ-Test) | Gestión de pruebas (MQ-Test) |
+| `skills[2].stage` | validate | validar | validar |
 | `skills[3].title` | Global collaboration | Colaboração global | Colaboración global |
 | `skills[3].description` | Daily work in English with a U.S. team, plus International Relations training for the market side of software. | Trabalho diário em inglês com um time dos EUA, além da formação em Relações Internacionais para o lado de mercado do software. | Trabajo diario en inglés con un equipo de EE. UU., además de formación en Relaciones Internacionales para el lado de mercado del software. |
 | `skills[3].chips[0]` | English (professional) | Inglês (profissional) | Inglés (profesional) |
@@ -145,6 +150,7 @@ change the locale files and regenerate.
 | `skills[3].chips[3]` | Public speaking | Oratória | Oratoria |
 | `skills[3].chips[4]` | Spanish & French (basic) | Espanhol e Francês (básico) | Español y Francés (básico) |
 | `skills[3].chips[5]` | Mentoring | Mentoria | Mentoría |
+| `skills[3].stage` | ship | entregar | entregar |
 | `projects[mq-test].kind` | Featured · Open source | Destaque · Open source | Destacado · Open source |
 | `projects[mq-test].period` | 2025 — now | 2025 — atual | 2025 — actual |
 | `projects[mq-test].description` | A test-management platform (suites, cases, plans, runs, bugs, requirements) with an MCP server so coding agents can read and write test data. Integrates with GitHub, Linear and Slack; the automation repo stays the source of truth and MQ-Test becomes the dashboard that organizes and tracks it. | Uma plataforma de gestão de testes (suítes, casos, planos, execuções, bugs, requisitos) com um servidor MCP para que agentes de código leiam e escrevam dados de teste. Integra com GitHub, Linear e Slack; o repositório de automação continua sendo a fonte da verdade e o MQ-Test vira o painel que o organiza e acompanha. | Una plataforma de gestión de pruebas (suites, casos, planes, ejecuciones, bugs, requisitos) con un servidor MCP para que los agentes de código lean y escriban datos de prueba. Se integra con GitHub, Linear y Slack; el repositorio de automatización sigue siendo la fuente de verdad y MQ-Test se convierte en el panel que lo organiza y le da seguimiento. |

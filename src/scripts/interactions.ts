@@ -18,7 +18,7 @@
  * batched into one write per animation frame. Turning on reduced motion mid-visit releases the
  * magnetic buttons and jumps running or waiting counters to their final values (tilt is CSS-gated).
  */
-export {};
+import { perFrame } from './frame';
 
 const MAX_TILT = 6;
 const MAGNET_RADIUS = 80;
@@ -30,16 +30,6 @@ const COUNT_MS = 1600;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 const motion = !reducedMotion.matches;
-
-/** Calls `fn` at most once per frame, with the latest arguments. */
-function perFrame<A extends unknown[]>(fn: (...args: A) => void) {
-  let frame = 0;
-  let latest: A;
-  return (...args: A) => {
-    latest = args;
-    if (!frame) frame = requestAnimationFrame(() => ((frame = 0), fn(...latest)));
-  };
-}
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 

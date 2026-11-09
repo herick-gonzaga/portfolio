@@ -1,8 +1,13 @@
 /**
- * About and Skills sections (PR #3): copy matches the locale files, layout, cards, fact rows,
- * typography, section rhythm, header width, overflow, card hover and the navbar active anchor.
+ * About and Skills sections (PR #3): copy matches the locale files, layout, fact rows,
+ * typography, section rhythm, header width, overflow and the navbar active anchor.
+ * Skills renders its pillars in loop order (build, validate, automate, ship); the loop itself is
+ * covered by skills-loop.check.mjs.
  */
 import { TOKENS, normalize } from './lib/context.mjs';
+
+/** Skills loop order, by pillar icon (src/components/Skills.astro). */
+const LOOP = ['code', 'shield', 'spark', 'globe'];
 
 const WIDTHS = [1440, 1200, 900, 600, 599, 390];
 
@@ -21,10 +26,10 @@ function readTexts() {
       label: text(row.querySelector('dt')),
       value: text(row.querySelector('dd')),
     })),
-    skills: [...document.querySelectorAll('#skills ul.grid > li > article')].map((card) => ({
-      title: text(card.querySelector('h3')),
-      description: text(card.querySelector('p')),
-      chips: [...card.querySelectorAll('ul li')].map(text),
+    skills: [...document.querySelectorAll('#skills [data-loop-step]')].map((step) => ({
+      title: text(step.querySelector('.loop-step-static .loop-step-title')),
+      description: text(step.querySelector('.loop-step-desc')),
+      chips: [...step.querySelectorAll('[data-loop-chips] li')].map(text),
     })),
   };
 }
@@ -49,20 +54,6 @@ function measureLayout() {
     };
   });
 
-  const cards = [...skills.querySelectorAll('ul.grid > li > article')].map((card) => {
-    const style = getComputedStyle(card);
-    const box = card.getBoundingClientRect();
-    const chipList = card.querySelector('ul').getBoundingClientRect();
-    return {
-      top: Math.round(box.top),
-      height: box.height,
-      chipsBottomOffset: box.bottom - chipList.bottom,
-      accentWidth: px(style.borderTopWidth),
-      accentColor: style.borderTopColor,
-      padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft].map(px),
-    };
-  });
-
   const paragraphs = [...about.querySelectorAll('.grid > div:first-child p')].map((p) => {
     const style = getComputedStyle(p);
     return { fontSize: px(style.fontSize), lineHeight: px(style.lineHeight), color: style.color };
@@ -80,7 +71,7 @@ function measureLayout() {
   const overflowing = [];
   for (const el of [...about.querySelectorAll('*'), ...skills.querySelectorAll('*')]) {
     const r = el.getBoundingClientRect();
-    if (r.width === 0) continue;
+    if (r.width === 0 || el.matches('.sr-only')) continue;
     const display = getComputedStyle(el).display;
     const clipsText = display !== 'inline' && el.scrollWidth > el.clientWidth + 1 && el.tagName !== 'svg';
     if (r.left < -0.5 || r.right > vw + 0.5 || clipsText) {
@@ -93,7 +84,7 @@ function measureLayout() {
     aboutColumns,
     aboutGap: px(getComputedStyle(aboutGrid).columnGap),
     rows,
-    cards,
+    skillsBg: getComputedStyle(skills).backgroundColor,
     paragraphs,
     h2s,
     aboutPadding: padding(about),
@@ -130,26 +121,8 @@ function checkLayout(t, m, at, width) {
     JSON.stringify(m.rows.map((r) => r.border)),
   );
 
-  // Skill cards.
-  const rowsByTop = Object.values(Object.groupBy(m.cards, (c) => c.top));
-  t.ok(
-    rowsByTop.every((row) => Math.max(...row.map((c) => c.height)) - Math.min(...row.map((c) => c.height)) <= 1),
-    `${at}: skill cards in a row share one height`,
-  );
-  if (rowsByTop.some((row) => row.length > 1)) {
-    const offsets = m.cards.map((c) => c.chipsBottomOffset);
-    t.ok(Math.max(...offsets) - Math.min(...offsets) <= 1, `${at}: chip blocks are pinned to the card bottom`, JSON.stringify(offsets));
-  }
-  t.ok(
-    m.cards.every((c) => c.accentWidth === 3 && c.accentColor === TOKENS.cobalt),
-    `${at}: skill cards have a 3px cobalt top accent`,
-  );
-  const pad = desktop ? 32 : 24;
-  t.ok(
-    m.cards.every((c) => c.padding.every((p) => p === pad)),
-    `${at}: skill card padding is ${pad}px`,
-    JSON.stringify(m.cards.map((c) => c.padding)),
-  );
+  // Skills sits on ink, like the hero and contact bookends.
+  t.eq(m.skillsBg, TOKENS.ink, `${at}: Skills section is on ink`);
 
   // Typography and rhythm.
   t.ok(
@@ -165,45 +138,8 @@ function checkLayout(t, m, at, width) {
   );
   const sectionPad = desktop ? 112 : 72;
   t.eq(m.aboutPadding, { top: sectionPad, bottom: sectionPad }, `${at}: About section padding ${sectionPad}px`);
-  t.eq(m.skillsPadding, { top: 0, bottom: sectionPad }, `${at}: Skills section padding is bottom-only`);
+  t.eq(m.skillsPadding, { top: sectionPad, bottom: sectionPad }, `${at}: Skills section padding ${sectionPad}px`);
   t.eq(m.headerMaxWidth, ['736px', '736px'], `${at}: section header max-width is 46rem`);
-}
-
-async function checkHover(t, browser, url, at) {
-  const page = await browser.newPage({ width: 1440 });
-  await page.goto(url);
-  const selector = '#skills ul.grid > li:first-child article';
-  const base = await page.eval((sel) => {
-    const style = getComputedStyle(document.querySelector(sel));
-    return { transitionDuration: style.transitionDuration, transitionProperty: style.transitionProperty };
-  }, selector);
-  t.ok(
-    base.transitionProperty.includes('transform') && base.transitionDuration.split(', ').every((d) => d === '0.16s'),
-    `${at}: card transition is 160ms`,
-    JSON.stringify(base),
-  );
-  await page.hover(selector);
-  const hovered = await page.waitFor(
-    (sel) => {
-      const style = getComputedStyle(document.querySelector(sel));
-      return style.transform === 'matrix(1, 0, 0, 1, 0, -2)' && { transform: style.transform, shadow: style.boxShadow };
-    },
-    { args: [selector], timeout: 1500 },
-  );
-  t.ok(hovered, `${at}: hovered card lifts 2px`);
-  t.eq(hovered && hovered.shadow, TOKENS.cardShadow, `${at}: hovered card has the spec shadow`);
-
-  await page.moveMouse(5, 5);
-  await page.reducedMotion(true);
-  await page.reload();
-  await page.hover(selector);
-  await new Promise((resolve) => setTimeout(resolve, 250));
-  const reduced = await page.eval((sel) => {
-    const style = getComputedStyle(document.querySelector(sel));
-    return { transform: style.transform, shadow: style.boxShadow };
-  }, selector);
-  t.eq(reduced, { transform: 'none', shadow: 'none' }, `${at}: no hover motion under reduced motion`);
-  await page.close();
 }
 
 async function checkActiveAnchor(t, page, at) {
@@ -240,8 +176,8 @@ export default {
       t.eq(texts.facts, content.profile.facts.map((f) => ({ label: normalize(f.label), value: normalize(f.value) })), `${at}: fact sheet matches locale`);
       t.eq(
         texts.skills,
-        content.skills.map((s) => ({ title: normalize(s.title), description: normalize(s.description), chips: s.chips.map(normalize) })),
-        `${at}: skill cards match locale`,
+        LOOP.map((icon) => content.skills.find((s) => s.icon === icon)).map((s) => ({ title: normalize(s.title), description: normalize(s.description), chips: s.chips.map(normalize) })),
+        `${at}: skill pillars match locale, in loop order`,
       );
       await checkActiveAnchor(t, page, `${at} @1440`);
 
@@ -251,7 +187,6 @@ export default {
         checkLayout(t, await page.eval(measureLayout), `${route.path} @${width}`, width);
       }
 
-      await checkHover(t, browser, url, `${route.path} @1440`);
     }
     t.eq(page.errors, [], 'no uncaught page errors');
     await page.close();
