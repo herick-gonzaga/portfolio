@@ -14,8 +14,10 @@
  *
  * Under prefers-reduced-motion: no scramble, no rail scrub, and toggles are instant (global CSS).
  */
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import type { ScrollTrigger as ScrollTriggerType } from 'gsap/ScrollTrigger';
+
+/** Set once the rail is armed; GSAP is imported only then (motion allowed). */
+let ScrollTrigger: typeof ScrollTriggerType | undefined;
 import { fontsReady } from './fonts';
 
 const SCRAMBLE_MS = 420;
@@ -70,9 +72,9 @@ function init(root: HTMLElement) {
   // Rows below (and their ScrollTriggers) move when a row opens or closes: re-measure once settled.
   let refresh = 0;
   root.addEventListener('transitionend', (event) => {
-    if (event.propertyName !== 'grid-template-rows' || ScrollTrigger.getAll().length === 0) return;
+    if (event.propertyName !== 'grid-template-rows' || !ScrollTrigger || ScrollTrigger.getAll().length === 0) return;
     cancelAnimationFrame(refresh);
-    refresh = requestAnimationFrame(() => ScrollTrigger.refresh());
+    refresh = requestAnimationFrame(() => ScrollTrigger?.refresh());
   });
 
   rows.forEach((row) => {
@@ -84,8 +86,10 @@ function init(root: HTMLElement) {
   });
 
   if (!reduced.matches) {
-    // The rail's span depends on the final text layout: arm once the web fonts are in.
-    void fontsReady().then(() => {
+    // The rail's span depends on the final text layout: arm once the web fonts are in. GSAP is
+    // downloaded only with motion allowed, in parallel with the font wait.
+    void Promise.all([import('gsap'), import('gsap/ScrollTrigger'), fontsReady()]).then(([{ gsap }, st]) => {
+      ScrollTrigger = st.ScrollTrigger;
       gsap.registerPlugin(ScrollTrigger);
       root.dataset.ledgerArmed = '';
       gsap.fromTo(

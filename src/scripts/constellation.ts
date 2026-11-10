@@ -11,6 +11,8 @@
  * - Pointer: particles within 120px of the cursor are pushed away, and the canvas parallaxes a
  *   few px against the pointer. The canvas is pointer-events: none and aria-hidden, so clicks and
  *   text selection go to the page as before.
+ * - Particle budget follows the canvas width: 80, 54 below 520px, 36 below 400px (phones);
+ *   data-particles reports it.
  * - Rendering is devicePixelRatio-aware (capped at 2) and follows the diagram's size.
  * - The requestAnimationFrame loop only runs while the hero is on screen and the tab is visible.
  *   The wrapper's data-constellation attribute reports "running" or "paused".
@@ -20,8 +22,11 @@
 
 const COUNT = 80;
 const COUNT_SMALL = 54;
-/** Below this canvas width (CSS px) the smaller particle count is used. */
+/** Phones: the link pass is O(n²), so a phone-sized canvas gets well under half the desktop work. */
+const COUNT_PHONE = 36;
+/** Below these canvas widths (CSS px) the smaller particle counts are used. */
 const SMALL_WIDTH = 520;
+const PHONE_WIDTH = 400;
 /**
  * How far the canvas extends past the diagram (CSS px). Sideways it is capped by the room left
  * inside the hero (minus the parallax travel), so the canvas never overflows the page.
@@ -145,9 +150,11 @@ function create(wrapper: HTMLElement, svg: SVGSVGElement, hero: HTMLElement) {
     };
   }
 
+  const budget = () => (width < PHONE_WIDTH ? COUNT_PHONE : width < SMALL_WIDTH ? COUNT_SMALL : COUNT);
+
   /** ~40% orbit the five anchors, ~45% flow along the edges (weighted by length), the rest roam. */
   function populate() {
-    const count = width < SMALL_WIDTH ? COUNT_SMALL : COUNT;
+    const count = budget();
     const nAnchor = Math.round(count * 0.4);
     const nEdge = Math.round(count * 0.45);
     const list: Particle[] = [];
@@ -161,6 +168,7 @@ function create(wrapper: HTMLElement, svg: SVGSVGElement, hero: HTMLElement) {
     }
     while (list.length < count) list.push(spawn('free', 0));
     particles = list;
+    wrapper.dataset.particles = String(list.length);
   }
 
   function resize() {
@@ -183,7 +191,7 @@ function create(wrapper: HTMLElement, svg: SVGSVGElement, hero: HTMLElement) {
     canvas.height = Math.round(height * dpr);
     ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (!readGeometry()) return;
-    if (particles.length === 0 || (width < SMALL_WIDTH) !== (particles.length === COUNT_SMALL)) populate();
+    if (particles.length !== budget()) populate();
     else
       for (const p of particles) {
         p.x *= scaleX;
@@ -384,6 +392,7 @@ function create(wrapper: HTMLElement, svg: SVGSVGElement, hero: HTMLElement) {
     canvas.remove();
     wrapper.classList.remove('is-constellation');
     delete wrapper.dataset.constellation;
+    delete wrapper.dataset.particles;
   };
 }
 

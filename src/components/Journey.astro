@@ -170,8 +170,8 @@ const dotKind = (item: (typeof content.journey)[number]) =>
 </style>
 
 <script>
-  import { gsap } from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import type { gsap as GSAP } from 'gsap';
+  import type { ScrollTrigger as ScrollTriggerType } from 'gsap/ScrollTrigger';
   import { fontsReady } from '../scripts/fonts';
 
   /** The line's tip, and the point where an item activates, as % of the viewport height. */
@@ -179,10 +179,15 @@ const dotKind = (item: (typeof content.journey)[number]) =>
 
   const motionOk = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
 
-  // Item positions depend on the final text layout: measure once the web fonts are in.
-  if (motionOk) void fontsReady().then(arm);
+  // Item positions depend on the final text layout: measure once the web fonts are in. GSAP is
+  // downloaded only with motion allowed, in parallel with the font wait.
+  if (motionOk) {
+    void Promise.all([import('gsap'), import('gsap/ScrollTrigger'), fontsReady()]).then(([{ gsap }, { ScrollTrigger }]) =>
+      arm(gsap, ScrollTrigger),
+    );
+  }
 
-  function arm() {
+  function arm(gsap: typeof GSAP, ScrollTrigger: typeof ScrollTriggerType) {
     gsap.registerPlugin(ScrollTrigger);
     const tipY = (window.innerHeight * TIP) / 100;
 

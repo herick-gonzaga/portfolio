@@ -378,6 +378,9 @@ async function checkFontFailure(t, browser, url, at) {
     });
     await page.goto(url);
     const label = mode === 'fail' ? 'fonts fail' : 'fonts take 3s';
+    // GSAP loads on idle after first paint, so with fonts failing fast the load event can come
+    // first: wait for both marks, then hold them to the cap.
+    await page.waitFor(() => window.__gate.motion && window.__gate.journey, { timeout: 3000 });
     const m = await page.eval(() => {
       const nav = performance.getEntriesByType('navigation')[0];
       return { motion: window.__gate.motion - nav.domInteractive, journey: window.__gate.journey - nav.domInteractive, fonts: document.fonts.status };

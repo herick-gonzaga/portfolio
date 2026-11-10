@@ -53,16 +53,14 @@ const introParts =
               <span class="mr-[0.6em] text-cobalt-soft">&gt;</span>
               <span class="inline-grid">
                 {profile.roles.map((role) => <span class="hero-type-sizer">{role}</span>)}
-                <span class="hero-type-live text-white">
-                  <span data-typewriter-text>{profile.roles[0]}</span><span class="hero-cursor"></span>
-                </span>
+                <span class="hero-type-live hero-caret text-white"><span data-typewriter-text>{profile.roles[0]}</span></span>
               </span>
             </span>
           </span>
         </span>
       </p>
       <h1 class="hero-title mt-6 max-w-h1 text-h1 font-semibold text-white">{profile.headline}</h1>
-      <p class="hero-title mt-6 max-w-[56ch] text-body-lg text-muted-dark">
+      <p class="hero-title hero-intro mt-6 max-w-[56ch] text-body-lg text-muted-dark">
         {
           introParts ? (
             <>
@@ -154,19 +152,63 @@ const introParts =
     }
 
     .hero.hero-js .hero-status,
-    .hero.hero-js .hero-title,
+    .hero.hero-js .hero-title:not(.hero-intro),
     .hero.hero-js .hero-ctas {
       animation: none;
     }
 
     .hero.hero-js:not(.hero-entered) .hero-status,
-    .hero.hero-js:not(.hero-entered) .hero-title,
+    .hero.hero-js:not(.hero-entered) .hero-title:not(.hero-intro),
     .hero.hero-js:not(.hero-entered) .hero-ctas {
       opacity: 0;
     }
 
-    .hero-typewriter.is-typing .hero-cursor {
+    /*
+     * The intro paragraph is the page's LCP text, so it never waits for JS: it fades up on CSS alone
+     * from first paint, in step with the headline's rise.
+     */
+    :global(.hero-ready) .hero-intro {
+      animation: hero-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) 250ms backwards;
+    }
+
+    .hero-typewriter.is-typing .hero-caret {
       animation: hero-blink 1.06s steps(1, end) infinite;
+    }
+  }
+
+  /*
+   * Phones (below 600px) run the whole entrance on CSS from first paint, in the same order. The
+   * headline and the intro (the page's LCP text) are painted from the first frame and only settle
+   * into place (transform, no fade); the status line and the CTAs fade up after them. Nothing on a
+   * phone waits for GSAP + SplitText to download over a mobile connection, and phones skip that
+   * download entirely (src/scripts/hero.ts does not take over here).
+   */
+  @media (prefers-reduced-motion: no-preference) and (max-width: 599.98px) {
+    :global(.hero-ready) .hero-title {
+      animation: hero-settle 700ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+
+    :global(.hero-ready) .hero-intro {
+      animation-delay: 120ms;
+    }
+
+    :global(.hero-ready) .hero-status,
+    :global(.hero-ready) .hero-ctas {
+      animation: hero-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) 300ms backwards;
+    }
+
+    :global(.hero-ready) .hero-ctas {
+      animation-delay: 400ms;
+    }
+
+    :global(.hero-ready) .hero-ctas + .hero-ctas {
+      animation-delay: 480ms;
+    }
+  }
+
+  @keyframes hero-settle {
+    from {
+      transform: translateY(14px);
     }
   }
 
@@ -181,9 +223,10 @@ const introParts =
     }
   }
 
+  /* Off: the block moves out of the padding box (clipped), so its size stays readable. */
   @keyframes hero-blink {
     50% {
-      opacity: 0;
+      background-position: right -1em top 50%;
     }
   }
 
@@ -202,14 +245,16 @@ const introParts =
     padding-right: 0.75em;
   }
 
-  /* Block cursor, JetBrains Mono cell-sized (the status line is already mono). */
-  .hero-cursor {
-    display: inline-block;
-    width: 0.6em;
-    height: 1.15em;
-    margin-left: 0.12em;
-    vertical-align: -0.22em;
-    background-color: var(--color-cobalt-soft);
+  /*
+   * Block cursor, JetBrains Mono cell-sized (the status line is already mono), painted in the live
+   * text's right padding. The box starts where it always does and only its width follows the text,
+   * so typing never moves an element: no layout shift (an inline caret after the text would shift
+   * on every keystroke).
+   */
+  .hero-caret {
+    justify-self: start;
+    padding-right: 0.72em;
+    background: linear-gradient(var(--color-cobalt-soft), var(--color-cobalt-soft)) no-repeat right center / 0.6em 1.15em;
   }
 
   /* The diagram paints above the constellation canvas (inserted before it by the script). */

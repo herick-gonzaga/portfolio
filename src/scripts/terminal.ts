@@ -148,15 +148,24 @@ export function mount(root: HTMLElement): TerminalController {
         const textNode = child.firstChild as Text | null;
         const full = textNode?.data ?? '';
         if (textNode) textNode.data = '';
-        return { textNode, full };
+        // Chips appear whole: typed letter by letter, each one would grow and push every chip after
+        // it along the row (a layout shift on every frame).
+        const whole = child instanceof HTMLElement && child.classList.contains('t-tag');
+        // Untyped chips stay out of the layout, so the ones before them never push them around.
+        if (whole) child.hidden = true;
+        return { el: child, textNode, full, whole };
       });
       entry.append(el);
-      for (const { textNode, full } of nodes) {
+      for (const { el: node, textNode, full, whole } of nodes) {
+        if (whole) (node as HTMLElement).hidden = false;
         if (!textNode) continue;
         let shown = 0;
         while (shown < full.length) {
           if (skip) {
             shown = full.length;
+          } else if (whole) {
+            shown = full.length;
+            budget -= full.length;
           } else {
             const step = Math.min(budget, full.length - shown);
             shown += step;

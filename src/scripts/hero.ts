@@ -2,9 +2,11 @@
  * Hero entrance and status-line typewriter, loaded from src/components/Hero.astro.
  *
  * Entrance (once per load, after the fonts are ready so the H1 splits on its final line breaks):
- * the H1 lines rise into view one after another from behind a clipping mask, then the intro and
- * the status line fade up, then the CTAs and chips. SplitText is reverted at the end, so the H1
- * is plain text again (accessible name, selection and resize all behave as before).
+ * the H1 lines rise into view one after another from behind a clipping mask, then the status line
+ * fades up, then the CTAs and chips. SplitText is reverted at the end, so the H1 is plain text
+ * again (accessible name, selection and resize all behave as before). The intro paragraph (the
+ * page's LCP text) is not part of it: it fades up on CSS alone (Hero.astro, .hero-intro), so it
+ * never waits for JS. Below 600px the whole entrance is CSS and this script only types.
  *
  * Hiding before first paint: the inline script in Hero.astro adds body.hero-ready, and the hero
  * CSS keeps the animated blocks hidden behind a failsafe rise that starts at 1.6s. This script
@@ -16,9 +18,17 @@
  * and types the next one, cycling through content.profile.roles. Screen readers get the full list
  * from a static sr-only span; the animated text is aria-hidden.
  */
-import { gsap } from 'gsap';
-import { SplitText } from 'gsap/SplitText';
+import type { gsap as GSAP } from 'gsap';
+import type { SplitText as SplitTextType } from 'gsap/SplitText';
 import { fontsReady } from './fonts';
+
+/*
+ * GSAP + SplitText are imported only when the entrance actually plays (motion allowed, copy still
+ * hidden), and in parallel with the font wait, so reduced-motion visitors never download them and
+ * the only motion code on the hero's path is GSAP core + SplitText (no ScrollTrigger, no Lenis).
+ */
+let gsap: typeof GSAP;
+let SplitText: typeof SplitTextType;
 
 const TYPE_MS = 65;
 const DELETE_MS = 32;
@@ -26,6 +36,8 @@ const HOLD_MS = 1900;
 const GAP_MS = 350;
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+/** Phones run the entrance on CSS alone (Hero.astro); GSAP takes over from 600px up. */
+const phone = window.matchMedia('(max-width: 599.98px)');
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /** Resolves once the tab is visible (immediately if it already is). */
@@ -69,7 +81,6 @@ async function typewriter(root: HTMLElement) {
 
 function entrance(hero: HTMLElement): Promise<void> {
   const title = hero.querySelector<HTMLElement>('h1.hero-title');
-  const intro = hero.querySelectorAll<HTMLElement>('p.hero-title');
   const status = hero.querySelector<HTMLElement>('.hero-status');
   const ctas = hero.querySelectorAll<HTMLElement>('.hero-ctas');
   if (!title || !status) return Promise.resolve();
@@ -78,7 +89,7 @@ function entrance(hero: HTMLElement): Promise<void> {
   // Line height is tight (1.02): give each mask room below for descenders, without moving layout.
   gsap.set(split.masks, { paddingBottom: '0.14em', marginBottom: '-0.14em' });
 
-  const animated = [title, ...intro, status, ...ctas];
+  const animated = [title, status, ...ctas];
   return new Promise((resolve) => {
     gsap
       .timeline({
@@ -93,7 +104,6 @@ function entrance(hero: HTMLElement): Promise<void> {
       })
       .set(title, { opacity: 1 })
       .from(split.lines, { yPercent: 115, duration: 0.95, ease: 'power4.out', stagger: 0.11 })
-      .fromTo(intro, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6 }, 0.35)
       .fromTo(status, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.55 }, 0.5)
       .fromTo(ctas, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.09 }, 0.65);
   });
@@ -106,12 +116,20 @@ async function init() {
 
   // Take over only while the CSS failsafe still hides the hero copy.
   const status = hero.querySelector<HTMLElement>('.hero-status');
-  const hidden = document.body.classList.contains('hero-ready') && status && getComputedStyle(status).opacity === '0';
+  const hidden =
+    !phone.matches && document.body.classList.contains('hero-ready') && status && getComputedStyle(status).opacity === '0';
   if (hidden) {
-    gsap.registerPlugin(SplitText);
     hero.classList.add('hero-js');
-    await fontsReady();
-    await entrance(hero);
+    try {
+      const [gsapModule, splitModule] = await Promise.all([import('gsap'), import('gsap/SplitText'), fontsReady()]);
+      gsap = gsapModule.gsap;
+      SplitText = splitModule.SplitText;
+      gsap.registerPlugin(SplitText);
+      await entrance(hero);
+    } catch {
+      // The chunk failed to load: release the hold so the copy is never left hidden.
+      hero.classList.add('hero-entered');
+    }
   }
   if (typing) void typewriter(typing);
 }
