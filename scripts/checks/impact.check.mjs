@@ -19,6 +19,12 @@
  * - Fallbacks: reduced motion (at load and switched on mid-visit) → final values, no scramble, rail
  *   drawn, instant toggles. Print → every description and the full rail. No JS → every description
  *   visible, no toggle affordance, final values.
+ * - Screen readers: mid count-up the accessibility tree holds only the final values (no live
+ *   regions, no decode glyphs); intermediate frames use the locale's decimal mark only.
+ * - Resilience (requests intercepted): if the Hero's inline hero-ready script is missing, the ledger
+ *   stays static (all open, no toggle, no aria-expanded); if the ledger module fails or arrives after
+ *   the 4s fail-safe, every description is revealed with no toggle; if only the GSAP chunk fails,
+ *   the disclosure still works and no error escapes.
  */
 import { sleep } from './lib/browser.mjs';
 import { TOKENS, normalize } from './lib/context.mjs';
@@ -217,12 +223,28 @@ async function checkDisclosure(t, page, at) {
   t.eq(angleOf(rows[0].toggleTransform), 45, `${at}: the open row's "+" is turned into "×"`);
   t.eq(angleOf(rows[1].toggleTransform), 0, `${at}: a closed row shows "+"`);
 
-  // Click row 3: it opens, row 1 closes; its height animates rather than jumping.
+  // Click row 3: it opens, row 1 closes; its height animates rather than jumping. Heights are
+  // recorded every frame in the page, so a slow click round-trip under load can't miss the motion.
+  await page.eval(() => {
+    const row = document.querySelector('#impact [data-ledger-row]:nth-child(3)');
+    const body = row.querySelector('[data-ledger-body]');
+    const full = Math.round(row.querySelector('.ledger-desc').getBoundingClientRect().height);
+    const samples = (window.__ledgerHeights = []);
+    const start = performance.now();
+    const tick = () => {
+      samples.push(Math.round(body.getBoundingClientRect().height));
+      if (performance.now() - start < 3000 && samples.at(-1) < full - 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
   await page.click(`${ROW(3)} .ledger-title`);
-  await sleep(90);
-  const mid = await page.eval(readRows);
-  t.ok(mid[2].height > 0 && mid[2].height < mid[2].descHeight - 1, `${at}: opening animates the height`, JSON.stringify({ height: mid[2].height, full: mid[2].descHeight }));
-  await sleep(600);
+  await sleep(700);
+  const { heights, full } = await page.eval(() => ({
+    heights: window.__ledgerHeights,
+    full: Math.round(document.querySelector('#impact [data-ledger-row]:nth-child(3) .ledger-desc').getBoundingClientRect().height),
+  }));
+  const between = heights.filter((h) => h > 0 && h < full - 1);
+  t.ok(between.length >= 2, `${at}: opening animates the height`, JSON.stringify({ between: between.length, full, heights: heights.slice(0, 12) }));
   rows = await page.eval(readRows);
   t.eq(rows.map((r) => r.expanded), ['false', 'false', 'true', 'false'], `${at}: clicking a row opens it and closes the open one`);
   t.ok(rows[2].visible && rows[2].height >= rows[2].descHeight - 1 && !rows[0].visible && rows[0].height === 0, `${at}: only the clicked row's description shows`);
@@ -345,6 +367,134 @@ async function checkMotion(t, browser, route) {
   t.ok(print.every((r) => r.visible && r.height > 0), `${at}: print shows every description`, JSON.stringify(print.map((r) => r.height)));
   t.ok((await page.eval(railScale)).scale === 1, `${at}: print shows the full rail`);
   t.eq(page.errors, [], `${at}: no page errors with motion`);
+  await page.close();
+}
+
+/** Opens `url` with every response passed through `handler(params, page)` (Fetch domain). */
+async function interceptedPage(browser, url, handler) {
+  const page = await browser.newPage({ width: 1440, height: 900 });
+  await page.reducedMotion(false);
+  await page.send('Fetch.enable', { patterns: [{ urlPattern: '*', requestStage: 'Response' }] });
+  const off = page.connection.on(async (m) => {
+    if (m.sessionId !== page.sessionId || m.method !== 'Fetch.requestPaused') return;
+    try {
+      await handler(m.params, page);
+    } catch {
+      // The page navigated or closed meanwhile.
+    }
+  });
+  await page.goto(url);
+  page.offFetch = off;
+  return page;
+}
+
+const passThrough = (p, page) => page.send('Fetch.continueRequest', { requestId: p.requestId });
+const failMatching = (re) => (p, page) =>
+  re.test(p.request.url) ? page.send('Fetch.fulfillRequest', { requestId: p.requestId, responseCode: 500, body: '' }) : passThrough(p, page);
+
+const readLedgerMode = () => {
+  const ledger = document.querySelector('#impact [data-ledger]');
+  return {
+    heroReady: document.body.classList.contains('hero-ready'),
+    ready: ledger.hasAttribute('data-ledger-ready'),
+    static: ledger.hasAttribute('data-ledger-static'),
+  };
+};
+
+async function checkResilience(t, browser, route) {
+  const at = route.path;
+  const allOpen = (rows) => rows.every((r) => r.visible && r.height > 0 && !r.toggleVisible && r.expanded === null);
+
+  // 1. The Hero's inline hero-ready script never runs (the element is removed from the response).
+  let page = await interceptedPage(browser, route.url, async (p, pg) => {
+    if (p.resourceType !== 'Document') return passThrough(p, pg);
+    const { body, base64Encoded } = await pg.send('Fetch.getResponseBody', { requestId: p.requestId });
+    const html = (base64Encoded ? Buffer.from(body, 'base64').toString() : body).replace(/<script>\s*document\.body\.classList\.add\('hero-ready'\);\s*<\/script>/, '');
+    return pg.send('Fetch.fulfillRequest', { requestId: p.requestId, responseCode: 200, responseHeaders: p.responseHeaders, body: Buffer.from(html).toString('base64') });
+  });
+  await sleep(600);
+  let mode = await page.eval(readLedgerMode);
+  let rows = await page.eval(readRows);
+  t.ok(!mode.heroReady && mode.static && !mode.ready, `${at}: without hero-ready the ledger stays static`, JSON.stringify(mode));
+  t.ok(allOpen(rows), `${at}: without hero-ready every description is visible, no toggle, no aria-expanded`, JSON.stringify(rows));
+  await page.close();
+
+  // 2. The ledger module fails to load: the CSS fail-safe reveals everything at 4s.
+  page = await interceptedPage(browser, route.url, failMatching(/Achievements\.astro_astro_type_script/));
+  await sleep(4600);
+  rows = await page.eval(readRows);
+  t.ok(allOpen(rows), `${at}: if the ledger script fails, every description is revealed by the fail-safe`, JSON.stringify(rows));
+  await page.close();
+
+  // 3. The ledger module arrives after the fail-safe: it stays static (nothing re-collapses).
+  page = await interceptedPage(browser, route.url, async (p, pg) => {
+    if (/Achievements\.astro_astro_type_script/.test(p.request.url)) await sleep(5000);
+    return passThrough(p, pg);
+  });
+  await sleep(5600);
+  mode = await page.eval(readLedgerMode);
+  rows = await page.eval(readRows);
+  t.ok(mode.static && allOpen(rows), `${at}: a ledger script arriving after the fail-safe keeps every description open`, JSON.stringify({ mode, rows }));
+  await page.close();
+
+  // 4. Only the GSAP chunk fails: the disclosure still works, no uncaught error.
+  page = await interceptedPage(browser, route.url, failMatching(/\/_astro\/gsap\./));
+  await page.eval(() => document.querySelector('#impact [data-ledger]').scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await sleep(1200);
+  await page.click(`${ROW(2)} .ledger-title`);
+  await sleep(700);
+  rows = await page.eval(readRows);
+  t.eq(rows.map((r) => r.expanded), ['false', 'true', 'false', 'false'], `${at}: without the GSAP chunk the disclosure still works`);
+  t.ok(rows[1].visible && (await page.eval(railScale)).scale === 1, `${at}: without the GSAP chunk the rail stays fully drawn`);
+  t.eq(page.errors, [], `${at}: a failed GSAP chunk raises no uncaught error`);
+  await page.close();
+}
+
+/** Mid count-up: the accessibility tree holds only final values; frames use the locale's decimal mark. */
+async function checkAnnouncements(t, browser, route) {
+  const at = route.path;
+  const page = await browser.newPage({ width: 1440, height: 900 });
+  await page.reducedMotion(false);
+  await page.goto(route.url);
+  await page.waitFor(() => document.documentElement.dataset.interactions === 'ready', { timeout: 3000 });
+  await sleep(200);
+  await page.eval(() => document.querySelector('#impact [data-metrics]').scrollIntoView({ block: 'center', behavior: 'instant' }));
+  const frames = await page.eval(
+    () =>
+      new Promise((resolve) => {
+        const el = document.querySelectorAll('#impact [data-countup]')[2];
+        const out = [];
+        const t0 = performance.now();
+        let snapped = false;
+        const tick = () => {
+          out.push(el.textContent);
+          if (!snapped && performance.now() - t0 > 600) snapped = true;
+          if (performance.now() - t0 < 2400) requestAnimationFrame(tick);
+          else resolve(out);
+        };
+        requestAnimationFrame(tick);
+      }),
+  );
+  const decimal = route.locale === 'en' ? '.' : ',';
+  const numeric = frames.filter((f) => /^[\d.,]+%$/.test(f));
+  t.ok(numeric.length > 3 && numeric.every((f) => /^\d+[.,]\d{2}%$/.test(f) && f.includes(decimal)), `${at}: decimal count-up frames use "${decimal}" with 2 decimals`, JSON.stringify(numeric.slice(0, 6)));
+
+  // Fresh load, snapshot the accessibility tree mid-animation.
+  await page.goto(route.url);
+  await page.waitFor(() => document.documentElement.dataset.interactions === 'ready', { timeout: 3000 });
+  await sleep(200);
+  await page.eval(() => document.querySelector('#impact [data-metrics]').scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await sleep(600);
+  const animating = await page.eval(() => [...document.querySelectorAll('#impact [data-countup]')].some((el, i) => el.textContent !== document.querySelectorAll('#impact .metric-value .sr-only')[i].textContent));
+  await page.send('Accessibility.enable');
+  const { nodes: metricNodes } = await page.send('Accessibility.queryAXTree', {
+    backendNodeId: (await page.send('DOM.describeNode', { objectId: (await page.send('Runtime.evaluate', { expression: "document.querySelector('#impact [data-metrics]')" })).result.objectId })).node.backendNodeId,
+  });
+  const texts = metricNodes.filter((n) => !n.ignored && n.role?.value === 'StaticText').map((n) => n.name?.value);
+  const live = await page.eval(() => document.querySelectorAll('#impact [aria-live], #impact [role="status"], #impact [role="alert"], #impact [role="log"], #impact [role="timer"]').length);
+  t.ok(animating, `${at}: snapshot taken while the count-up is running`);
+  t.ok(IMPACT_VALUES[route.locale].every((v) => texts.includes(v)) && !texts.some((v) => /[#$&*/<=>?@]/.test(v ?? '') || /^0([.,]0+)?[+%]$/.test(v ?? '')), `${at}: mid count-up the accessibility tree holds only the final values`, JSON.stringify(texts));
+  t.eq(live, 0, `${at}: no live regions in the section (nothing is announced while counting)`);
   await page.close();
 }
 
@@ -497,6 +647,8 @@ export default {
       await checkMotion(t, browser, withUrl);
       await checkReducedMotion(t, browser, withUrl);
       await checkNoJs(t, browser, withUrl);
+      await checkAnnouncements(t, browser, withUrl);
+      await checkResilience(t, browser, withUrl);
     }
     t.eq(page.errors, [], 'no uncaught page errors');
     await page.close();

@@ -15,7 +15,8 @@
  * a "+" that turns into "×" when open; the description below is a region. One row open at a time,
  * the first by default (src/scripts/impact-ledger.ts). Rows 2-4 are collapsed from the first paint
  * via body.hero-ready (set by Hero.astro's inline script), so the script never shifts layout; without
- * JS no row collapses. A cobalt rail on the left draws down with the scroll (fully drawn without
+ * JS no row collapses, and if the ledger script fails a CSS fail-safe reveals every description
+ * (see src/scripts/impact-ledger.ts). A cobalt rail on the left draws down with the scroll (fully drawn without
  * motion). Hover tints the row around the cursor (data-spotlight, src/scripts/interactions.ts).
  */
 import Icon from './ui/Icon.astro';
@@ -361,12 +362,17 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
     }
   }
 
-  /* Without JS (no body.hero-ready) the head is plain text: no affordance, nothing to toggle. */
-  :global(body:not(.hero-ready)) .ledger-toggle {
+  /*
+   * Without JS (no body.hero-ready), or in static mode (the ledger script ran too late or without
+   * hero-ready), the head is plain text: no affordance, nothing to toggle.
+   */
+  :global(body:not(.hero-ready)) .ledger-toggle,
+  .ledger[data-ledger-static] .ledger-toggle {
     visibility: hidden;
   }
 
-  :global(body:not(.hero-ready)) .ledger-trigger {
+  :global(body:not(.hero-ready)) .ledger-trigger,
+  .ledger[data-ledger-static] .ledger-trigger {
     cursor: default;
   }
 
@@ -399,7 +405,7 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
     transition: opacity 320ms var(--ease-out);
   }
 
-  :global(body.hero-ready) .ledger-row:not([data-open]) .ledger-body {
+  :global(body.hero-ready) .ledger:not([data-ledger-static]) .ledger-row:not([data-open]) .ledger-body {
     grid-template-rows: 0fr;
     visibility: hidden;
     transition:
@@ -407,16 +413,52 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
       visibility 0s linear 420ms;
   }
 
-  :global(body.hero-ready) .ledger-row:not([data-open]) .ledger-desc {
+  :global(body.hero-ready) .ledger:not([data-ledger-static]) .ledger-row:not([data-open]) .ledger-desc {
     opacity: 0;
+  }
+
+  /*
+   * Fail-safe: if the ledger script has not marked the ledger ready by 4s (FAILSAFE_MS in
+   * src/scripts/impact-ledger.ts), every description is revealed and the toggles are hidden.
+   * Once the script marks it ready (normally within milliseconds) these rules stop matching.
+   */
+  :global(body.hero-ready) .ledger:not([data-ledger-ready]) .ledger-row:not([data-open]) .ledger-body {
+    animation: impact-ledger-reveal 1ms 4s forwards;
+  }
+
+  :global(body.hero-ready) .ledger:not([data-ledger-ready]) .ledger-row:not([data-open]) .ledger-desc {
+    animation: impact-ledger-show 1ms 4s forwards;
+  }
+
+  :global(body.hero-ready) .ledger:not([data-ledger-ready]) .ledger-toggle {
+    animation: impact-ledger-hide 1ms 4s forwards;
+  }
+
+  @keyframes impact-ledger-reveal {
+    to {
+      grid-template-rows: 1fr;
+      visibility: visible;
+    }
+  }
+
+  @keyframes impact-ledger-show {
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes impact-ledger-hide {
+    to {
+      visibility: hidden;
+    }
   }
 
   /* Reduced motion: instant toggles (the global rule zeroes durations, not the visibility delay). */
   @media (prefers-reduced-motion: reduce) {
     .ledger-body,
     .ledger-desc,
-    :global(body.hero-ready) .ledger-row:not([data-open]) .ledger-body,
-    :global(body.hero-ready) .ledger-row:not([data-open]) .ledger-desc {
+    :global(body.hero-ready) .ledger:not([data-ledger-static]) .ledger-row:not([data-open]) .ledger-body,
+    :global(body.hero-ready) .ledger:not([data-ledger-static]) .ledger-row:not([data-open]) .ledger-desc {
       transition: none;
     }
   }
@@ -452,13 +494,13 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 
   @media print {
     .ledger-body,
-    :global(body.hero-ready) .ledger-row:not([data-open]) .ledger-body {
+    :global(body.hero-ready) .ledger:not([data-ledger-static]) .ledger-row:not([data-open]) .ledger-body {
       grid-template-rows: 1fr;
       visibility: visible;
       transition: none;
     }
 
-    :global(body.hero-ready) .ledger-row:not([data-open]) .ledger-desc {
+    :global(body.hero-ready) .ledger:not([data-ledger-static]) .ledger-row:not([data-open]) .ledger-desc {
       opacity: 1;
       transition: none;
     }

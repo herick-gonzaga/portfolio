@@ -6,6 +6,12 @@
  *   the row's [data-open] and on body.hero-ready (set by an inline script before first paint), so
  *   rows 2-4 are already collapsed in the first frame and nothing shifts when this script runs.
  *   Without JS every description stays visible. The height animation is CSS (grid-template-rows).
+ * - Fail-safes (every description stays reachable): the disclosure is wired, and [data-ledger-ready]
+ *   set, only when the rows were actually collapsed (body.hero-ready) and before FAILSAFE_MS. If
+ *   this script never runs, a CSS animation in Achievements.astro reveals every description at
+ *   FAILSAFE_MS; if it runs later than that, or without hero-ready, the ledger stays static with
+ *   every description open and no toggle ([data-ledger-static]), so nothing collapses after the
+ *   reader has seen it. GSAP is loaded lazily, so a failed GSAP chunk only loses the rail.
  * - Index scramble: hovering a row (mouse/pen) scrambles its mono "EXH-0N" code, settling left to
  *   right. The code is aria-hidden, so assistive tech never hears the glyphs.
  * - Rail: a cobalt line on the ledger's left draws down as the page scrolls, scrubbed by
@@ -14,10 +20,10 @@
  *
  * Under prefers-reduced-motion: no scramble, no rail scrub, and toggles are instant (global CSS).
  */
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { fontsReady } from './fonts';
+import type { ScrollTrigger as ScrollTriggerType } from 'gsap/ScrollTrigger';
 
+/** Keep in sync with the impact-ledger-failsafe animation delay in Achievements.astro. */
+const FAILSAFE_MS = 4000;
 const SCRAMBLE_MS = 420;
 const SCRAMBLE_GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#/';
 /** The rail's tip, as % of the viewport height from the top. */
@@ -50,6 +56,11 @@ function scramble(el: HTMLElement) {
 }
 
 function init(root: HTMLElement) {
+  if (!document.body.classList.contains('hero-ready') || performance.now() >= FAILSAFE_MS) {
+    root.dataset.ledgerStatic = '';
+    return;
+  }
+  root.dataset.ledgerReady = '';
   const rows = [...root.querySelectorAll<HTMLElement>('[data-ledger-row]')];
   const triggers = rows.map((row) => row.querySelector<HTMLButtonElement>('[data-ledger-trigger]')!);
   const bodies = rows.map((row) => row.querySelector<HTMLElement>('[data-ledger-body]')!);
@@ -68,11 +79,12 @@ function init(root: HTMLElement) {
   });
 
   // Rows below (and their ScrollTriggers) move when a row opens or closes: re-measure once settled.
+  let scrollTrigger: typeof ScrollTriggerType | undefined;
   let refresh = 0;
   root.addEventListener('transitionend', (event) => {
-    if (event.propertyName !== 'grid-template-rows' || ScrollTrigger.getAll().length === 0) return;
+    if (event.propertyName !== 'grid-template-rows' || !scrollTrigger || scrollTrigger.getAll().length === 0) return;
     cancelAnimationFrame(refresh);
-    refresh = requestAnimationFrame(() => ScrollTrigger.refresh());
+    refresh = requestAnimationFrame(() => scrollTrigger?.refresh());
   });
 
   rows.forEach((row) => {
@@ -83,9 +95,13 @@ function init(root: HTMLElement) {
     });
   });
 
-  if (!reduced.matches) {
-    // The rail's span depends on the final text layout: arm once the web fonts are in.
-    void fontsReady().then(() => {
+  // Lazy, so the disclosure above never depends on the GSAP chunks loading.
+  void Promise.all([import('gsap'), import('gsap/ScrollTrigger'), import('./fonts')]).then(
+    async ([{ gsap }, { ScrollTrigger }, { fontsReady }]) => {
+      scrollTrigger = ScrollTrigger;
+      if (reduced.matches) return;
+      // The rail's span depends on the final text layout: arm once the web fonts are in.
+      await fontsReady();
       gsap.registerPlugin(ScrollTrigger);
       root.dataset.ledgerArmed = '';
       gsap.fromTo(
@@ -97,8 +113,10 @@ function init(root: HTMLElement) {
           scrollTrigger: { trigger: root, start: `top ${TIP}%`, end: `bottom ${TIP}%`, scrub: true },
         },
       );
-    });
-  }
+    },
+    // The rail is decorative: without the GSAP chunks it simply stays fully drawn.
+    () => {},
+  );
 }
 
 document.querySelectorAll<HTMLElement>('[data-ledger]').forEach(init);
