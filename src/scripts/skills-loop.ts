@@ -17,9 +17,17 @@
  * visibilitychange); `data-paused` freezes the CSS animations meanwhile. Pointer work is batched to
  * one call per frame. Under prefers-reduced-motion (also when switched on mid-visit): no pulse, no
  * auto-cycle and no transitions — a static tab interface / accordion with the first pillar open.
+ *
+ * GSAP drives only motion (pulse, arc, glides, panel entrances), so it is imported on demand: right
+ * away with motion allowed, never under reduced motion (until it is switched off mid-visit). Until
+ * it arrives the loop works fully, just without those tweens.
  */
-import { gsap } from 'gsap';
+import type { gsap as GSAP } from 'gsap';
 import { perFrame } from './frame';
+
+let gsap: typeof GSAP | undefined;
+let gsapLoading: Promise<unknown> | undefined;
+const loadGsap = () => (gsapLoading ??= import('gsap').then((m) => (gsap = m.gsap)));
 
 /** Seconds for the pulse to travel from one node to the next (= auto-cycle interval). */
 const CYCLE_S = 5;
@@ -78,13 +86,13 @@ function init(root: HTMLElement) {
     const target = (index - 1) * 100;
     // Nearest equivalent position, so the arc always takes the short way round.
     arcStart += mod(target - arcStart + 200, 400) - 200;
-    if (motion) gsap.to(arc, { attr: { 'stroke-dashoffset': -arcStart }, duration: 0.5, ease: 'power3.out', overwrite: true });
+    if (motion && gsap) gsap.to(arc, { attr: { 'stroke-dashoffset': -arcStart }, duration: 0.5, ease: 'power3.out', overwrite: true });
     else arc.setAttribute('stroke-dashoffset', String(-arcStart));
   }
 
   /** Glides the pulse onto node `index` (the nearest lap), then lets it orbit on from there. */
   function glideTo(index: number) {
-    if (!motion || mode !== 'tabs') return;
+    if (!motion || mode !== 'tabs' || !gsap) return;
     const target = Math.round((state.phase - index) / n) * n + index;
     const distance = Math.abs(target - state.phase);
     if (distance < 0.001) return;
@@ -100,7 +108,8 @@ function init(root: HTMLElement) {
     });
   }
 
-  function enter(target: HTMLElement, chipsFrom: gsap.TweenVars) {
+  function enter(target: HTMLElement, chipsFrom: { x?: number; y?: number }) {
+    if (!gsap) return;
     const chips = target.querySelectorAll('[data-loop-chips] > li');
     gsap.killTweensOf([target, ...chips]);
     gsap.fromTo(target, { opacity: 0, ...chipsFrom }, { opacity: 1, x: 0, y: 0, duration: 0.35, ease: 'power3.out', clearProps: 'opacity,transform' });
@@ -144,8 +153,8 @@ function init(root: HTMLElement) {
     mode = next;
     root.dataset.mode = mode;
     const all = [...steps, ...bodies, ...steps.flatMap((s) => [...s.querySelectorAll('[data-loop-chips] > li')])];
-    gsap.killTweensOf(all);
-    gsap.set(all, { clearProps: 'opacity,transform' });
+    gsap?.killTweensOf(all);
+    gsap?.set(all, { clearProps: 'opacity,transform' });
     if (mode === 'tabs') {
       steps.forEach((step, i) => {
         step.setAttribute('role', 'tabpanel');
@@ -195,9 +204,9 @@ function init(root: HTMLElement) {
   function updateRunning() {
     const visible = inView && !document.hidden;
     root.toggleAttribute('data-paused', !visible);
-    const run = visible && motion && mode === 'tabs';
-    if (run && !ticking) gsap.ticker.add(tick);
-    if (!run && ticking) gsap.ticker.remove(tick);
+    const run = visible && motion && mode === 'tabs' && Boolean(gsap);
+    if (run && !ticking) gsap!.ticker.add(tick);
+    if (!run && ticking) gsap!.ticker.remove(tick);
     ticking = run;
   }
 
@@ -289,9 +298,10 @@ function init(root: HTMLElement) {
     if (!motion) {
       hold();
       gliding = false;
-      gsap.killTweensOf(state);
-    } else if (!pointerIn && !focusIn) {
-      auto = canAuto();
+      gsap?.killTweensOf(state);
+    } else {
+      if (!pointerIn && !focusIn) auto = canAuto();
+      void loadGsap().then(updateRunning);
     }
     updateRunning();
   };
@@ -303,6 +313,7 @@ function init(root: HTMLElement) {
 
   root.toggleAttribute('data-motion', motion);
   applyMode(mode);
+  if (motion) void loadGsap().then(updateRunning);
 }
 
 document.querySelectorAll<HTMLElement>('[data-loop]').forEach(init);

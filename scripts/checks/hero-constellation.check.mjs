@@ -276,12 +276,13 @@ const readTypewriter = (target, timeout) =>
       sizes.add(`${Math.round(s.height)}x${Math.round(b.width)}`);
       seen.add(out.textContent);
       if (out.textContent === target || performance.now() - start > timeout) {
-        const cursor = getComputedStyle(root.querySelector('.hero-cursor'));
+        const caret = root.querySelector('.hero-caret');
+        const cursor = getComputedStyle(caret);
         resolve({
           text: out.textContent,
           partial: [...seen].some((v) => v.length > 0 && target.startsWith(v) && v !== target),
           sizes: [...sizes],
-          cursor: { animation: cursor.animationName, font: cursor.fontFamily, width: parseFloat(cursor.width) },
+          cursor: { animation: cursor.animationName, font: cursor.fontFamily, width: parseFloat(cursor.backgroundSize) },
           sr: root.querySelector('.sr-only').textContent,
           liveHidden: out.closest('[aria-hidden="true"]') !== null,
         });
@@ -319,7 +320,7 @@ async function checkReducedMotion(t, browser, url, route) {
     canvas: document.querySelectorAll('#top canvas').length,
     edges: [...document.querySelectorAll('#top .sd-edge')].map((e) => getComputedStyle(e).opacity),
     text: document.querySelector('[data-typewriter-text]').textContent,
-    cursor: getComputedStyle(document.querySelector('.hero-cursor')).animationName,
+    cursor: getComputedStyle(document.querySelector('.hero-caret')).animationName,
     h1Children: document.querySelector('#top h1').children.length,
   }));
   t.eq(s.canvas, 0, `${at}: no constellation canvas`);

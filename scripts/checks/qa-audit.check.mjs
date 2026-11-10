@@ -185,7 +185,9 @@ function focusState() {
   const cs = getComputedStyle(el);
   const region = el.closest('[data-navbar], [data-mobile-menu], section[id], footer');
   return {
-    id: [...document.querySelectorAll('*')].indexOf(el),
+    // Stable tag from pageFocusables(): DOM indexes shift whenever a script inserts nodes mid-walk
+    // (the terminal mounts on its first focus), which made this comparison flaky.
+    id: el.dataset.qaFocus ?? `untracked: ${el.tagName.toLowerCase()} ${(el.getAttribute('aria-label') || el.textContent).trim().slice(0, 30)}`,
     label: (el.getAttribute('aria-label') || el.textContent).trim().replace(/\s+/g, ' ').slice(0, 30),
     region: region?.id || region?.tagName.toLowerCase() || el.tagName.toLowerCase(),
     ring: `${cs.outlineStyle} ${cs.outlineWidth} ${cs.outlineColor} ${cs.outlineOffset}`,
@@ -203,7 +205,7 @@ function pageFocusables() {
   return [...document.querySelectorAll('a[href], button, [tabindex]')]
     .filter((el) => el.getAttribute('tabindex') !== '-1')
     .filter((el) => el.getClientRects().length > 0 && !el.closest('[hidden]'))
-    .map((el) => [...document.querySelectorAll('*')].indexOf(el));
+    .map((el, i) => (el.dataset.qaFocus = String(i)));
 }
 
 /** Tabs until focus leaves the page; returns every stop. */
