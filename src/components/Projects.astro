@@ -2,13 +2,11 @@
 /**
  * Projects: white section with line borders. Header row has the kicker and H2 on the left and an
  * "all repositories" link on the right; it stacks below 900px.
- * Row 1: featured card (2fr) beside a column of the two secondary cards (1fr) from 1200px; below
- * that everything stacks in one column, featured card first (DESIGN_SPEC: at 900–1199 the featured
- * project stacks above the secondary cards). Side by side, the secondary column is a grid with
- * equal (1fr) auto rows rather than flex: 1 children: flex: 1 only shares the free space, so the
- * card with more copy stays taller, while 1fr rows size both cards to the taller one and fill the
- * column height.
- * Row 2: the small cards in two columns from 600px, one column below.
+ * Row 1: the featured cards (MQ-Test, then Meus Investimentos) side by side in two equal columns from
+ * 1200px, stacked below that in locale-file order. Grid rows stretch, so both featured cards share
+ * one height.
+ * Row 2: the secondary cards, then the small cards: three columns from 1200px, two from 600px (a last
+ * card left alone on its row spans both columns), one below. Cards in a row share one height.
  */
 import ProjectCard from './ProjectCard.astro';
 import ProjectCardSmall from './ProjectCardSmall.astro';
@@ -25,9 +23,14 @@ const { locale } = Astro.props;
 const content = getContent(locale);
 const header = content.sections.projects;
 
-const featured = content.projects.find((project) => project.tier === 'featured');
+const featured = content.projects.filter((project) => project.tier === 'featured');
 const secondary = content.projects.filter((project) => project.tier === 'secondary');
 const small = content.projects.filter((project) => project.tier === 'small');
+/** Row 2: secondary cards first, then small cards, each with the component that renders its tier. */
+const rest = [
+  ...secondary.map((project) => ({ project, Card: ProjectCard })),
+  ...small.map((project) => ({ project, Card: ProjectCardSmall })),
+];
 ---
 
 <Section id="projects" locale={locale} kicker={header.kicker} title={header.title} intro={header.intro} surface>
@@ -35,25 +38,22 @@ const small = content.projects.filter((project) => project.tier === 'small');
     slot="action"
     href={content.profile.contact.github}
     target="_blank"
-    rel="noopener"
+    rel="noopener noreferrer"
     class="inline-flex min-h-touch items-center gap-1.5 text-[14px] font-semibold text-cobalt"
   >
     <span class="link-underline">{content.ui.allRepos}</span>
     <Icon name="arrow-right" size={16} />
   </a>
 
-  <div class="grid gap-gutter lg:grid-cols-[2fr_1fr]" data-reveal-group>
-    {featured && <ProjectFeatured project={featured} />}
-    <div class="flex flex-col gap-gutter lg:grid lg:auto-rows-fr">
-      {secondary.map((project) => <ProjectCard project={project} />)}
-    </div>
+  <div class="grid gap-gutter lg:grid-cols-2" data-reveal-group>
+    {featured.map((project) => <ProjectFeatured project={project} />)}
   </div>
 
   {
-    small.length > 0 && (
-      <div class="mt-gutter grid gap-gutter sm:grid-cols-2" data-reveal-group>
-        {small.map((project) => (
-          <ProjectCardSmall project={project} />
+    rest.length > 0 && (
+      <div class="mt-gutter grid gap-gutter sm:grid-cols-2 lg:grid-cols-3" data-reveal-group>
+        {rest.map(({ project, Card }, i) => (
+          <Card project={project} class={rest.length % 2 === 1 && i === rest.length - 1 ? 'sm:col-span-2 lg:col-span-1' : undefined} />
         ))}
       </div>
     )

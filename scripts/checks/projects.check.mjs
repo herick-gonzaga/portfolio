@@ -1,7 +1,10 @@
 /**
  * Projects section: copy matches the locale files (by tier), section surface and rhythm, header row,
- * row 1 (2fr/1fr from 1200px, stacked with the featured card first below), row 2 (2 columns from 600px), card typography, equal-height secondary
- * cards, metrics grid and real metric values, chips, overflow, and external links (target="_blank", rel="noopener").
+ * row 1 (the two featured cards, MQ-Test then Meus Investimentos, in two equal columns from 1200px,
+ * stacked below), row 2 (secondary then small cards: 3 columns from 1200px, 2 from 600px with a lone
+ * last card spanning both, 1 below), card typography, equal-height cards per row, metrics grids and
+ * real metric values, chips, overflow, the featured link note (text, style, aria-describedby), and
+ * external links (target="_blank", rel="noopener noreferrer").
  * Links: a card with no links has no links row, no link points at the "#projects" placeholder,
  * and no link returns 404 (lib/links.mjs).
  */
@@ -10,22 +13,22 @@ import { checkLinkTargets } from './lib/links.mjs';
 
 const WIDTHS = [1440, 1392, 1200, 1199, 900, 600, 390];
 
-/** Real MQ-Test metric values per locale: same numbers, locale-specific thousands separator. */
+/** Featured cards in order, with their real metric values per locale (locale-specific thousands separator). */
+const FEATURED_SLUGS = ['mq-test', 'meus-investimentos'];
 const FEATURED_VALUES = {
-  en: ['500+', '9,000+', '10+'],
-  pt: ['500+', '9.000+', '10+'],
-  es: ['500+', '9.000+', '10+'],
+  en: [['500+', '9,000+', '10+'], ['6', '4', 'R$ 0']],
+  pt: [['500+', '9.000+', '10+'], ['6', '4', 'R$ 0']],
+  es: [['500+', '9.000+', '10+'], ['6', '4', 'R$ 0']],
 };
+const LIVE_APP = 'https://day-trader-ruby.vercel.app';
 
-/** Cards in DOM order: featured, the secondary column, then the small grid. */
+/** Cards in DOM order: the featured row, then row 2 (secondary cards, then small cards). */
 function readTexts() {
   const text = (el) => (el?.textContent ?? '').replace(/\s+/g, ' ').trim();
   const section = document.getElementById('projects');
   const links = (list) => [...list.querySelectorAll('a')].map((a) => ({ label: text(a), href: a.getAttribute('href') }));
   const chips = (list) => [...list.querySelectorAll(':scope > li')].map(text);
   const [row1, row2] = section.querySelectorAll(':scope .container > div:last-child > .grid');
-  const featured = row1.querySelector(':scope > article');
-  const featuredLinks = featured.querySelector('dl + ul + ul');
   const card = (el) => {
     const lists = el.querySelectorAll('ul');
     return {
@@ -44,22 +47,26 @@ function readTexts() {
       title: text(section.querySelector('header h2')),
     },
     repoLink: { label: text(repoLink), href: repoLink?.getAttribute('href') },
-    featured: {
-      kind: text(featured.querySelector('span')),
-      period: text(featured.querySelector('span + p')) || undefined,
-      name: text(featured.querySelector('h3')),
-      description: text(featured.querySelector('h3 + p')),
-      metrics: [...featured.querySelectorAll('dl > div')].map((m) => ({ value: text(m.querySelector('dd .sr-only')), label: text(m.querySelector('dt')) })),
-      stack: chips(featured.querySelector('dl + ul')),
-      links: featuredLinks ? links(featuredLinks) : [],
-      hasLinksRow: Boolean(featuredLinks),
-    },
-    secondary: [...row1.querySelectorAll(':scope > div > article')].map(card),
-    small: [...row2.querySelectorAll(':scope > article')].map(card),
+    featured: [...row1.querySelectorAll(':scope > article')].map((featured) => {
+      const featuredLinks = featured.querySelector('dl + ul + ul');
+      const note = featured.querySelector('dl + ul + ul + p');
+      return {
+        kind: text(featured.querySelector('span')),
+        period: text(featured.querySelector('span + p')) || undefined,
+        name: text(featured.querySelector('h3')),
+        description: text(featured.querySelector('h3 + p')),
+        metrics: [...featured.querySelectorAll('dl > div')].map((m) => ({ value: text(m.querySelector('dd .sr-only')), label: text(m.querySelector('dt')) })),
+        stack: chips(featured.querySelector('dl + ul')),
+        links: featuredLinks ? links(featuredLinks) : [],
+        hasLinksRow: Boolean(featuredLinks),
+        linkNote: note ? text(note) : undefined,
+      };
+    }),
+    rest: [...row2.querySelectorAll(':scope > article')].map(card),
   };
 }
 
-function measureLayout() {
+function measureLayout(secondaryCount) {
   const px = (value) => parseFloat(value);
   const vw = document.documentElement.clientWidth;
   const section = document.getElementById('projects');
@@ -81,24 +88,27 @@ function measureLayout() {
   const action = header.nextElementSibling;
   const repoLink = action.querySelector('a');
   const [row1, row2] = section.querySelectorAll(':scope .container > div:last-child > .grid');
-  const featured = row1.querySelector(':scope > article');
-  const column = row1.querySelector(':scope > div');
-  const secondary = [...column.querySelectorAll(':scope > article')];
-  const small = [...row2.querySelectorAll(':scope > article')];
+  const featuredCards = [...row1.querySelectorAll(':scope > article')];
+  const rest = [...row2.querySelectorAll(':scope > article')];
+  const secondary = rest.slice(0, secondaryCount);
+  const small = rest.slice(secondaryCount);
 
-  const fs = style(featured);
-  const topRow = featured.firstElementChild;
-  const kindChip = topRow.querySelector('span');
-  const period = topRow.querySelector('p');
-  const description = featured.querySelector('h3 + p');
-  // 60ch in the description's own font, measured with a probe element.
-  const probe = document.createElement('span');
-  probe.style.cssText = 'position:absolute;visibility:hidden;width:60ch';
-  description.appendChild(probe);
-  const sixtyCh = box(probe).width;
-  probe.remove();
-  const dl = featured.querySelector('dl');
-  const metricItems = [...dl.querySelectorAll(':scope > div')];
+  const readFeatured = (featured) => {
+    const fs = style(featured);
+    const topRow = featured.firstElementChild;
+    const kindChip = topRow.querySelector('span');
+    const period = topRow.querySelector('p');
+    const description = featured.querySelector('h3 + p');
+    // 60ch in the description's own font, measured with a probe element.
+    const probe = document.createElement('span');
+    probe.style.cssText = 'position:absolute;visibility:hidden;width:60ch';
+    description.appendChild(probe);
+    const sixtyCh = box(probe).width;
+    probe.remove();
+    const dl = featured.querySelector('dl');
+    const metricItems = [...dl.querySelectorAll(':scope > div')];
+    return { topRow, kindChip, period, description, sixtyCh, dl, metricItems, fs };
+  };
 
   const chips = [...section.querySelectorAll('article ul > li > span')].map((chip) => {
     const card = chip.closest('article');
@@ -126,6 +136,35 @@ function measureLayout() {
 
   const ss = style(section);
   const cards = (list) => list.map((a) => ({ top: Math.round(box(a).top), left: Math.round(box(a).left), width: box(a).width, height: box(a).height }));
+  const featured = featuredCards.map((card) => {
+    const { topRow, kindChip, period, description, sixtyCh, dl, metricItems, fs } = readFeatured(card);
+    const note = card.querySelector('dl + ul + ul + p');
+    return {
+      ...cards([card])[0],
+      background: fs.backgroundColor,
+      padding: [fs.paddingTop, fs.paddingRight, fs.paddingBottom, fs.paddingLeft].map(px),
+      minHeight: fs.minHeight,
+      topRow: {
+        sameLine: Math.abs(box(kindChip).top + box(kindChip).height / 2 - (box(period).top + box(period).height / 2)) < 2,
+        chipAtStart: Math.abs(box(kindChip).left - box(topRow).left) < 1,
+        periodAtEnd: Math.abs(box(period).right - box(topRow).right) < 1,
+        periodFont: font(period),
+      },
+      title: font(card.querySelector('h3')),
+      description: { ...font(description), width: box(description).width, maxWidth: px(style(description).maxWidth), sixtyCh },
+      metrics: {
+        columns: new Set(metricItems.map((m) => Math.round(box(m).left))).size,
+        border: [style(dl).borderTopWidth, style(dl).borderTopColor],
+        valueFonts: metricItems.map((m) => font(m.querySelector('dd'))),
+        labelFonts: metricItems.map((m) => font(m.querySelector('dt'))),
+        valueTops: metricItems.map((m) => box(m.querySelector('dd')).top),
+        valueAboveLabel: metricItems.every((m) => box(m.querySelector('dd')).bottom <= box(m.querySelector('dt')).top + 0.5),
+      },
+      chipBorders: [...card.querySelectorAll('ul > li > span')].map((c) => style(c).borderTopColor),
+      linkFonts: [...card.querySelectorAll('dl + ul + ul a')].map((a) => ({ ...font(a), height: box(a).height })),
+      note: note && { ...font(note), belowLinks: box(note).top >= box(card.querySelector('dl + ul + ul')).bottom - 0.5 },
+    };
+  });
   return {
     vw,
     section: {
@@ -146,33 +185,14 @@ function measureLayout() {
       columns: style(row1).gridTemplateColumns.split(' ').map(px),
       gap: px(style(row1).columnGap),
       rowGap: px(style(row1).rowGap),
-      columnBelowFeatured: box(column).top >= box(featured).bottom - 0.5,
-      columnHeight: box(column).height,
-      columnGap: px(style(column).rowGap),
     },
-    featured: {
-      ...cards([featured])[0],
-      background: fs.backgroundColor,
-      padding: [fs.paddingTop, fs.paddingRight, fs.paddingBottom, fs.paddingLeft].map(px),
-      minHeight: fs.minHeight,
-      topRow: {
-        sameLine: Math.abs(box(kindChip).top + box(kindChip).height / 2 - (box(period).top + box(period).height / 2)) < 2,
-        chipAtStart: Math.abs(box(kindChip).left - box(topRow).left) < 1,
-        periodAtEnd: Math.abs(box(period).right - box(topRow).right) < 1,
-        periodFont: font(period),
-      },
-      title: font(featured.querySelector('h3')),
-      description: { ...font(description), width: box(description).width, maxWidth: px(style(description).maxWidth), sixtyCh },
-      metrics: {
-        columns: new Set(metricItems.map((m) => Math.round(box(m).left))).size,
-        border: [style(dl).borderTopWidth, style(dl).borderTopColor],
-        valueFonts: metricItems.map((m) => font(m.querySelector('dd'))),
-        labelFonts: metricItems.map((m) => font(m.querySelector('dt'))),
-        valueTops: metricItems.map((m) => box(m.querySelector('dd')).top),
-        valueAboveLabel: metricItems.every((m) => box(m.querySelector('dd')).bottom <= box(m.querySelector('dt')).top + 0.5),
-      },
-      chipBorders: [...featured.querySelectorAll('ul > li > span')].map((c) => style(c).borderTopColor),
-      linkFonts: [...featured.querySelectorAll('dl + ul + ul a')].map((a) => ({ ...font(a), height: box(a).height })),
+    featured,
+    row2: {
+      columns: style(row2).gridTemplateColumns.split(' ').map(px),
+      gap: px(style(row2).columnGap),
+      rowGap: px(style(row2).rowGap),
+      cards: cards(rest),
+      width: box(row2).width,
     },
     secondary: cards(secondary).map((c, i) => ({
       ...c,
@@ -223,73 +243,76 @@ function checkLayout(t, m, at, width) {
   );
   t.ok(m.headerRow.linkHeight >= TOKENS.touchTarget, `${at}: repos link touch target ≥44px`, `${m.headerRow.linkHeight}px`);
 
-  // Row 1: 2fr/1fr from 1200px with a 24px gap; below that one column, featured card first.
+  // Row 1: the featured cards in two equal columns from 1200px with a 24px gap; one column below.
+  const featuredTops = m.featured.map((c) => c.top);
   if (sideBySide) {
     t.eq(m.row1.columns.length, 2, `${at}: row 1 has two columns`);
-    t.near(m.row1.columns[0] / m.row1.columns[1], 2, 0.01, `${at}: row 1 columns are 2fr/1fr`);
+    t.near(m.row1.columns[0], m.row1.columns[1], 1, `${at}: featured columns are equal`);
     t.eq(m.row1.gap, 24, `${at}: row 1 column gap is 24px`);
+    t.ok(spread(featuredTops) <= 1, `${at}: featured cards share a row`, JSON.stringify(featuredTops));
+    t.ok(spread(m.featured.map((c) => c.height)) <= 1, `${at}: featured cards have equal height`, JSON.stringify(m.featured.map((c) => c.height)));
   } else {
     t.eq(m.row1.columns.length, 1, `${at}: row 1 is a single column`);
-    t.ok(m.row1.columnBelowFeatured, `${at}: secondary cards sit below the featured card`);
+    t.ok(featuredTops[1] > featuredTops[0], `${at}: MQ-Test stacks above Meus Investimentos`);
     t.eq(m.row1.rowGap, 24, `${at}: row 1 row gap is 24px`);
   }
 
-  // Secondary cards: equal height and filling the column next to the featured card.
-  t.eq(m.row1.columnGap, 24, `${at}: secondary cards are 24px apart`);
-  if (sideBySide) {
-    t.ok(spread(m.secondary.map((c) => c.height)) <= 1, `${at}: secondary cards have equal height`, JSON.stringify(m.secondary.map((c) => c.height)));
-    t.near(m.row1.columnHeight, m.featured.height, 1, `${at}: secondary column matches the featured card height`);
-    const filled = m.secondary.reduce((sum, c) => sum + c.height, 0) + m.row1.columnGap;
-    t.near(filled, m.row1.columnHeight, 1, `${at}: secondary cards fill the column`);
+  // Featured cards.
+  for (const [i, f] of m.featured.entries()) {
+    const fat = `${at} featured #${i + 1}`;
+    t.eq(f.background, TOKENS.ink, `${fat}: card is ink`);
+    const featuredPad = desktop ? 40 : 24;
+    t.eq(f.padding, [featuredPad, featuredPad, featuredPad, featuredPad], `${fat}: padding ${featuredPad}px`);
+    t.ok(f.minHeight === '420px' && f.height >= 420, `${fat}: min-height 420px`, `${f.minHeight}, ${f.height}px`);
+    t.ok(f.topRow.chipAtStart && f.topRow.periodAtEnd, `${fat}: kind chip and period are space-between`);
+    if (width >= 600) t.ok(f.topRow.sameLine, `${fat}: kind chip and period share a line`);
+    t.ok(
+      f.topRow.periodFont.mono && f.topRow.periodFont.size === 12 && f.topRow.periodFont.color === TOKENS.cobaltSoft,
+      `${fat}: period is mono 12px cobalt-soft`,
+      JSON.stringify(f.topRow.periodFont),
+    );
+    t.ok(
+      f.title.size === 32 && f.title.weight === '600' && f.title.tracking === -0.02 && f.title.color === TOKENS.white,
+      `${fat}: H3 is 32px/600, -0.02em, white`,
+      JSON.stringify(f.title),
+    );
+    t.ok(
+      f.description.size === 16 && f.description.lineHeight === 1.6 && f.description.color === TOKENS.mutedDark,
+      `${fat}: description is 16px/1.6 muted-dark`,
+      JSON.stringify(f.description),
+    );
+    t.near(f.description.maxWidth, f.description.sixtyCh, 0.5, `${fat}: description max-width is 60ch`);
+    t.ok(f.description.width <= f.description.sixtyCh + 0.5, `${fat}: description is at most 60ch wide`);
+    t.eq(f.metrics.columns, width >= 600 ? 3 : 1, `${fat}: metrics columns`);
+    t.eq(f.metrics.border, ['1px', TOKENS.inkLine], `${fat}: metrics have a 1px ink-line top border`);
+    t.ok(
+      f.metrics.valueFonts.every((v) => v.size === 24 && v.weight === '600' && v.color === TOKENS.white),
+      `${fat}: metric values are 24px/600 white`,
+      JSON.stringify(f.metrics.valueFonts[0]),
+    );
+    t.ok(
+      f.metrics.labelFonts.every((l) => l.size === 13 && l.color === TOKENS.mutedDark),
+      `${fat}: metric labels are 13px muted-dark`,
+      JSON.stringify(f.metrics.labelFonts[0]),
+    );
+    t.ok(f.metrics.valueAboveLabel, `${fat}: metric value sits above its label`);
+    if (f.metrics.columns > 1) {
+      t.ok(spread(f.metrics.valueTops) <= 1, `${fat}: metric values share one top line`, JSON.stringify(f.metrics.valueTops));
+    }
+    t.ok(f.chipBorders.every((c) => c === 'rgb(42, 50, 66)'), `${fat}: chips are dark`);
+    t.ok(
+      f.linkFonts.every((l) => l.size === 14 && l.weight === '600' && l.color === TOKENS.cobaltSoft && l.height >= TOKENS.touchTarget),
+      `${fat}: links are 14px/600 cobalt-soft, ≥44px tall`,
+      JSON.stringify(f.linkFonts),
+    );
+    if (f.note) {
+      t.ok(
+        f.note.mono && f.note.size === 12 && f.note.color === TOKENS.mutedDark && f.note.belowLinks,
+        `${fat}: link note is mono 12px muted-dark, below the links`,
+        JSON.stringify(f.note),
+      );
+    }
   }
-
-  // Featured card.
-  const f = m.featured;
-  t.eq(f.background, TOKENS.ink, `${at}: featured card is ink`);
-  const featuredPad = desktop ? 40 : 24;
-  t.eq(f.padding, [featuredPad, featuredPad, featuredPad, featuredPad], `${at}: featured padding ${featuredPad}px`);
-  t.ok(f.minHeight === '420px' && f.height >= 420, `${at}: featured min-height 420px`, `${f.minHeight}, ${f.height}px`);
-  t.ok(f.topRow.chipAtStart && f.topRow.periodAtEnd, `${at}: kind chip and period are space-between`);
-  if (width >= 600) t.ok(f.topRow.sameLine, `${at}: kind chip and period share a line`);
-  t.ok(
-    f.topRow.periodFont.mono && f.topRow.periodFont.size === 12 && f.topRow.periodFont.color === TOKENS.cobaltSoft,
-    `${at}: period is mono 12px cobalt-soft`,
-    JSON.stringify(f.topRow.periodFont),
-  );
-  t.ok(
-    f.title.size === 32 && f.title.weight === '600' && f.title.tracking === -0.02 && f.title.color === TOKENS.white,
-    `${at}: featured H3 is 32px/600, -0.02em, white`,
-    JSON.stringify(f.title),
-  );
-  t.ok(
-    f.description.size === 16 && f.description.lineHeight === 1.6 && f.description.color === TOKENS.mutedDark,
-    `${at}: featured description is 16px/1.6 muted-dark`,
-    JSON.stringify(f.description),
-  );
-  t.near(f.description.maxWidth, f.description.sixtyCh, 0.5, `${at}: featured description max-width is 60ch`);
-  t.ok(f.description.width <= f.description.sixtyCh + 0.5, `${at}: featured description is at most 60ch wide`);
-  t.eq(f.metrics.columns, width >= 600 ? 3 : 1, `${at}: metrics columns`);
-  t.eq(f.metrics.border, ['1px', TOKENS.inkLine], `${at}: metrics have a 1px ink-line top border`);
-  t.ok(
-    f.metrics.valueFonts.every((v) => v.size === 24 && v.weight === '600' && v.color === TOKENS.white),
-    `${at}: metric values are 24px/600 white`,
-    JSON.stringify(f.metrics.valueFonts[0]),
-  );
-  t.ok(
-    f.metrics.labelFonts.every((l) => l.size === 13 && l.color === TOKENS.mutedDark),
-    `${at}: metric labels are 13px muted-dark`,
-    JSON.stringify(f.metrics.labelFonts[0]),
-  );
-  t.ok(f.metrics.valueAboveLabel, `${at}: metric value sits above its label`);
-  if (f.metrics.columns > 1) {
-    t.ok(spread(f.metrics.valueTops) <= 1, `${at}: metric values share one top line`, JSON.stringify(f.metrics.valueTops));
-  }
-  t.ok(f.chipBorders.every((c) => c === 'rgb(42, 50, 66)'), `${at}: featured chips are dark`);
-  t.ok(
-    f.linkFonts.every((l) => l.size === 14 && l.weight === '600' && l.color === TOKENS.cobaltSoft && l.height >= TOKENS.touchTarget),
-    `${at}: featured links are 14px/600 cobalt-soft, ≥44px tall`,
-    JSON.stringify(f.linkFonts),
-  );
 
   // Secondary and small card typography.
   t.ok(
@@ -316,9 +339,17 @@ function checkLayout(t, m, at, width) {
     `${at}: small description is 14px/1.55 muted`,
   );
 
-  // Row 2: two columns from 600px, one below; 24px gaps.
-  const smallColumns = new Set(m.small.map((c) => c.left)).size;
-  t.eq(smallColumns, width >= 600 ? 2 : 1, `${at}: small cards columns`);
+  // Row 2: three columns from 1200px, two from 600px (a lone last card spans both), one below; 24px gaps.
+  const expectedColumns = sideBySide ? 3 : width >= 600 ? 2 : 1;
+  t.eq(m.row2.columns.length, expectedColumns, `${at}: row 2 columns`);
+  const rows = Map.groupBy(m.row2.cards, (c) => c.top);
+  for (const [top, row] of rows) {
+    t.ok(spread(row.map((c) => c.height)) <= 1, `${at}: row 2 cards at ${top}px share one height`, JSON.stringify(row.map((c) => c.height)));
+  }
+  const last = m.row2.cards.at(-1);
+  if (rows.get(last.top).length === 1) {
+    t.near(last.width, m.row2.width, 1, `${at}: a lone last card in row 2 spans the full width`);
+  }
   t.eq(m.row2Gap.map(Math.round), [24, 24], `${at}: row 2 column gap and spacing below row 1 are 24px`);
 
   // Chips: one line, 28px, inside their card.
@@ -327,25 +358,30 @@ function checkLayout(t, m, at, width) {
   t.eq(bad((c) => c.outside > 0.5), [], `${at}: chips sit inside their card's content box`);
 }
 
-async function checkLinks(t, page, baseUrl, at) {
+async function checkLinks(t, page, baseUrl, at, noteText) {
   const links = await page.eval(() =>
     [...document.querySelectorAll('#projects a[href]')].map((a) => ({
       label: a.textContent.replace(/\s+/g, ' ').trim(),
       href: a.getAttribute('href'),
       target: a.getAttribute('target'),
       rel: (a.getAttribute('rel') ?? '').split(/\s+/).filter(Boolean),
+      describedBy: a.getAttribute('aria-describedby'),
+      note: a.getAttribute('aria-describedby') ? document.getElementById(a.getAttribute('aria-describedby'))?.textContent.trim() : null,
     })),
   );
   const external = links.filter((l) => /^https?:\/\//.test(l.href));
   const internal = links.filter((l) => !/^https?:\/\//.test(l.href));
   t.ok(external.length >= 1, `${at}: section has external links`, JSON.stringify(links));
   t.eq(
-    external.filter((l) => l.target !== '_blank' || !l.rel.includes('noopener')).map((l) => l.href),
+    external.filter((l) => l.target !== '_blank' || !l.rel.includes('noopener') || !l.rel.includes('noreferrer')).map((l) => l.href),
     [],
-    `${at}: external links open in a new tab with rel="noopener"`,
+    `${at}: external links open in a new tab with rel="noopener noreferrer"`,
   );
   t.eq(internal.filter((l) => l.target !== null).map((l) => l.href), [], `${at}: internal links stay in the same tab`);
-  await checkLinkTargets(t, links, baseUrl, at);
+  const liveApp = links.find((l) => l.href === LIVE_APP);
+  t.ok(liveApp && liveApp.note === noteText, `${at}: live-app link is described by the login note`, JSON.stringify(liveApp));
+  // The live app sits behind a login (and an external host): check only the site's own links for 404s.
+  await checkLinkTargets(t, links.filter((l) => l.href !== LIVE_APP), baseUrl, at);
 }
 
 async function checkHoverUnderline(t, browser, url, at) {
@@ -387,34 +423,36 @@ export default {
       const texts = await page.eval(readTexts);
       t.eq(texts.header, { kicker: content.sections.projects.kicker, title: content.sections.projects.title }, `${at}: Projects header matches locale`);
       t.eq(texts.repoLink, { label: content.ui.allRepos, href: content.profile.contact.github }, `${at}: repos link matches locale`);
-      const [featured] = byTier('featured');
+      const featured = byTier('featured');
+      t.eq(featured.map((p) => p.slug), FEATURED_SLUGS, `${at}: featured projects are MQ-Test, then Meus Investimentos`);
       t.eq(
         texts.featured,
-        {
-          kind: normalize(featured.kind),
-          period: featured.period && normalize(featured.period),
-          name: normalize(featured.name),
-          description: normalize(featured.description),
-          metrics: (featured.metrics ?? []).map((m) => ({ value: m.value, label: normalize(m.label) })),
-          stack: featured.stack.map(normalize),
-          links: featured.links.map((l) => ({ label: normalize(l.label), href: l.href })),
-          hasLinksRow: featured.links.length > 0,
-        },
-        `${at}: featured project matches locale`,
+        featured.map((p) => ({
+          kind: normalize(p.kind),
+          period: p.period && normalize(p.period),
+          name: normalize(p.name),
+          description: normalize(p.description),
+          metrics: (p.metrics ?? []).map((m) => ({ value: m.value, label: normalize(m.label) })),
+          stack: p.stack.map(normalize),
+          links: p.links.map((l) => ({ label: normalize(l.label), href: l.href })),
+          hasLinksRow: p.links.length > 0,
+          linkNote: p.linkNote && normalize(p.linkNote),
+        })),
+        `${at}: featured projects match locale`,
       );
       t.eq(
-        texts.featured.metrics.map((m) => m.value),
+        texts.featured.map((f) => f.metrics.map((m) => m.value)),
         FEATURED_VALUES[route.locale],
         `${at}: featured metrics are the real numbers in the locale's number format`,
       );
-      t.eq(texts.secondary, byTier('secondary').map(card), `${at}: secondary projects match locale (no links row when empty)`);
-      t.eq(texts.small, byTier('small').map(card), `${at}: small projects match locale (no links row when empty)`);
-      await checkLinks(t, page, baseUrl, at);
+      t.eq(texts.rest, [...byTier('secondary'), ...byTier('small')].map(card), `${at}: secondary then small projects match locale (no links row when empty)`);
+      t.ok(!content.projects.some((p) => p.slug === 'susagendamento'), `${at}: SUSAGENDAMENTO card is gone`);
+      await checkLinks(t, page, baseUrl, at, normalize(featured[1].linkNote));
 
       for (const width of WIDTHS) {
         await page.viewport(width);
         await page.goto(url);
-        checkLayout(t, await page.eval(measureLayout), `${at} @${width}`, width);
+        checkLayout(t, await page.eval(measureLayout, byTier('secondary').length), `${at} @${width}`, width);
       }
 
       await checkHoverUnderline(t, browser, url, `${at} @1440`);

@@ -1,7 +1,8 @@
 ---
 /**
  * Project links row: 14px/600 links, cobalt on light cards and cobalt-soft on the dark featured card.
- * External (http/https) links open in a new tab with rel="noopener". Renders nothing when `links` is empty.
+ * External (http/https) links open in a new tab with rel="noopener noreferrer". `describedBy` sets aria-describedby
+ * on every link (the featured card's link note). Renders nothing when `links` is empty.
  */
 import Icon from './ui/Icon.astro';
 import type { Content } from '../i18n';
@@ -9,10 +10,11 @@ import type { Content } from '../i18n';
 interface Props {
   links: Content['projects'][number]['links'];
   tone?: 'light' | 'dark';
+  describedBy?: string;
   class?: string;
 }
 
-const { links, tone = 'light', class: className } = Astro.props;
+const { links, tone = 'light', describedBy, class: className } = Astro.props;
 const isExternal = (href: string) => /^https?:\/\//.test(href);
 ---
 
@@ -23,7 +25,8 @@ const isExternal = (href: string) => /^https?:\/\//.test(href);
         <li>
           <a
             href={href}
-            {...(isExternal(href) ? { target: '_blank', rel: 'noopener' } : {})}
+            {...(isExternal(href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            aria-describedby={describedBy}
             class:list={[
               'inline-flex min-h-touch items-center gap-1.5 text-[14px] font-semibold',
               tone === 'dark' ? 'text-cobalt-soft' : 'text-cobalt',

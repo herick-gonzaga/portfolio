@@ -23,7 +23,14 @@ import { TOKENS } from './lib/context.mjs';
 const SPOTLIGHT = ['#projects article', '#impact [data-achievements] > li'];
 const TILT = '#projects article';
 const MAGNETIC = ['#top [href="#projects"]', 'header [href="#contact"]', '#contact a[href^="mailto:"]'];
-const FEATURED = { en: ['500+', '9,000+', '10+'], pt: ['500+', '9.000+', '10+'], es: ['500+', '9.000+', '10+'] };
+/** Featured metrics in DOM order: MQ-Test, then Meus Investimentos. */
+const FEATURED = {
+  en: ['500+', '9,000+', '10+', '6', '4', 'R$ 0'],
+  pt: ['500+', '9.000+', '10+', '6', '4', 'R$ 0'],
+  es: ['500+', '9.000+', '10+', '6', '4', 'R$ 0'],
+};
+/** What each featured metric shows while it waits below the fold: 0 with its prefix and suffix. */
+const FEATURED_START = ['0+', '0+', '0+', '0', '0', 'R$ 0'];
 
 /** Setup runs on idle after load; wait for it (and for the count-up's first observer report). */
 async function ready(page) {
@@ -160,7 +167,7 @@ async function checkCountUp(t, page, at, locale) {
   const start = await page.eval(readMetrics);
   t.eq(start.map((m) => m.sr), expected, `${at}: screen readers get the final metric values`);
   t.ok(start.every((m) => m.hidden === 'true'), `${at}: the counting copy is aria-hidden`);
-  t.eq(start.map((m) => m.shown), ['0+', '0+', '0+'], `${at}: metrics below the fold wait at 0 with their "+"`);
+  t.eq(start.map((m) => m.shown), FEATURED_START, `${at}: metrics below the fold wait at 0 with their prefix and suffix`);
   t.ok(start.every((m) => m.font.includes('JetBrains Mono')), `${at}: metrics keep the mono font`);
 
   await page.eval(() => document.querySelector('#projects dl').scrollIntoView({ block: 'center' }));

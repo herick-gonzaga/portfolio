@@ -192,6 +192,8 @@ export interface Content {
     /** Display-ready value, formatted for the locale (e.g. "9,000+" in EN, "9.000+" in PT/ES). */
     metrics?: { value: string; label: string }[];
     links: Link[];
+    /** Short mono note printed under the links row (e.g. "login required — demo on request"); links point to it with aria-describedby. */
+    linkNote?: string;
     tier: ProjectTier;
   }[];
   journey: {

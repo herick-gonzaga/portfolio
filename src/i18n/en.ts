@@ -231,6 +231,24 @@ export const en: Content = {
       tier: 'featured',
     },
     {
+      slug: 'meus-investimentos',
+      name: 'Meus Investimentos',
+      kind: 'Featured · Live',
+      period: '2025 — now',
+      description:
+        'Personal investment intelligence for the Brazilian market. Reads a real B3 and fixed-income portfolio, benchmarks it against the CDI, flags concentration, idle cash and FGC limits, and builds a monthly contribution plan where every suggestion comes with the reasoning, risks and sources. An MCP server lets AI agents analyze the portfolio on demand — at zero API cost.',
+      tagline: 'Private-banker-style dashboard for a real B3 and fixed-income portfolio, with the reasoning behind every suggestion.',
+      stack: ['FastAPI', 'Next.js', 'Supabase', 'MCP', 'Render', 'Vercel'],
+      metrics: [
+        { value: '6', label: 'product areas' },
+        { value: '4', label: 'official data sources' },
+        { value: 'R$ 0', label: 'monthly infra cost' },
+      ],
+      links: [{ label: 'Open the live app', href: 'https://day-trader-ruby.vercel.app' }],
+      linkNote: 'login required — demo on request',
+      tier: 'featured',
+    },
+    {
       slug: 'invoice-extraction',
       name: 'LLM invoice extraction, vendor by vendor',
       kind: 'Professional · SubBase',
@@ -251,16 +269,6 @@ export const en: Content = {
       stack: ['E2E', 'CI'],
       links: [],
       tier: 'secondary',
-    },
-    {
-      slug: 'susagendamento',
-      name: 'SUSAGENDAMENTO',
-      kind: 'Product design',
-      description: 'Mobile app concept for scheduling public-health (SUS) appointments, designed in Figma.',
-      tagline: 'Figma concept for booking public-health (SUS) appointments.',
-      stack: ['Figma', 'Mobile UX'],
-      links: [],
-      tier: 'small',
     },
     {
       slug: 'prompt-pattern-docs',

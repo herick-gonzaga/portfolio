@@ -271,7 +271,10 @@ export default {
         t.ok(rafIdle <= 2, `${label} reduced motion: no animation-frame loop while idle`, `${rafIdle} rAF calls in 2.5s`);
         t.eq(await page.eval(() => document.querySelector('[data-typewriter-text]')?.textContent), typed0, `${label} reduced motion: typewriter frozen on the first role`);
         const counters = await page.eval(() =>
-          [...document.querySelectorAll('[data-countup]')].filter((el) => !/[1-9]/.test(el.textContent)).map((el) => el.textContent),
+          // Compared with the static sr-only copy beside each counter: a final value can be a real zero ("R$ 0").
+          [...document.querySelectorAll('[data-countup]')]
+            .filter((el) => el.textContent.trim() !== el.parentElement.querySelector('.sr-only')?.textContent.trim())
+            .map((el) => el.textContent),
         );
         t.eq(counters, [], `${label} reduced motion: every counter shows its final value`);
         const reveals = await page.eval(() =>
