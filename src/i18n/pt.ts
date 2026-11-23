@@ -235,6 +235,24 @@ export const pt: Content = {
       tier: 'featured',
     },
     {
+      slug: 'meus-investimentos',
+      name: 'Meus Investimentos',
+      kind: 'Destaque · No ar',
+      period: '2025 — atual',
+      description:
+        'Inteligência de investimentos pessoal para o mercado brasileiro. Lê uma carteira real de B3 e renda fixa, compara com o CDI, aponta concentração, dinheiro parado e limite do FGC, e monta o plano de aporte do mês com o porquê, os riscos e as fontes de cada sugestão. Um servidor MCP permite que agentes de IA analisem a carteira sob demanda — com custo zero de API.',
+      tagline: 'Painel no estilo private banker para uma carteira real de B3 e renda fixa, com o porquê de cada sugestão.',
+      stack: ['FastAPI', 'Next.js', 'Supabase', 'MCP', 'Render', 'Vercel'],
+      metrics: [
+        { value: '6', label: 'áreas do produto' },
+        { value: '4', label: 'fontes oficiais de dados' },
+        { value: 'R$ 0', label: 'custo mensal de infra' },
+      ],
+      links: [{ label: 'Abrir o app no ar', href: 'https://day-trader-ruby.vercel.app' }],
+      linkNote: 'requer login — demo sob demanda',
+      tier: 'featured',
+    },
+    {
       slug: 'invoice-extraction',
       name: 'Extração de notas fiscais com LLM, fornecedor por fornecedor',
       kind: 'Profissional · SubBase',
@@ -255,16 +273,6 @@ export const pt: Content = {
       stack: ['E2E', 'CI'],
       links: [],
       tier: 'secondary',
-    },
-    {
-      slug: 'susagendamento',
-      name: 'SUSAGENDAMENTO',
-      kind: 'Design de produto',
-      description: 'Conceito de app mobile para agendamento de consultas no SUS, desenhado no Figma.',
-      tagline: 'Conceito em Figma para agendar consultas do SUS.',
-      stack: ['Figma', 'Mobile UX'],
-      links: [],
-      tier: 'small',
     },
     {
       slug: 'prompt-pattern-docs',

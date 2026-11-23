@@ -238,6 +238,24 @@ export const es: Content = {
       tier: 'featured',
     },
     {
+      slug: 'meus-investimentos',
+      name: 'Meus Investimentos',
+      kind: 'Destacado · En línea',
+      period: '2025 — actual',
+      description:
+        'Inteligencia de inversiones personal para el mercado brasileño. Lee una cartera real de B3 y renta fija, la compara con el CDI, señala concentración, dinero parado y límite del FGC, y arma el plan de aporte del mes con el porqué, los riesgos y las fuentes de cada sugerencia. Un servidor MCP permite que agentes de IA analicen la cartera bajo demanda — con costo cero de API.',
+      tagline: 'Panel al estilo private banker para una cartera real de B3 y renta fija, con el porqué de cada sugerencia.',
+      stack: ['FastAPI', 'Next.js', 'Supabase', 'MCP', 'Render', 'Vercel'],
+      metrics: [
+        { value: '6', label: 'áreas del producto' },
+        { value: '4', label: 'fuentes oficiales de datos' },
+        { value: 'R$ 0', label: 'costo mensual de infra' },
+      ],
+      links: [{ label: 'Abrir la app en línea', href: 'https://day-trader-ruby.vercel.app' }],
+      linkNote: 'requiere inicio de sesión — demo a pedido',
+      tier: 'featured',
+    },
+    {
       slug: 'invoice-extraction',
       name: 'Extracción de facturas con LLM, proveedor por proveedor',
       kind: 'Profesional · SubBase',
@@ -258,16 +276,6 @@ export const es: Content = {
       stack: ['E2E', 'CI'],
       links: [],
       tier: 'secondary',
-    },
-    {
-      slug: 'susagendamento',
-      name: 'SUSAGENDAMENTO',
-      kind: 'Diseño de producto',
-      description: 'Concepto de app móvil para agendar citas en el sistema público de salud de Brasil (SUS), diseñado en Figma.',
-      tagline: 'Concepto en Figma para agendar citas en la salud pública brasileña (SUS).',
-      stack: ['Figma', 'Mobile UX'],
-      links: [],
-      tier: 'small',
     },
     {
       slug: 'prompt-pattern-docs',

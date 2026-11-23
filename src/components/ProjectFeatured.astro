@@ -5,6 +5,7 @@
  * Metric values render exactly as they appear in the locale files (number format is per locale). With
  * motion allowed they count up from 0 the first time they scroll into view (src/scripts/interactions.ts);
  * the counting copy is aria-hidden and screen readers read the static sr-only value.
+ * An optional `linkNote` prints under the links (mono 12px muted-dark) and describes them (aria-describedby).
  */
 import ProjectLinks from './ProjectLinks.astro';
 import Card from './ui/Card.astro';
@@ -17,6 +18,7 @@ interface Props {
 }
 
 const { project, class: className } = Astro.props;
+const noteId = project.linkNote ? `${project.slug}-link-note` : undefined;
 ---
 
 <Card as="article" reveal tilt dark padding="featured" class:list={['flex min-h-[420px] flex-col', className]}>
@@ -55,6 +57,7 @@ const { project, class: className } = Astro.props;
       }
     </ul>
 
-    <ProjectLinks links={project.links} tone="dark" class="mt-4" />
+    <ProjectLinks links={project.links} tone="dark" describedBy={noteId} class="mt-4" />
+    {project.linkNote && <p id={noteId} class="font-mono text-mono-sm text-muted-dark">{project.linkNote}</p>}
   </div>
 </Card>
